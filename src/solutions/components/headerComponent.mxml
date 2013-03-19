@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" creationComplete="init()"
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="55"
+					  backgroundColor="#225A74" >
+	<fx:Script>
+		
+		<![CDATA[
+			import mx.managers.PopUpManager;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			import mx.managers.CursorManager;
+			import solutions.components.HTMLPopup;
+			import solutions.components.download.downloadWindow;
+			import solutions.components.print.badprintWindow;
+			
+			import spark.components.ButtonBarButton;
+			
+			[Embed(source="assets/icons/new_header/bar.png")] 
+			[Binable]private var midImage:Class; 
+			
+			private function init():void
+			{
+				SiteContainer.addEventListener(TemplateEvent.TOC_WIN_CHANGE, layersSelectedTabBar);
+			}
+			
+			private function showAbout():void
+			{
+				HTMLPopup.show(htmlTxt, "OK", 375,290);
+			}
+			
+			protected function layersSelectedTabBar(event:TemplateEvent):void
+			{
+				if (event.data == 'layers'){
+					toolSelectorTabBar.selectedIndex = 0;
+				}
+				else{
+				}
+			}
+			
+			protected function toolSelectorTabBar_changeHandler(event:MouseEvent):void
+			{ 
+				CursorManager.removeBusyCursor();
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_WIN_CHANGE, false, false, toolSelectorTabBar.selectedItem.name));
+			}
+			
+			//These are individual popup widgets
+			protected function print_btn_clickHandler(event:MouseEvent):void
+			{
+				var printPopUp:badprintWindow;
+				PopUpUtils.closeAllPopups();				
+				printPopUp =  PopUpManager.createPopUp(this, badprintWindow, false) as badprintWindow;				
+				printPopUp.x = this.width/2-15;
+				printPopUp.y = 80;
+			}
+			
+			protected function download_btn_clickHandler(event:MouseEvent):void
+			{
+				var downloadPopUp:downloadWindow = new downloadWindow();
+				PopUpUtils.closeAllPopups();				
+				downloadPopUp =  PopUpManager.createPopUp(this, downloadWindow, false) as downloadWindow;				
+				downloadPopUp.x = this.width/2-410;
+				downloadPopUp.y = 198;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<fx:Declarations>
+		<fx:String id="htmlTxt">
+			<![CDATA[<p align='center'><b>About</b></p><br><br>The Northeast Ocean Data Viewer is developed by the Northeast Ocean Data Portal Working Group, a collaboration between SeaPlan, Northeastern Regional Association of Coastal Ocean Observing Systems (NERACOOS), The Nature Conservancy (TNC), NOAA's Coastal Services Center, Applied Science Associates and the Gulf of Maine Research Institute.<br><br>This viewer was developed to serve the Northeast Regional Ocean Council's (NROC) implementation of the National Policy for the Stewardship of the Ocean, Coasts, and Great Lakes and the Final Recommendations of the Ocean Policy Task Force.<br><br><p align='center'>Please refer all questions to Nick Napoli at nnapoli@northeastoceancouncil.org.</p>]]>
+		</fx:String>
+	</fx:Declarations>
+	
+	<s:Label x="10" y="10" fontSize="20" color="#CEE7F4" text="Northeast Ocean Data Viewer"/>
+	<s:HGroup x="8" y="32">
+		<s:Label  fontSize="12" color="#CEE7F4" text="A component of the"/>
+		<s:Label  fontSize="12" color="#FFFFFF" buttonMode="true" useHandCursor="true" textDecoration="underline" click="navigateToURL(new URLRequest('http://northeastoceandata.org/'),'_mine')" text="Northeast Ocean Data Portal"/>	
+	</s:HGroup>
+	
+	<s:HGroup verticalAlign="middle" paddingTop="10" paddingRight="45" paddingLeft="320" width="100%" horizontalAlign="center">	
+				
+		<s:TabBar id="toolSelectorTabBar" skinClass="skins.ToolSelectorTabBarSkin" visible="true"
+				  left="0" top="4" height="100%" click="toolSelectorTabBar_changeHandler(event)"
+				  selectedIndex="0">
+			<s:dataProvider>
+				<s:ArrayList>
+					<fx:Object label="Layers" name="layers" iconClick="@Embed('assets/icons/new_header/layer_list_down.png')"
+							   icon="@Embed('assets/icons/new_header/layer_list_down.png')" iconStart="@Embed('assets/icons/new_header/layer_list.png')"
+							   obj="Layers"/>
+					<fx:Object label="External Layers" name="external" iconClick="@Embed('assets/icons/new_header/external_layers_down.png')"
+							   icon="@Embed('assets/icons/new_header/external_layers.png')" iconStart="@Embed('assets/icons/new_header/external_layers.png')"
+							   obj="External Layers"/>
+					<fx:Object label="Identify" name="identify" iconClick="@Embed('assets/icons/new_header/identify_down.png')"
+							   icon="@Embed('assets/icons/new_header/identify.png')" iconStart="@Embed('assets/icons/new_header/identify.png')"
+							   obj="Identify"/>
+					<fx:Object label="Draw" name="draw" iconClick="@Embed('assets/icons/new_header/draw_measure_down.png')"
+							   icon="@Embed('assets/icons/new_header/draw_measure.png')" iconStart="@Embed('assets/icons/new_header/draw_measure.png')"
+							   obj="Draw and Measure"/>
+					<fx:Object label="Coordinates" name="coordinates"  iconClick="@Embed('assets/icons/new_header/search_location_down.png')"
+							   icon="@Embed('assets/icons/new_header/search_location.png')" iconStart="@Embed('assets/icons/new_header/search_location.png')"
+							   obj="Search"/>
+				</s:ArrayList>
+			</s:dataProvider>
+		</s:TabBar>
+		
+		<s:HGroup paddingLeft="11" gap="9">
+			<s:Button id="print_btn" buttonMode="true" skinClass="skins.TopBarToolSelectorButtonSkinBig" name="new_header/printer" toolTip="Print Map" click="print_btn_clickHandler(event)"/>
+			<s:Image  source="{midImage}" />
+			<s:Button id="download_btn" buttonMode="true"  skinClass="skins.TopBarToolSelectorButtonSkinBig" name="new_header/download" toolTip="Download Data" click="download_btn_clickHandler(event)"/>
+		</s:HGroup>
+	</s:HGroup>
+	<mx:VBox right="3" horizontalAlign="right" paddingRight="13" paddingTop="4">
+		<s:Label buttonMode="true" fontSize="12" id="hl" color="#CEE7F4"
+				 click="navigateToURL(new URLRequest('http://northeastoceanviewer.org/assets/Portal_help.htm'), 'AGOL')"
+				 text="Help" mouseOver="hl.setStyle('color','black')" mouseOut="hl.setStyle('color','#CEE7F4')"
+				 useHandCursor="true"
+				 verticalAlign="middle"
+				 visible="false"/>
+		<s:Label buttonMode="true" fontSize="12" color="#CEE7F4"
+				 click="showAbout()" id="al"
+				 text="About" mouseOver="al.setStyle('color','black')" mouseOut="al.setStyle('color','#CEE7F4')"
+				 useHandCursor="true"
+				 verticalAlign="middle"/>
+		<s:Label id="portalLink" text="Homepage" buttonMode="true" useHandCursor="true" color="#CEE7F4" fontSize="12"
+				 click="navigateToURL(new URLRequest('http://northeastoceandata.org/'),'_mine')" visible="false"
+				 mouseOver="portalLink.setStyle('color','black')" mouseOut="portalLink.setStyle('color','#CEE7F4')"/>
+	</mx:VBox>
+</s:SkinnableContainer>

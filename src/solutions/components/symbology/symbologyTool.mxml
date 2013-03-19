@@ -1,0 +1,741 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 xmlns:esri="http://www.esri.com/2008/ags"
+		 creationComplete="group1_creationCompleteHandler(event)"
+		 initialize="group1_initializeHandler(event)"
+		 currentState="point">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.layers.supportClasses.AllDetails;
+			
+			import mx.controls.Alert;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.events.ItemClickEvent;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			
+			[Bindable] private var pointSymArray:ArrayList = new ArrayList([]);
+			[Bindable] private var lineSymArray:ArrayList = new ArrayList([]);
+			[Bindable] private var polygonSymArray:ArrayList = new ArrayList([]);        
+			[Bindable] private var fromComponent:String;        
+			
+			
+			[Bindable] private var _symbolObj:Object = [];
+			
+			public function set symbolObj(o:Object):void
+			{
+				if(_symbolObj != null)
+				{
+				_symbolObj = o;
+				
+				updateSwatch();
+				} else {
+					_symbolObj = o;
+				}
+				//polygonList.addEventListener(MouseEvent.CLICK, sendGraphicInfo);
+			}
+			
+			private function formatDataTipPercent(item:Object):String
+			{
+				return String(item)+"%"; 
+			}
+			
+			private function updatePointSwatch():void
+			{
+				
+				if(_symbolObj.item == 'point') var swatch:UIComponent = drawpointFill.createSwatch(pointSize.value + pointOutlineWidth.value, pointSize.value + pointOutlineWidth.value);
+				else var swatch:UIComponent = coordinatespointFill.createSwatch(CpointSize.value + CpointOutlineWidth.value, CpointSize.value + CpointOutlineWidth.value);
+				
+				// otherwise the sides get cut off when we do ImageSnapshot.captureImage
+				swatch.verticalCenter = 0;
+				swatch.horizontalCenter = 0;
+				swatchArea.removeAllElements();
+				swatchArea.addElement(swatch);
+			}
+			private function updateLineSwatch():void
+			{
+				if(_symbolObj.from == 'drawline') var swatch:UIComponent = drawlineFill.createSwatch(40 + lineWidth.value * 2, lineWidth.value);
+				else var swatch:UIComponent = coordinateslineFill.createSwatch(40 + ClineWidth.value * 2, ClineWidth.value);
+				
+				// otherwise the sides get cut off when we do ImageSnapshot.captureImage
+				swatch.verticalCenter = 0;
+				swatch.horizontalCenter = 0;
+				//swatch.left = swatch.right = swatch.top = swatch.bottom = 1;
+				
+				swatchArea.removeAllElements();
+				swatchArea.addElement(swatch);
+			}
+			private function updatePolygonSwatch():void
+			{
+				if(_symbolObj.from == 'drawpolygon') var swatch:UIComponent = drawpolygonFill.createSwatch(40, 30);
+				else var swatch:UIComponent = coordinatespolygonFill.createSwatch(40, 30);
+				
+				// otherwise the sides get cut off when we do ImageSnapshot.captureImage
+				swatch.verticalCenter = 0;
+				swatch.horizontalCenter = 0;
+				swatchArea.removeAllElements();
+				swatchArea.addElement(swatch);
+				
+			}
+			
+			private function updateTextSwatch():void
+			{
+			}
+			protected function save_clickHandler(event:MouseEvent):void
+			{
+				if (currentState == 'drawtext')
+				{
+					var tf:TextFormat = new TextFormat(myFont.selectedItem,tfSize.value,tsColor1.selectedColor,tfBold.selected,tfItalic.selected,tfUnderline.selected);
+					drawtextFill.textFormat = tf;
+				}
+				
+				var obj:Object = {
+					item: _symbolObj.item,
+					type: _symbolObj.type,
+					from: "draw",
+					symbol: this[_symbolObj.item+"Fill"]
+					//symbol: this["draw"+_symbolObj.item+"Fill"]
+				}
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.SYMBOL_CHANGED, false, false, obj));
+			}
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				updateSwatch();
+			}
+			
+			private function updateSwatch():void
+			{
+				if(_symbolObj.item == 'point')
+				{
+					updatePointSwatch();
+				} else if (_symbolObj.item == 'line')
+				{
+					updateLineSwatch();
+				} else if (_symbolObj.item == 'polygon'){
+					updatePolygonSwatch();
+				}else {
+					updateTextSwatch();
+				}
+			}
+			
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{		
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.SYMBOLOGY_CHANGE, false, false, null));
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<esri:SimpleMarkerSymbol id="pointFillPrevious"/>
+		<esri:SimpleLineSymbol id="lineFillPrevious" />
+		<esri:SimpleFillSymbol id="polygonFillPrevious"/>
+		<esri:TextSymbol id="textFillPrevious"/>
+		
+		<esri:SimpleMarkerSymbol id="drawpointFill"
+								 alpha="{1 - pointFillAlpha.value * .01}"
+								 color="{pointFillColor.selectedColor}"
+								 size="{pointSize.value}"
+								 style="{pointMarkerStyle.selectedItem}">
+			<esri:SimpleLineSymbol width="{pointOutlineWidth.value}"
+								   alpha="{1 - pointFillAlpha.value * .01}"
+								   color="{pointLineColor.selectedColor}"/>
+		</esri:SimpleMarkerSymbol>
+		
+		<esri:SimpleLineSymbol id="drawlineFill"
+									 width="{lineWidth.value}"
+									 alpha="{1 - lineAlpha.value * .01}"
+									 color="{lineColor.selectedColor}"
+									 style="{lineStyle.selectedItem}"/>
+		
+	<esri:SimpleFillSymbol id="drawpolygonFill"
+							   alpha="{1 - polygonFillAlpha.value * .01}"
+							   color="{polygonFillColor.selectedColor}"
+							   style="{polygonFillStyle.selectedItem}">
+			<esri:SimpleLineSymbol width="{polygonOutlineWidth.value}"
+								   alpha="{1 - polygonFillAlpha.value * .01}"
+								   color="{polygonOutlineColor.selectedColor}"
+								   style="{polygonOutlineStyle.selectedItem}"/>
+		</esri:SimpleFillSymbol>
+		
+		<esri:SimpleMarkerSymbol id="coordinatespointFill"
+								 alpha="{1 - CpointFillAlpha.value * .01}"
+								 color="{CpointFillColor.selectedColor}"
+								 size="{CpointSize.value}"
+								 style="{CpointMarkerStyle.selectedItem}">
+			<esri:SimpleLineSymbol width="{CpointOutlineWidth.value}"
+								   alpha="{1 - CpointFillAlpha.value * .01}"
+								   color="{CpointLineColor.selectedColor}"/>
+		</esri:SimpleMarkerSymbol>
+		
+		<esri:SimpleLineSymbol id="coordinateslineFill"
+							   width="{ClineWidth.value}"
+							   alpha="{1 - ClineAlpha.value * .01}"
+							   color="{ClineColor.selectedColor}"
+							   style="{ClineStyle.selectedItem}"/>
+		
+		<esri:SimpleFillSymbol id="coordinatespolygonFill"
+							   alpha="{1 - CpolygonFillAlpha.value * .01}"
+							   color="{CpolygonFillColor.selectedColor}"
+							   style="{CpolygonFillStyle.selectedItem}">
+			<esri:SimpleLineSymbol width="{CpolygonOutlineWidth.value}"
+								   alpha="{1 - CpolygonFillAlpha.value * .01}"
+								   color="{CpolygonOutlineColor.selectedColor}"
+								   style="{CpolygonOutlineStyle.selectedItem}"/>
+		</esri:SimpleFillSymbol>
+		
+		<esri:TextSymbol id="drawtextFill"
+						 background="{tsBackground.selected}"
+						 backgroundColor="{tsColor2.selectedColor}"
+						 border="{tsBorder.selected}"
+						 borderColor="{tsBorderColor.selectedColor}"
+						 color="{tsColor1.selectedColor}">
+		</esri:TextSymbol>
+	</fx:Declarations>
+	
+	<s:states>
+		<s:State name="point" />
+		<s:State name="drawline"/>
+		<s:State name="drawpolygon"/>
+		<s:State name="coordinatespoint" />
+		<s:State name="coordinatesline"/>
+		<s:State name="coordinatespolygon"/>
+		<s:State name="drawtext"/>
+	</s:states>
+	
+	<s:Panel title="Symbology" skinClass="skins.toolPanelSkin" width="100%" height="100%">
+		<s:VGroup width="100%" clipAndEnableScrolling="true"
+				  paddingLeft="8" paddingTop="8">
+			
+		<s:VGroup gap="0" paddingTop="0" paddingLeft="0">
+				
+			<!-- POINT SYMBOLS -->
+			<s:Form includeIn="point" alpha="0.8"
+					backgroundColor="0xEEEEEE"
+					skinClass="skins.SymbologyForm">
+				<s:FormItem label="Color:" left="0">
+					<mx:ColorPicker id="pointFillColor" change="updatePointSwatch();"/>
+				</s:FormItem>
+				<s:FormItem label="Size:">
+					<s:HGroup gap="2">
+					<s:Label text="0" fontSize="9" fontWeight="normal"/>
+					
+						<s:HSlider id="pointSize"
+							   width="100"
+							   liveDragging="true"
+							   maximum="40"
+							   minimum="0"
+							   snapInterval="1.0"
+							   value="8" change="updatePointSwatch();"/>
+						
+					<s:Label text="40" fontSize="10" fontWeight="normal"/>
+						
+					</s:HGroup>
+				</s:FormItem>
+				<s:FormItem label="Transparency:">
+					<s:HGroup gap="2">
+						<s:Label text="0%" fontSize="9" fontWeight="normal"/>
+						<s:HSlider id="pointFillAlpha"
+								width="100"
+								liveDragging="true"
+								maximum="100"
+								minimum="0"
+								snapInterval="1"
+								value="50"
+								dataTipPrecision="0" 
+								dataTipFormatFunction="formatDataTipPercent" change="updatePointSwatch();"/>
+						<s:Label text="100%" fontSize="10" fontWeight="normal"/>
+					</s:HGroup>
+				</s:FormItem>
+				<s:FormItem label="Style:">
+					<s:DropDownList id="pointMarkerStyle" selectedIndex="0" change="updatePointSwatch();">
+						<s:ArrayList>
+							<fx:String>circle</fx:String>
+							<fx:String>cross</fx:String>
+							<fx:String>diamond</fx:String>
+							<fx:String>square</fx:String>
+							<fx:String>triangle</fx:String>
+							<fx:String>x</fx:String>
+						</s:ArrayList>
+					</s:DropDownList>
+				</s:FormItem>
+				<s:FormItem label="Outline Color:">
+					<mx:ColorPicker id="pointLineColor" selectedColor="0xDD0000" change="updatePointSwatch();"/>
+				</s:FormItem>
+				<s:FormItem label="Outline Width:">
+					<s:HGroup gap="2">
+						<s:Label text="0" fontSize="9" fontWeight="normal"/>
+						<s:HSlider id="pointOutlineWidth"
+							   width="100"
+							   liveDragging="true"
+							   maximum="10"
+							   minimum="0"
+							   snapInterval="1"
+							   value="2" change="updatePointSwatch();"/>
+						<s:Label text="10" fontSize="10" fontWeight="normal"/>
+						
+					</s:HGroup>
+				</s:FormItem>
+			</s:Form>
+				
+				<!-- POINT SYMBOLS -->
+				<s:Form includeIn="coordinatespoint" alpha="0.8"
+						backgroundColor="0xEEEEEE"
+						skinClass="skins.SymbologyForm">
+					<s:FormItem label="Color:" left="0">
+						<mx:ColorPicker id="CpointFillColor" change="updatePointSwatch();"/>
+					</s:FormItem>
+					<s:FormItem label="Size:">
+						<s:HGroup gap="2">
+							<s:Label text="0" fontSize="9" fontWeight="normal"/>
+							
+							<s:HSlider id="CpointSize"
+									   width="100"
+									   liveDragging="true"
+									   maximum="40"
+									   minimum="0"
+									   snapInterval="1.0"
+									   value="8" change="updatePointSwatch();"/>
+							
+							<s:Label text="40" fontSize="10" fontWeight="normal"/>
+							
+						</s:HGroup>
+					</s:FormItem>
+					<s:FormItem label="Transparency:">
+						<s:HGroup gap="2">
+							<s:Label text="0%" fontSize="9" fontWeight="normal"/>
+							<s:HSlider id="CpointFillAlpha"
+									   width="100"
+									   liveDragging="true"
+									   maximum="100"
+									   minimum="0"
+									   snapInterval="1"
+									   value="50"
+									   dataTipPrecision="0" 
+									   dataTipFormatFunction="formatDataTipPercent" change="updatePointSwatch();"/>
+							<s:Label text="100%" fontSize="10" fontWeight="normal"/>
+							
+						</s:HGroup>
+					</s:FormItem>
+					<s:FormItem label="Style:">
+						<s:DropDownList id="CpointMarkerStyle" selectedIndex="0" change="updatePointSwatch();">
+							<s:ArrayList>
+								<fx:String>circle</fx:String>
+								<fx:String>cross</fx:String>
+								<fx:String>diamond</fx:String>
+								<fx:String>square</fx:String>
+								<fx:String>triangle</fx:String>
+								<fx:String>x</fx:String>
+							</s:ArrayList>
+						</s:DropDownList>
+					</s:FormItem>
+					<s:FormItem label="Outline Color:">
+						<mx:ColorPicker id="CpointLineColor" selectedColor="0xDD0000" change="updatePointSwatch();"/>
+					</s:FormItem>
+					<s:FormItem label="Outline Width:">
+						<s:HGroup gap="2">
+							<s:Label text="0" fontSize="9" fontWeight="normal"/>
+							<s:HSlider id="CpointOutlineWidth"
+									   width="100"
+									   liveDragging="true"
+									   maximum="10"
+									   minimum="0"
+									   snapInterval="1"
+									   value="2" change="updatePointSwatch();"/>
+							<s:Label text="10" fontSize="10" fontWeight="normal"/>
+							
+						</s:HGroup>
+					</s:FormItem>
+					
+				</s:Form>
+		
+			<!-- LINE SYMBOLS -->
+			<s:Form alpha="0.8"
+					 backgroundColor="0xEEEEEE"
+					 includeIn="drawline"
+					 skinClass="skins.SymbologyForm">
+				<s:FormItem label="Symbol Name:">
+					<s:TextInput id="lineName" width="100" text="Default Line"/>
+				</s:FormItem>
+				<s:FormItem label="Color:">
+					<mx:ColorPicker id="lineColor" selectedColor="0x0066FF" change="updateLineSwatch();"/>
+				</s:FormItem>
+				<s:FormItem label="Width:">
+					<s:HGroup gap="2">
+						<s:Label text="0" fontSize="9" fontWeight="normal"/>
+						<s:HSlider id="lineWidth"
+							   width="100"
+							   liveDragging="true"
+							   maximum="20"
+							   minimum="0"
+							   snapInterval="1"
+							   value="4" change="updateLineSwatch();"/>
+						<s:Label text="20" fontSize="10" fontWeight="normal"/>
+						
+					</s:HGroup>
+				</s:FormItem>
+				<s:FormItem label="Transparency:">
+					<s:HGroup gap="2">
+						<s:Label text="0%" fontSize="9" fontWeight="normal"/>
+						<s:HSlider id="lineAlpha"
+							   width="100"
+							   liveDragging="true"
+							   maximum="100"
+							   minimum="0"
+							   snapInterval="1"
+							   value="50" 
+							   dataTipPrecision="0" 
+							   dataTipFormatFunction="formatDataTipPercent" change="updateLineSwatch();"/>
+						<s:Label text="100%" fontSize="10" fontWeight="normal"/>
+						
+					</s:HGroup>
+				</s:FormItem>
+				<s:FormItem label="Style:">
+					<s:DropDownList id="lineStyle"
+									top="35"
+									cornerRadius="0"
+									fontWeight="normal"
+									horizontalCenter="0"
+									selectedIndex="4" change="updateLineSwatch();">
+						<s:ArrayList>
+							<fx:String>dash</fx:String>
+							<fx:String>dashdot</fx:String>
+							<fx:String>dashdotdot</fx:String>
+							<fx:String>dot</fx:String>
+							<fx:String>solid</fx:String>
+						</s:ArrayList>
+					</s:DropDownList>
+				</s:FormItem>
+			</s:Form>
+			
+				<!-- LINE SYMBOLS -->
+				<s:Form alpha="0.8"
+						backgroundColor="0xEEEEEE"
+						includeIn="coordinatesline"
+						skinClass="skins.SymbologyForm">
+					<s:FormItem label="Symbol Name:">
+						<s:TextInput id="ClineName" width="100" text="Default Line"/>
+					</s:FormItem>
+					<s:FormItem label="Color:">
+						<mx:ColorPicker id="ClineColor" selectedColor="0x0066FF" change="updateLineSwatch();"/>
+					</s:FormItem>
+					<s:FormItem label="Width:">
+						<s:HGroup gap="2">
+							<s:Label text="0" fontSize="9" fontWeight="normal"/>
+							<s:HSlider id="ClineWidth"
+									   width="100"
+									   liveDragging="true"
+									   maximum="20"
+									   minimum="0"
+									   snapInterval="1"
+									   value="4" change="updateLineSwatch();"/>
+							<s:Label text="20" fontSize="10" fontWeight="normal"/>
+							
+						</s:HGroup>
+					</s:FormItem>
+					<s:FormItem label="Transparency:">
+						<s:HGroup gap="2">
+							<s:Label text="0%" fontSize="9" fontWeight="normal"/>
+							<s:HSlider id="ClineAlpha"
+									   width="100"
+									   liveDragging="true"
+									   maximum="100"
+									   minimum="0"
+									   snapInterval="1"
+									   value="50" 
+									   dataTipPrecision="0" 
+									   dataTipFormatFunction="formatDataTipPercent" change="updateLineSwatch();"/>
+							<s:Label text="100%" fontSize="10" fontWeight="normal"/>
+							
+						</s:HGroup>
+					</s:FormItem>
+					<s:FormItem label="Style:">
+						<s:DropDownList id="ClineStyle"
+										top="35"
+										cornerRadius="0"
+										fontWeight="normal"
+										horizontalCenter="0"
+										selectedIndex="4" change="updateLineSwatch();">
+							<s:ArrayList>
+								<fx:String>dash</fx:String>
+								<fx:String>dashdot</fx:String>
+								<fx:String>dashdotdot</fx:String>
+								<fx:String>dot</fx:String>
+								<fx:String>solid</fx:String>
+							</s:ArrayList>
+						</s:DropDownList>
+					</s:FormItem>
+				</s:Form>	
+			
+			<!-- POLYGON SYMBOLS -->
+			<s:Form alpha="0.8"
+					 backgroundColor="0xEEEEEE"
+					 includeIn="drawpolygon"
+					 skinClass="skins.SymbologyForm">
+				<s:FormItem label="Symbol Name:">
+					<s:TextInput id="polygonName" width="100" text="Default Polygon"/>
+				</s:FormItem>
+				<s:FormItem label="Color:">
+					<mx:ColorPicker id="polygonFillColor" selectedColor="0x00FF66" change="updatePolygonSwatch();"/>
+				</s:FormItem>
+				<s:FormItem label="Transparency:">
+					<s:HGroup gap="2">
+						<s:Label text="0%" fontSize="9" fontWeight="normal"/>
+						<s:HSlider id="polygonFillAlpha"
+								width="100"
+								liveDragging="true"
+								maximum="100"
+								minimum="0"
+								snapInterval="1"
+								value="50" 
+								dataTipPrecision="0" 
+								dataTipFormatFunction="formatDataTipPercent" change="updatePolygonSwatch();"/>
+						<s:Label text="100%" fontSize="10" fontWeight="normal"/>
+						
+					</s:HGroup>
+				</s:FormItem>
+				<s:FormItem label="Style:">
+					<s:DropDownList id="polygonFillStyle"
+									top="35"
+									cornerRadius="0"
+									fontWeight="normal"
+									horizontalCenter="0"
+									selectedIndex="0" change="updatePolygonSwatch();">
+						<s:ArrayList>
+							<fx:String>solid</fx:String>
+							<fx:String>cross</fx:String>
+							<fx:String>diagonalcross</fx:String>
+							<fx:String>horizontal</fx:String>
+							<fx:String>vertical</fx:String>
+							<fx:String>backwarddiagonal</fx:String>
+							<fx:String>forwarddiagonal</fx:String>
+						</s:ArrayList>
+					</s:DropDownList>
+				</s:FormItem>
+				<s:FormItem label="Outline Color:">
+					<mx:ColorPicker id="polygonOutlineColor" selectedColor="0x006600" change="updatePolygonSwatch();"/>
+				</s:FormItem>
+				<s:FormItem label="Outline Width:">
+					<s:HGroup gap="2">
+						<s:Label text="0" fontSize="9" fontWeight="normal"/>
+						<s:HSlider id="polygonOutlineWidth"
+								width="100"
+								liveDragging="true"
+								maximum="20"
+								minimum="0"
+								snapInterval="1"
+								value="4" change="updatePolygonSwatch();"/>
+						<s:Label text="20" fontSize="10" fontWeight="normal"/>
+						
+					</s:HGroup>
+				</s:FormItem>
+				<s:FormItem label="Outline Style:">
+					<s:DropDownList id="polygonOutlineStyle"
+									top="35"
+									cornerRadius="0"
+									fontWeight="normal"
+									horizontalCenter="0"
+									selectedIndex="4" change="updatePolygonSwatch();">
+						<s:ArrayList>
+							<fx:String>dash</fx:String>
+							<fx:String>dashdot</fx:String>
+							<fx:String>dashdotdot</fx:String>
+							<fx:String>dot</fx:String>
+							<fx:String>solid</fx:String>
+						</s:ArrayList>
+					</s:DropDownList>
+				</s:FormItem>
+			</s:Form>
+				
+				<!-- POLYGON SYMBOLS -->
+				<s:Form alpha="0.8"
+						backgroundColor="0xEEEEEE"
+						includeIn="coordinatespolygon"
+						skinClass="skins.SymbologyForm">
+					<s:FormItem label="Symbol Name:">
+						<s:TextInput id="CpolygonName" width="100" text="Default Polygon"/>
+					</s:FormItem>
+					<s:FormItem label="Color:">
+						<mx:ColorPicker id="CpolygonFillColor" selectedColor="0x00FF66" change="updatePolygonSwatch();"/>
+					</s:FormItem>
+					<s:FormItem label="Transparency:">
+						<s:HGroup gap="2">
+							<s:Label text="0%" fontSize="9" fontWeight="normal"/>
+							<s:HSlider id="CpolygonFillAlpha"
+									   width="100"
+									   liveDragging="true"
+									   maximum="100"
+									   minimum="0"
+									   snapInterval="1"
+									   value="50" 
+									   dataTipPrecision="0" 
+									   dataTipFormatFunction="formatDataTipPercent" change="updatePolygonSwatch();"/>
+							<s:Label text="100%" fontSize="10" fontWeight="normal"/>
+							
+						</s:HGroup>
+					</s:FormItem>
+					<s:FormItem label="Style:">
+						<s:DropDownList id="CpolygonFillStyle"
+										top="35"
+										cornerRadius="0"
+										fontWeight="normal"
+										horizontalCenter="0"
+										selectedIndex="0" change="updatePolygonSwatch();">
+							<s:ArrayList>
+								<fx:String>solid</fx:String>
+								<fx:String>cross</fx:String>
+								<fx:String>diagonalcross</fx:String>
+								<fx:String>horizontal</fx:String>
+								<fx:String>vertical</fx:String>
+								<fx:String>backwarddiagonal</fx:String>
+								<fx:String>forwarddiagonal</fx:String>
+							</s:ArrayList>
+						</s:DropDownList>
+					</s:FormItem>
+					<s:FormItem label="Outline Color:">
+						<mx:ColorPicker id="CpolygonOutlineColor" selectedColor="0x006600" change="updatePolygonSwatch();"/>
+					</s:FormItem>
+					<s:FormItem label="Outline Width:">
+						<s:HGroup gap="2">
+							<s:Label text="0" fontSize="9" fontWeight="normal"/>
+							<s:HSlider id="CpolygonOutlineWidth"
+									   width="100"
+									   liveDragging="true"
+									   maximum="20"
+									   minimum="0"
+									   snapInterval="1"
+									   value="4" change="updatePolygonSwatch();"/>
+							<s:Label text="20" fontSize="10" fontWeight="normal"/>
+							
+						</s:HGroup>
+					</s:FormItem>
+					<s:FormItem label="Outline Style:">
+						<s:DropDownList id="CpolygonOutlineStyle"
+										top="35"
+										cornerRadius="0"
+										fontWeight="normal"
+										horizontalCenter="0"
+										selectedIndex="4" change="updatePolygonSwatch();">
+							<s:ArrayList>
+								<fx:String>dash</fx:String>
+								<fx:String>dashdot</fx:String>
+								<fx:String>dashdotdot</fx:String>
+								<fx:String>dot</fx:String>
+								<fx:String>solid</fx:String>
+							</s:ArrayList>
+						</s:DropDownList>
+					</s:FormItem>
+				</s:Form>
+		</s:VGroup>
+		<s:Form alpha="0.8"
+				backgroundColor="0xEEEEEE"
+				includeIn="drawtext"
+				skinClass="skins.SymbologyForm">
+			
+			<s:FormItem label="Text Color">
+				<mx:ColorPicker id="tsColor1"
+								change="updateTextSwatch()"
+								selectedColor="0x000000"/>
+			</s:FormItem>
+			<s:FormItem label="Text Font:">
+				<s:DropDownList id="myFont"
+								change="updateTextSwatch()"
+								horizontalCenter="0"
+								selectedIndex="5">
+					<s:ArrayList>
+						<fx:String>Algerian</fx:String>
+						<fx:String>Arial</fx:String>
+						<fx:String>Broadway</fx:String>
+						<fx:String>Comic Sans MS</fx:String>
+						<fx:String>Courier</fx:String>
+						<fx:String>Verdana</fx:String>
+					</s:ArrayList>
+				</s:DropDownList>
+			</s:FormItem>
+			<s:FormItem label="Text Size:">
+				<s:HSlider id="tfSize"
+						   width="80"
+						   change="updateTextSwatch()"
+						   liveDragging="true"
+						   maximum="80"
+						   minimum="0"
+						   snapInterval="1"
+						   value="15"/>
+			</s:FormItem>
+			<s:FormItem>
+			<s:HGroup width="100%">
+				<s:CheckBox id="tsBackground"
+							change="updateTextSwatch()"
+							label="Use background"
+							selected="false"/>
+				<mx:ColorPicker id="tsColor2"
+								change="updateTextSwatch()"
+								selectedColor="0xCCCCCC"
+								toolTip="TextSymbol Background Color"
+								visible="{tsBackground.selected}"/>
+			</s:HGroup>
+			</s:FormItem>
+			<s:FormItem>
+			<s:HGroup width="100%">
+				<s:CheckBox id="tsBorder"
+							 change="updateTextSwatch()"
+							 label="Use border"
+							 selected="false"/>
+				<mx:ColorPicker id="tsBorderColor"
+								change="updateTextSwatch()"
+								selectedColor="0x000000"
+								toolTip="Border Color"
+								visible="{tsBorder.selected}"/>
+			</s:HGroup>
+			</s:FormItem>
+			<s:FormItem>
+			<s:CheckBox id="tfBold"
+						change="updateTextSwatch()"
+						label="Bold"
+						selected="true"/>
+			</s:FormItem>
+			<s:FormItem>
+			<s:CheckBox id="tfItalic"
+						change="updateTextSwatch()"
+						label="Italic"
+						selected="false"/>
+			</s:FormItem>
+			<s:FormItem>
+			<s:CheckBox id="tfUnderline"
+						change="updateTextSwatch()"
+						label="Underline"
+						selected="false"/>
+			</s:FormItem>
+		</s:Form>
+			
+			<s:HGroup verticalAlign="middle" verticalCenter="0" paddingBottom="25">
+				<s:Label excludeFrom="drawtext" text="Graphic:" fontWeight="bold" paddingRight="22" paddingTop="16"/>
+				<s:Group excludeFrom="drawtext" id="swatchArea" minHeight="40" width="40"/>
+				
+				<s:Group includeIn="drawtext" width="{drawTextLabel.width+8}" height="{drawTextLabel.height+8}">
+					<s:Rect width="100%" height="100%">
+						<s:stroke>
+							<s:SolidColorStroke color="{tsBorder.selected ? tsBorderColor.selectedColor : 0xFFFFFF}" weight="2"/>
+						</s:stroke>
+						<s:fill>
+							<s:SolidColor id="bgFill" color="{tsBackground.selected ? tsColor2.selectedColor : 0xFFFFFF}" />
+						</s:fill>
+					</s:Rect>
+					<s:Label id="drawTextLabel" text="Sample Map Label" fontFamily="{myFont.selectedItem}" color="{tsColor1.selectedColor}" 
+							 fontSize="{tfSize.value}"
+							 fontWeight="{tfBold.selected ? 'bold' : 'normal'}"
+							 fontStyle="{tfItalic.selected ? 'italic' : 'normal'}"
+							 textDecoration="{tfUnderline.selected ? 'underline' : 'none'}"
+							 paddingLeft="4" paddingTop="6"/>
+				</s:Group>
+			</s:HGroup>
+			<s:Button label="Save Symbology and Return" click="save_clickHandler(event)"/>
+		</s:VGroup>
+	</s:Panel>
+</s:Group>

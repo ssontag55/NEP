@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  skinClass="skins.baseMapSelectorSkin"
+		  height="50" creationComplete="initmap()">
+	
+	<fx:Script>
+		<![CDATA[
+			//import com.esri.ags.layers.Layer;
+			
+			import mx.controls.Alert;
+			import mx.controls.Button;
+			import mx.core.FlexGlobals;
+			import mx.events.ItemClickEvent;
+			import mx.events.ListEvent;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			
+			[Bindable]
+			public var bgcolor:uint = 0xEEEEEE;
+			
+						
+			//[Bindable]public var layer:Layer= FlexGlobals.topLevelApplication.mainMap.getLayer("Raster Nautical Chart");
+			
+			private function initmap():void{
+				
+				SiteContainer.addEventListener(TemplateEvent.SET_BASEMAP_INDEX, setBaseMapIndex);
+				
+				var selectedMap1:String;
+				if (baseMapLinkBar.selectedIndex  == 0){
+					selectedMap1 = "Ocean";
+				}
+				if (baseMapLinkBar.selectedIndex  == 1){
+					selectedMap1 = "Imagery";
+				}
+				if (baseMapLinkBar.selectedIndex  == 2){
+					selectedMap1 = "Topo";
+				}	
+				if (baseMapLinkBar.selectedIndex  == 3){
+					selectedMap1 = "Nautical";
+				}	
+				FlexGlobals.topLevelApplication.selectedBaseMap = selectedMap1;
+				
+				if (FlexGlobals.topLevelApplication.selectedMap != null){
+					if (FlexGlobals.topLevelApplication.selectedMap  == 'Ocean'){
+						baseMapLinkBar.selectedIndex = 0;
+					}
+					if (FlexGlobals.topLevelApplication.selectedMap  == 'Imagery'){
+						baseMapLinkBar.selectedIndex = 1;
+					}
+					if (FlexGlobals.topLevelApplication.selectedMap  == 'Topo'){
+						baseMapLinkBar.selectedIndex = 2;
+					}
+					if (FlexGlobals.topLevelApplication.selectedMap  == 'Nautical'){
+						baseMapLinkBar.selectedIndex = 3;
+					}
+				}
+			}
+			
+			//coming from basemap zoom handler
+			private function setBaseMapIndex(event:TemplateEvent):void{
+				if (FlexGlobals.topLevelApplication.selectedMap != null){
+					if (FlexGlobals.topLevelApplication.selectedMap  == 'Ocean'){
+						baseMapLinkBar.selectedIndex = 0;
+					}
+					if (FlexGlobals.topLevelApplication.selectedMap  == 'Imagery'){
+						baseMapLinkBar.selectedIndex = 1;
+					}
+					if (FlexGlobals.topLevelApplication.selectedMap  == 'Topo'){
+						baseMapLinkBar.selectedIndex = 2;
+					}
+					if (FlexGlobals.topLevelApplication.selectedMap  == 'Nautical'){
+						baseMapLinkBar.selectedIndex = 3;
+					}
+					
+				}
+				/* if (rnc1.selected == true){	
+					layer.visible = false;
+					layer.visible = true;
+					layer.refresh();
+				} */
+			}
+			
+			private function handleClick(event:ListEvent) : void {	
+				
+			  if ((event.currentTarget.selectedLabel == "Ocean") && (FlexGlobals.topLevelApplication.mainMap.level > 13)){
+				Alert.show("The Ocean Basemap is not available at this scale.  Please zoom out or use another basemap")
+			}
+			else{ 	 
+				//set hidden checkboxes to false
+				/* FlexGlobals.topLevelApplication.hddnOceanChckBx.selected = false;
+				FlexGlobals.topLevelApplication.hddnStreetChckBx.selected = false;
+				FlexGlobals.topLevelApplication.hddnGrayChckBx.selected = false; */
+				
+				
+				// know bug for linkbar, the selected inex will not update, garrett's fix from MMCv2
+				/* for (var i:int=0; i<(baseMapLinkBar.numChildren) ; i++)
+				{
+					var temp:Button = baseMapLinkBar.getChildAt(i) as Button;
+					if(i!=event.currentTarget.selectedIndex){
+						temp.enabled = true;
+					} else {
+						temp.enabled = false;	
+					}
+				} */
+				
+				var selectedMap2:String;				
+				if (baseMapLinkBar.selectedIndex  == 0){
+					selectedMap2 = "Ocean";	
+					FlexGlobals.topLevelApplication.selectedMap  = "Ocean"
+				}
+				if (baseMapLinkBar.selectedIndex  == 1){
+					selectedMap2 = "Imagery";
+					FlexGlobals.topLevelApplication.selectedMap = "Imagery"
+				}
+				if (baseMapLinkBar.selectedIndex  == 2){
+					selectedMap2 = "Topo";
+					FlexGlobals.topLevelApplication.selectedMap	 = "Topo"				
+				}
+				if (baseMapLinkBar.selectedIndex  == 3){
+					selectedMap2 = "Nautical";
+					FlexGlobals.topLevelApplication.selectedMap	 = "Nautical"				
+				}
+				//Define a String which gets assigned the "value" attribute
+				//of the selected radio button. This value will be passed to
+				//the SiteContainer via a the "BASEMAP_TOGGLE" TemplateEvent...
+				
+				FlexGlobals.topLevelApplication.selectedBaseMap = selectedMap2;
+				
+				//Dispatch the "BASEMAP_TOGGLE" TemplateEvent passing the "selectedMap" String...
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.BASEMAP_TOGGLE, false, false, selectedMap2));
+			
+			}
+				//If Nautical Charts were turned on, they would be hidden by the new basemap, turn off, turn back on.
+				/* if (rnc1.selected == true){	
+					layer.visible = false;
+					layer.visible = true;
+					layer.refresh();
+				} */
+			}
+			
+			/* protected function rnc1_changeHandler(event:Event):void
+			{			
+				layer = FlexGlobals.topLevelApplication.mainMap.getLayer("Raster Nautical Chart");
+				if (rnc1.selected == true){					
+					layer.visible = true;
+					layer.alpha = rncSlider.value/100
+				}
+				else{					
+					layer.visible = false;			
+				}
+			}
+			
+			protected function rncSlider_changeHandler(event:Event):void
+			{
+				layer.alpha = rncSlider.value/100;
+			} */
+			private function myDataTipFormatFunction(val:String):String
+			{
+				return 	String(val) + "%";
+			}
+			
+			private function iconCreate():void{
+				
+				//baseMapLinkBar.dropdown.iconField = "icon";
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		
+		<!--<s:RadioButtonGroup id="baseMaps" itemClick="handleClick(event);" />-->
+	</fx:Declarations>
+	<s:VGroup paddingLeft="2" horizontalAlign="center">
+		<mx:ComboBox id="baseMapLinkBar" cornerRadius="5" prompt="Basemaps" width="149" styleName="helpLinkBar" creationComplete="iconCreate()" change="handleClick(event)" selectedIndex="0">
+			<mx:dataProvider>
+				<fx:Object label="Ocean" value="Ocean" icon="@Embed('assets/icons/oceanbase.jpg')"/>
+				<fx:Object label="Satellite" value="Imagery" icon="@Embed('assets/icons/imagerybase.jpg')"/>
+				<fx:Object label="Topo" value="Topo" icon="@Embed('assets/icons/topobase.jpg')"/>
+				<fx:Object label="Chart" value="Nautical" icon="@Embed('assets/icons/RNC.png')"/>
+			</mx:dataProvider>
+			<mx:itemRenderer>
+				<fx:Component>
+					<mx:HBox horizontalAlign="center" width="148"  paddingLeft="-11" paddingRight="-9" verticalScrollPolicy="off" horizontalScrollPolicy="off" horizontalGap="0" verticalAlign="middle">
+						<mx:Image source="{data.icon}"/>
+						<mx:Label text="{data.label}" width="50" toolTip="{data.label}" />
+					</mx:HBox>
+				</fx:Component>
+			</mx:itemRenderer>
+		</mx:ComboBox>
+	
+		<!--<s:HGroup verticalCenter="2" verticalAlign="middle"  id="basemapRadioButtonGroup">
+			
+			<s:Label text="Base Map:" fontWeight="bold" />
+		
+			<s:RadioButton groupName="baseMaps" id="Ocean" skinClass="skins.radioButtonSkin" 
+						   value="Ocean Map" label="Ocean" selected="true"/>			
+			<s:RadioButton groupName="baseMaps" id="imagery" skinClass="skins.radioButtonSkin" 
+						   value="Imagery Map" label="Imagery" />
+			<s:RadioButton groupName="baseMaps" id="Street" skinClass="skins.radioButtonSkin" 
+						   value="Street Map" label="Street"/>
+			
+		</s:HGroup>
+		<s:HGroup visible="false" width="0" verticalAlign="middle" horizontalAlign="center">
+			<s:Label text="Nautical Charts:" fontWeight="bold" />
+			<s:CheckBox id="rnc1" change="rnc1_changeHandler(event)"/>		
+			<s:HSlider id="rncSlider" minimum="0" maximum="100" showDataTip="true" dataTipFormatFunction="myDataTipFormatFunction" value="75" visible="true" change="rncSlider_changeHandler(event)" />				
+		</s:HGroup>		-->
+	</s:VGroup>
+	<!--<s:Line xFrom="8" xTo="287" yFrom="59" yTo="59">
+		<s:stroke>
+			<s:SolidColorStroke color="#ffffff" weight="1"/>
+		</s:stroke>
+	</s:Line>-->	
+</s:SkinnableContainer>

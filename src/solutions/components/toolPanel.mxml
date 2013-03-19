@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 xmlns:toc="solutions.components.toc.*" 
+		 xmlns:draw="solutions.components.draw.*"
+		 height="100%"
+		 initialize="group1_initializeHandler(event)"
+		 currentState="layers" xmlns:coordinates="solutions.components.coordinates.*" 
+		 xmlns:identify="solutions.components.identify.*" xmlns:symbology="solutions.components.symbology.*" 
+		 xmlns:TitleWindowCustom="TitleWindowCustom.*" xmlns:external="solutions.components.external.*">
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Map;
+			
+			import mx.core.Container;
+			import mx.events.FlexEvent;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			
+			[Bindable]public var map:Map; 
+			[Bindable]public var myContainer:Container; 
+			[Bindable]public var lastState:String="layers";
+			
+			[Bindable]public var selLayerID:String="";
+			[Bindable]public var selLayerURL:String="";
+			[Bindable]public var fromComponent:String;
+			[Bindable]public var toolbarCursor:String;
+			
+			protected function toolSelectorTabBar_changeHandler(event:TemplateEvent):void
+			{ 
+				currentState = String(event.data).toLowerCase();
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,"Default"));
+				if (event.data == 'draw') SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.DRAW_END_HANDLER, false, false, null));
+								
+				if (event.data != 'identify' && identify != null){					
+					identify.graphicsService.visible = false;	
+					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.IDENTIFY_END_HANDLER, false, false, null));
+				}
+				
+				if (event.data == 'identify'){
+					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.IDENTIFY_END_HANDLER, false, false, null));
+					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,"Identify"));
+					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.IDENTIFY_BEGIN_HANDLER, false, false, null));	
+					identify.graphicsService.visible = true;
+				}
+			}
+			
+			private function clearAllLays():void{
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.CLEAR_LAYERS));
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,"Default"));
+			}
+			
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				SiteContainer.addEventListener(TemplateEvent.CHANGE_SYMBOL, changeToSymbology);				
+				SiteContainer.addEventListener(TemplateEvent.SYMBOL_CHANGED, symbolChanged);
+				SiteContainer.addEventListener(TemplateEvent.TOC_WIN_CHANGE, toolSelectorTabBar_changeHandler);			
+			}	
+			
+			private function changeToSymbology(event:TemplateEvent):void
+			{
+				currentState = "symbology";
+				fromComponent = String(event.data.from);
+				//symbology.setCurrentState(String(event.data.from) + String(event.data.item));
+				symbology.setCurrentState(String(event.data.item));
+				symbology.symbolObj = event.data;
+			}
+			
+			private function symbolChanged(event:TemplateEvent):void
+			{
+				currentState =String(event.data.from);
+			}
+			
+			protected function toolPanel_trigger_clickHandler(event:MouseEvent):void
+			{
+				if (currentState == 'hide') 
+				{
+					map.setStyle('left',300);
+					currentState = lastState;
+				}
+				else
+				{
+					lastState = currentState; 
+					currentState = 'hide';
+					map.setStyle('left',0);
+				}
+				if (currentState == 'draw') SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.DRAW_END_HANDLER, false, false, null));
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,"Default"));
+			}
+			
+			/* protected function resize1_effectEndHandler(event:EffectEvent):void
+			{
+				toolPanelContainer.width = 0;
+			}
+			
+			protected function resize2_effectStartHandler(event:EffectEvent):void
+			{
+				toolPanelContainer.width = 300;
+			} */	
+			
+			private function showLays():void
+			{
+				currentState = 'layers';
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,"Default"));
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_WIN_CHANGE, false, false, "layers"));
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+	</fx:Declarations>
+	
+	<s:transitions>
+				
+		<s:Transition id="fadeTOC" toState="layers" >			
+			<s:CrossFade duration="0" target="{layers}"/>			
+		</s:Transition>
+		
+		<s:Transition id="fadeID" toState="identify" >			
+			<s:CrossFade duration="50" target="{identify}"/>			
+		</s:Transition>
+		
+		<s:Transition id="fadeDraw" toState="draw" >			
+			<s:CrossFade duration="50" target="{draw}"/>			
+		</s:Transition>
+		
+		<s:Transition id="fadeCoords" toState="coordinates" >			
+			<s:CrossFade duration="50" target="{coordinates}"/>			
+		</s:Transition>
+		
+		<s:Transition id="fadeSym" toState="symbology" >			
+			<s:CrossFade duration="50" target="{symbology}"/>			
+		</s:Transition>
+	</s:transitions>
+	
+	<s:states>
+		<s:State name="hide" />
+		<s:State name="layers" />
+		<s:State name="identify" />
+		<s:State name="draw" />
+		<s:State name="coordinates" />
+		<s:State name="symbology" />
+		<s:State name="external" />
+	</s:states>
+	
+	<s:HGroup id="toolPanelGroup" gap="-1" height="100%">
+		<TitleWindowCustom:CustomTitleWindow id="toolPanelContainer" width="300" height="100%" backgroundColor="0xFFFFFF" excludeFrom="hide" 
+											skinClass="TitleWindowCustom.skins.CustomTitleWindowSkin2" cornerRadius="0" title="" borderVisible="false" dropShadowVisible="false" >
+			<toc:TOCMain id="layers" visible="true" height="100%" width="100%" includeIn="layers" map="{map}"/>
+			
+			<identify:identifyTool id="identify" visible="true" height="100%" width="100%" includeIn="identify" map="{map}" selectedLayerID="{selLayerID}" selectedLayerURL="{selLayerURL}"  />
+			
+			<draw:drawTool id="draw" visible="true" height="100%" width="100%" includeIn="draw" map="{map}"/>
+			
+			<coordinates:coordinatesTool id="coordinates" height="100%" width="100%" includeIn="coordinates" map="{map}"/>
+		
+			<symbology:symbologyTool id="symbology" height="100%" width="100%" includeIn="symbology" />
+			
+			<external:externalTOC id="external" height="100%" width="100%" includeIn="external" map="{map}"/>
+			
+		</TitleWindowCustom:CustomTitleWindow>
+		
+		<s:SkinnableContainer skinClass="skins.TopBarToolSelectorContainerSkin">
+		<s:HGroup paddingTop="4" includeIn="hide" height="28" gap="0" left="0">
+			<s:Button buttonMode="true"  skinClass="skins.TopBarToolSelectorButtonSkinShad" name="arrow_right" icon="@Embed('assets/icons/arrow_right.png')" toolTip="Show Layer Panel" click="toolPanel_trigger_clickHandler(event)"/>		
+		</s:HGroup>
+		<s:HGroup paddingTop="4" excludeFrom="hide" height="28" gap="4" left.draw="-60" left.symbology="-60" left.coordinates="-60" left.identify="-60" left="-120">
+			<mx:LinkButton buttonMode="true"  includeIn="layers,external" paddingTop="2" textDecoration="underline"  toolTip="Turn all Layers off" label="All Layers Off" color="white" click="clearAllLays()"/>
+			<s:Button buttonMode="true" includeIn="symbology,identify,coordinates,draw"  skinClass="skins.TopBarToolSelectorButtonSkin" icon="@Embed('assets/icons/toc.png')" toolTip="Show Layers" click="showLays()"/>
+			<s:Button buttonMode="true"  skinClass="skins.TopBarToolSelectorButtonSkin" name="arrow_left" icon="@Embed('assets/icons/arrow_left.png')" toolTip="Minimize Layer Panel" click="toolPanel_trigger_clickHandler(event)"/>
+		</s:HGroup>
+		</s:SkinnableContainer>
+	</s:HGroup>
+</s:Group>

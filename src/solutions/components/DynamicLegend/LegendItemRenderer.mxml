@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				autoDrawBackground="false"
+				dataChange="itemrenderer_dataChangeHandler(event)"
+				styleName="RecordCanvas"
+				visible="{iVisible}"
+				includeInLayout="{iVisible}">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Map;
+			import com.esri.ags.events.ZoomEvent;
+			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+			import com.esri.ags.layers.FeatureLayer;
+			import com.esri.ags.layers.Layer;
+			import com.esri.ags.symbols.*;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Image;
+			import mx.core.FlexGlobals;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.utils.Base64Decoder;
+			
+			import spark.primitives.BitmapImage;
+			
+			[Bindable]
+			private var vlabel:String;
+			[Bindable]
+			private var hlabel:String;
+			
+			private var _loader:Loader;
+			
+			[Bindable]
+			private var iVisible:Boolean = false;
+			
+			private var iminscale:Number = 0;
+			
+			private var imaxscale:Number = 0;
+			
+			private var lScale:Number = 0;
+			
+			private var map:Map;
+			
+			
+			private var layer:Layer;
+			
+			private var lId:int;
+			
+			private var visArr:ArrayCollection;
+			
+			private var base64Dec:Base64Decoder;
+			
+			private function updateVisibilty(evt:Event):void
+			{	
+				//trace(evt);
+				/* layer = map.getLayer(data.lname);
+				
+				lId = data.id;
+				
+				if (layer is ArcGISTiledMapServiceLayer)
+				{
+					visArr = ArcGISTiledMapServiceLayer(layer).visibleLayers;
+					//Trap to not allow baselayers to be added to the legend, since they are the only tiled services
+					lId=999999;
+					
+				}
+				else if (layer is ArcGISDynamicMapServiceLayer)
+				{
+					visArr = ArcGISDynamicMapServiceLayer(layer).visibleLayers;
+				}
+				else if (layer is FeatureLayer)
+				{
+					visArr = new ArrayCollection([lId]);
+				}
+				
+				if(imaxscale == 0 && iminscale == 0 && layer.visible && visArr.contains(lId))
+				{
+					iVisible = true;
+				}
+				else if(((iminscale == 0 || map.scale <= iminscale) && map.scale >= imaxscale) && layer.visible && visArr.contains(lId))
+				{
+					iVisible = true;
+				}
+				else 
+				{
+					iVisible = false;
+				} */
+			}
+			
+			private function itemrenderer_dataChangeHandler(event:FlexEvent):void
+			{
+			  map = FlexGlobals.topLevelApplication.mainMap;
+				
+			  if( data != null){
+				
+				lScale = map.scale;
+				iminscale = data.minscale;
+				imaxscale = data.maxscale;
+				lId = data.id;
+				
+				layer = map.getLayer(data.lname);
+				
+				/* if (layer is ArcGISTiledMapServiceLayer)
+				{
+					
+					//Trap to not allow baselayers to be added to the legend, since they are the only tiled services
+					lId=999999;
+					//layer.addEventListener(FlexEvent.SHOW,updateVisibilty);
+					//layer.addEventListener(FlexEvent.HIDE,updateVisibilty);
+					visArr = ArcGISTiledMapServiceLayer(layer).visibleLayers;					
+					//ChangeWatcher.watch(ArcGISTiledMapServiceLayer(layer), "visibleLayers", updateVisibilty);
+				}
+				else  */
+				if (layer is ArcGISDynamicMapServiceLayer)
+				{
+					layer.addEventListener(FlexEvent.SHOW,updateVisibilty);
+					layer.addEventListener(FlexEvent.HIDE,updateVisibilty); 
+					var arrArr:ArrayCollection = ArcGISDynamicMapServiceLayer(layer).visibleLayers as ArrayCollection; 
+					visArr = new ArrayCollection();
+					 for each (var visItem in arrArr){						
+						 if ((String(typeof(visItem)).toLowerCase() =="xml")  ||  (String(typeof(visItem)).toLowerCase() =="xmllist")) visArr.addItem( Number( visItem.toString()));
+						 else{
+							 visArr.addItem(Number(visItem.toString()));
+						 }
+					 }
+					
+					ChangeWatcher.watch(ArcGISDynamicMapServiceLayer(layer), "visibleLayers", updateVisibilty);
+				}
+				/* else if (layer is FeatureLayer)
+				{
+					layer.addEventListener(FlexEvent.SHOW,updateVisibilty);
+					layer.addEventListener(FlexEvent.HIDE,updateVisibilty);
+					visArr = new ArrayCollection([lId]);
+				} */
+				
+				if(visArr != null)
+				{
+					if(imaxscale == 0 && iminscale == 0 && layer.visible && visArr.contains(lId))
+					{
+						iVisible = true;
+					}
+						//else if(((iminscale == 0 || map.scale <= imaxscale) && map.scale >= imaxscale) && layer.visible && visArr.contains(lId))
+					else if(((iminscale >= map.scale)  && (map.scale >= imaxscale)) && layer.visible && visArr.contains(lId))	
+					{
+						iVisible = true;
+					}
+					else 
+					{
+						iVisible = false;
+					}
+				}
+				
+				map.addEventListener(ZoomEvent.ZOOM_END, updateVisibilty);
+				
+				var uic:UIComponent;
+				if (data)
+				{
+					if(data.otype && data.label){
+						hlabel = data.label;
+						
+						//tLabel.left = 5;
+						pic.includeInLayout = false;
+						pic.visible = false;	
+					}
+					
+					if((data.label && !data.otype)||(data.imagedata)||data.url){
+						
+							vlabel = data.label;
+							tLabel.left = 45;
+							var byteArr:ByteArray;
+							base64Dec = new Base64Decoder();
+							base64Dec.decode(data.imagedata);							
+							byteArr = base64Dec.toByteArray();
+							
+							_loader  = new Loader();
+							var lc:LoaderContext = new LoaderContext(false);
+							_loader.contentLoaderInfo.addEventListener(Event.COMPLETE,function(e:Event):void
+							{ 
+								
+								pic.source = e.currentTarget.content;
+								pic.includeInLayout = true;
+								pic.visible = true;
+								
+							}
+						);
+							
+						if (byteArr.length > 0){							
+						_loader.loadBytes(byteArr);
+						}
+						if (byteArr.length < 1)
+							{
+								pic.source =  data.url;	
+								pic.includeInLayout = true;
+								pic.visible = true;
+							}
+						
+					}else if((data.label && !data.otype)||(data.rend)){
+						vlabel = data.rend.label;
+						tLabel.left = 45;
+						if(data.rend.symbol is com.esri.ags.symbols.TextSymbol)
+						{
+							//Not implmented
+						}
+						if(data.rend.symbol is com.esri.ags.symbols.SimpleMarkerSymbol){
+							if(data.rend.symbol.style == "circle")
+							{
+								var crSMSline:SimpleLineSymbol = new SimpleLineSymbol();
+								//var crSMSline:SimpleLineSymbol = new SimpleLineSymbol("solid",data.rend.symbol.outline.color?data.rend.symbol.outline.color:0x000000,data.rend.symbol.outline.alpha?data.rend.symbol.outline.alpha:1,data.rend.symbol.outline.width);
+								var SMSCircle:SimpleMarkerSymbol = new SimpleMarkerSymbol(data.rend.symbol.style, data.rend.symbol.size, data.rend.symbol.color?data.rend.symbol.color:0x000000, data.rend.symbol.alpha?data.rend.symbol.alpha:1, data.rend.symbol.xoffset, data.rend.symbol.yoffset, data.rend.symbol.angle, crSMSline);
+								uic = SMSCircle.createSwatch(30,18);
+								hg.addElementAt(uic,1);
+							}
+							if(data.rend.symbol.style == "cross")
+							{
+								var cSMSline:SimpleLineSymbol = new SimpleLineSymbol("solid",data.rend.symbol.outline.color?data.rend.symbol.outline.color:0x000000,data.rend.symbol.outline.alpha?data.rend.symbol.outline.alpha:1,data.rend.symbol.outline.width);
+								var SMSCross:SimpleMarkerSymbol = new SimpleMarkerSymbol(data.rend.symbol.style,data.rend.symbol.size,data.rend.symbol.color?data.rend.symbol.color:0x000000, data.rend.symbol.alpha?data.rend.symbol.alpha:1,
+									data.rend.symbol.xoffset, data.rend.symbol.yoffset,data.rend.symbol.angle,cSMSline);
+								uic = SMSCross.createSwatch(30,18);
+								hg.addElementAt(uic,1);
+							}
+							if(data.rend.symbol.style == "diamond")
+							{
+								var dSMSline:SimpleLineSymbol = new SimpleLineSymbol("solid",data.rend.symbol.outline.color?data.rend.symbol.outline.color:0x000000,data.rend.symbol.outline.alpha?data.rend.symbol.outline.alpha:1,data.rend.symbol.outline.width);
+								var SMSDiamond:SimpleMarkerSymbol = new SimpleMarkerSymbol(data.rend.symbol.style,data.rend.symbol.size,data.rend.symbol.color?data.rend.symbol.color:0x000000, data.rend.symbol.alpha?data.rend.symbol.alpha:1,
+									data.rend.symbol.xoffset, data.rend.symbol.yoffset,data.rend.symbol.angle,dSMSline);
+								uic = SMSDiamond.createSwatch(30,18);
+								hg.addElementAt(uic,1);
+							}
+							if(data.rend.symbol.style == "square")
+							{
+								var sSMSline:SimpleLineSymbol = new SimpleLineSymbol("solid",data.rend.symbol.outline.color?data.rend.symbol.outline.color:0x000000,data.rend.symbol.outline.alpha?data.rend.symbol.outline.alpha:1,data.rend.symbol.outline.width);
+								var SMSSquare:SimpleMarkerSymbol = new SimpleMarkerSymbol(data.rend.symbol.style,data.rend.symbol.size,data.rend.symbol.color?data.rend.symbol.color:0x000000, data.rend.symbol.alpha?data.rend.symbol.alpha:1,
+									data.rend.symbol.xoffset, data.rend.symbol.yoffset,data.rend.symbol.angle,sSMSline);
+								uic = SMSSquare.createSwatch(30,18);
+								hg.addElementAt(uic,1);
+							}
+							if(data.rend.symbol.style == "triangle")
+							{
+								var tSMSline:SimpleLineSymbol = new SimpleLineSymbol("solid",data.rend.symbol.outline.color?data.rend.symbol.outline.color:0x000000,data.rend.symbol.outline.alpha?data.rend.symbol.outline.alpha:1,data.rend.symbol.outline.width);
+								var SMSTri:SimpleMarkerSymbol = new SimpleMarkerSymbol(data.rend.symbol.style,data.rend.symbol.size,data.rend.symbol.color?data.rend.symbol.color:0x000000, data.rend.symbol.alpha?data.rend.symbol.alpha:1,
+									data.rend.symbol.xoffset, data.rend.symbol.yoffset,data.rend.symbol.angle,tSMSline);
+								uic = SMSTri.createSwatch(30,18);
+								hg.addElementAt(uic,1);
+							}
+							if(data.rend.symbol.style == "x")
+							{
+								var xSMSline:SimpleLineSymbol = new SimpleLineSymbol("solid",data.rend.symbol.outline.color?data.rend.symbol.outline.color:0x000000,data.rend.symbol.outline.alpha?data.rend.symbol.outline.alpha:1,data.rend.symbol.outline.width);
+								var SMSX:SimpleMarkerSymbol = new SimpleMarkerSymbol(data.rend.symbol.style,data.rend.symbol.size,data.rend.symbol.color?data.rend.symbol.color:0x000000, data.rend.symbol.alpha?data.rend.symbol.alpha:1,
+									data.rend.symbol.xoffset, data.rend.symbol.yoffset,data.rend.symbol.angle,xSMSline);
+								uic = SMSX.createSwatch(30,18);
+								hg.addElementAt(uic,1);
+							}
+						}
+						if(data.rend.symbol is com.esri.ags.symbols.SimpleLineSymbol)
+						{
+							var line:SimpleLineSymbol = new SimpleLineSymbol(data.rend.symbol.style,data.rend.symbol.color?data.rend.symbol.color:0x000000, data.rend.symbol.alpha?data.rend.symbol.alpha:1,data.rend.symbol.width);
+							uic = line.createSwatch(30, 18);
+							hg.addElementAt(uic,1);
+						}
+						if(data.rend.symbol is com.esri.ags.symbols.SimpleFillSymbol)
+						{
+							var sSFSline:SimpleLineSymbol;
+							if(data.rend.symbol.outline)
+								sSFSline = new SimpleLineSymbol(data.rend.symbol.outline.style,data.rend.symbol.outline.color?data.rend.symbol.outline.color:0x000000,data.rend.symbol.outline.alpha?data.rend.symbol.outline.alpha:1,data.rend.symbol.outline.width);
+							var SFSRect:SimpleFillSymbol = new SimpleFillSymbol(data.rend.symbol.style,data.rend.symbol.color?data.rend.symbol.color:0x000000, data.rend.symbol.alpha?data.rend.symbol.alpha:1,sSFSline?sSFSline:null);
+							uic = SFSRect.createSwatch(30,18);
+							hg.addElementAt(uic,1);
+						}
+						/* if(data.rend.symbol is com.esri.ags.symbols.PictureMarkerSymbol)
+						{
+							var bmp:BitmapImage = new BitmapImage();
+							_loader  = new Loader();
+							var lc2:LoaderContext = new LoaderContext(false);
+							_loader.contentLoaderInfo.addEventListener(Event.COMPLETE,function(e:Event):void
+							{ 
+								bmp.smooth = true;
+								bmp.source = e.currentTarget.content;
+								bmp.top = 1;
+								bmp.bottom = 1;
+								bmp.rotation = data.rend.symbol.angle;
+							}
+							);
+							_loader.loadBytes(data.rend.symbol.source,lc2);
+							hg.addElementAt(bmp,2);
+							if(data.rend.symbol.width > tLabel.left)
+								tLabel.left = data.rend.symbol.width + 15; 
+						} */
+					}
+				}
+				
+			  }
+			}
+		]]>
+	</fx:Script>
+	
+	<!-- background fill -->
+	<s:Rect bottom="0"
+			left="0"
+			right="2"
+			top="0">
+		<s:fill>
+			<s:SolidColor alpha="1" color="0xffffff"/>
+		</s:fill>
+	</s:Rect>
+	<s:HGroup id="hg" gap="20" verticalAlign="middle" horizontalAlign="left" paddingBottom="1" paddingTop="1">
+		<mx:Spacer width="0" height="20" />
+		<mx:Image id="pic" smoothBitmapContent="true" includeInLayout="false" visible="false" autoLoad="true"/>	
+		<s:Label id="hdrLabel"
+				 fontWeight="bold"
+				 color="#000000"
+				 text="{hlabel}"/>
+		<s:Label id="tLabel"
+				 fontWeight="normal"
+				 color="#000000"
+				 text="{vlabel}"/>
+		<mx:Spacer width="10" height="10" />
+	</s:HGroup>
+</s:ItemRenderer>

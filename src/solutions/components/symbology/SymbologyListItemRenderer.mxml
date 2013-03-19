@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				autoDrawBackground="true">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.states.OverrideBase;
+			
+			override public function set data(value:Object):void
+			{
+				var swatch:UIComponent = new UIComponent;
+				if(value.type == 'line') {
+					swatch = value.marker.createSwatch(30 + value.marker.width * 2, 20);
+					swatch.left = 0 - value.marker.width;
+				}
+				else {
+					swatch = value.marker.createSwatch(30, 20);
+					swatch.left = 1;
+				}
+				
+				swatch.verticalCenter = 0;
+				swatch.horizontalCenter = 0;
+				// otherwise the sides get cut off when we do ImageSnapshot.captureImage
+				//swatch.left = swatch.right = swatch.top = swatch.bottom = 1;
+				
+				swatchArea.removeAllElements();
+				swatchArea.addElement(swatch);
+				
+				swatchLabel.text = value.id;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Rect left="0" height="2" width="100%" bottom="0">
+		<s:fill>
+			<s:SolidColor color="0xEEEEEE"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:HGroup left="0" verticalAlign="middle" verticalCenter="0" height="30">
+	
+		<s:Group id="swatchArea" width="30" height="30" verticalCenter="0" horizontalCenter="0"/>
+		<s:Label id="swatchLabel"/>
+		
+	</s:HGroup>
+	
+</s:ItemRenderer>

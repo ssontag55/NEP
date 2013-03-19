@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				height="27" width="100%" click="handleSelLayer(event)"
+				creationComplete="init()">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Map;
+			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+			import com.esri.ags.layers.Layer;
+			import com.esri.ags.layers.supportClasses.LayerInfo;
+			
+			import mx.collections.ArrayCollection;
+			import mx.core.FlexGlobals;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			
+			private var tocMap:Map = FlexGlobals.topLevelApplication.mainMap; 
+			
+			private function init():void{			
+				SiteContainer.addEventListener(TemplateEvent.MAP_LEVEL_CHANGE, checkScaleViz);
+				//SiteContainer.addEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE, checkScaleViz);
+				SiteContainer.addEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE, checkLayer);
+				SiteContainer.addEventListener(TemplateEvent.CLEAR_LAYERS, unCheckLayer);
+				
+				if(data.groupText != ''){
+					this.height = 38;
+					mainGroup.height = 38;
+					textGroup.setStyle("paddingBottom",7);
+				}
+				if(data.minscale != 0 && data.minscale < tocMap.scale){
+					layername.width = 155;
+				}
+			}
+			
+			private function unCheckLayer(event:TemplateEvent):void
+			{
+				visibleLayer.selected = false;
+			} 
+			
+			private function checkLayer(event:TemplateEvent):void
+			{	
+				//this logic keeps the search and the TOC synced
+				if(event.data.layername.text ==layername.text && event.data.visibleLayer.selected == false)
+				{
+					this.visibleLayer.selected = false;
+					if(this.data.parentGroupElement.groupNameLabel != "Search Results" && this.data.parentGroupElement.groupNameLabel !=  event.data.data.parentGroupElement.groupNameLabel){
+						this.data.parentGroupElement.visibleLayers--;
+					}
+				}
+				else if(event.data.layername.text ==layername.text && event.data.visibleLayer.selected == true)
+				{
+					this.visibleLayer.selected = true;
+					if(this.data.parentGroupElement.groupNameLabel != "Search Results" && this.data.parentGroupElement.groupNameLabel !=  event.data.data.parentGroupElement.groupNameLabel){
+						this.data.parentGroupElement.visibleLayers++;
+					}
+				}
+			}
+			
+			//We are not checking on each zoom scale  -- this is taking too long
+			//we put scale in the xml file
+			private function checkScaleViz(event:TemplateEvent):void
+			{
+				var visArr:ArrayCollection;				
+				 
+				for each (var layerTOC:Layer in tocMap.layers)
+				{					
+					if (layerTOC is ArcGISDynamicMapServiceLayer)
+					{						
+						var dynLyr:ArcGISDynamicMapServiceLayer = layerTOC as ArcGISDynamicMapServiceLayer;
+						
+						for each (var vizLayer in dynLyr.visibleLayers)
+						{
+							if (data.layerID == vizLayer )
+							{								
+								var vizLayerID:Number =  vizLayer;
+							}								
+						}
+						
+						for each( var lyrInfos:LayerInfo in dynLyr.layerInfos)
+						{
+							if(vizLayerID == lyrInfos.layerId)
+							{
+								var maxScale:Number = lyrInfos.maxScale;
+								if(maxScale == 0){
+									maxScale = 400000000;
+								}
+							}
+							var minScale:Number = lyrInfos.minScale;
+							if(minScale == 0){
+								minScale = 400000000;
+							}
+							/* if ( minScale != 0  && tocMap.scale > maxScale )
+							{
+							visibleLayer.setStyle("symbolColor",0x898989);
+							visibleLayer.setStyle("chromeColor",0xdddddd);							
+							layername.setStyle("color",0x898989);	
+							//visibleLayer.enabled = false;
+							}
+							else{
+							//visibleLayer.enabled = true;
+							} */
+							if ( minScale != 0  && tocMap.scale > minScale )
+							{
+								//visibleLayer.setStyle("symbolColor",0x000000);
+								//visibleLayer.setStyle("chromeColor",0xCCCCCC);
+								visibleLayer.enabled = false;
+								zoomIn.visible = true;
+								layername.setStyle("color",0xCCCCCC);
+							}
+							else{
+								visibleLayer.enabled = true;
+								zoomIn.visible = false;
+								visibleLayer.setStyle("symbolColor",0x000000);
+							}
+						}
+					}
+				}
+			}
+			
+			protected function handleSelLayer(event:MouseEvent):void
+			{
+				var obj:Object = {
+					state: 'layer',
+					layer: data
+				}
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_SELECTION_CHANGE, false, false, obj));				
+			}
+			
+			protected function visibleLayer_changeHandler(event:Event):void
+			{
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE, false, false, this));
+				if (visibleLayer.selected == false )
+				{
+					visibleLayer.setStyle("symbolColor",0x000000);
+					visibleLayer.setStyle("chromeColor",0xCCCCCC);
+					layername.setStyle("color",0x000000);
+				} 
+			}
+			
+			protected function layerDetailsButton_clickHandler(event:MouseEvent):void
+			{
+				var obj:Object = {
+					state: 'layer',
+					layer: data
+				}
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_STATE_CHANGE, false, false, obj));
+			}
+			
+		]]>
+	</fx:Script>
+		
+	<s:HGroup gap="3" left="20" id="mainGroup" verticalAlign="middle" verticalCenter="0" height="27">
+		<s:VGroup paddingBottom="1">
+			<s:Label paddingLeft="-11" width="250" paddingTop="8" fontWeight="bold" text="{data.groupText}" fontSize="10" color="black" visible="{data.groupText!= ''}" includeInLayout="{data.groupText!= ''}" />
+			
+			<s:HGroup height="27" width="250" verticalAlign="middle" paddingTop="-6" horizontalAlign="left" id="textGroup">
+				<s:HGroup width="179">
+					<s:CheckBox id="visibleLayer" width="14" toolTip="Turn Layer On/Off" enabled="{data.minscale == 0 || data.minscale &#62; tocMap.scale}"
+								click="visibleLayer_changeHandler(event)" selected="{data.visible == true}"/> 
+					<s:Label paddingTop="1" id="layername"  text="{data.name}" width="200"/>
+				</s:HGroup>
+				<s:Label paddingTop="1" id="zoomIn" text="Zoom to View" fontSize="8" color="red" visible="{data.minscale != 0 &#38;&#38; data.minscale &#60; tocMap.scale}" includeInLayout="{data.minscale != 0 &#38;&#38; data.minscale &#60; tocMap.scale}" />			
+			</s:HGroup>
+		</s:VGroup>
+	</s:HGroup>
+	<s:Image id="layerDetailsButton" buttonMode="true" source="@Embed('assets/icons/document--arrow.png')" verticalCenter="0" right="5"
+			 toolTip="{data.name} Info" click="layerDetailsButton_clickHandler(event)"/>	
+</s:ItemRenderer>

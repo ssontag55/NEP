@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 backgroundColor="0xffffff" creationComplete="init()"
+		 currentState="closed">
+	
+	<fx:Script>
+		<![CDATA[			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			
+			[Bindable]
+			public var groupNameLabel:String;
+			[Bindable]
+			public var visibleLayers:Number;
+			[Bindable]
+			public var totalLayers:Number;
+			[Bindable]
+			public var expand:Boolean = false;
+			
+			private function init():void
+			{
+				SiteContainer.addEventListener(TemplateEvent.CLEAR_LAYERS, clearAllL);
+				if(expand == true)
+				{
+					currentState = "open";
+					var parentGroup:Object = this.parent;
+					
+					for (var i:int = 0; i<parentGroup.numChildren; i++) {
+						if (parentGroup.getElementAt(i) == this) {
+							//add 1 to get the list after the group and make it visible or not
+							parentGroup.getElementAt(i + 1).includeInLayout = !parentGroup.getElementAt(i + 1).includeInLayout;
+							parentGroup.getElementAt(i + 1).visible = !parentGroup.getElementAt(i + 1).visible;
+							break;
+						}
+					}
+				}
+			}
+			
+			protected function clearAllL(event:TemplateEvent):void
+			{
+				visibleLayers = 0;
+			}
+			
+			protected function groupStateIcon_clickHandler(event:MouseEvent):void
+			{
+				currentState == 'closed' ? currentState = 'open' : currentState = 'closed';
+				currentState == 'closed' ? groupStateIcon.toolTip = 'Expand Group Layers' : groupStateIcon.toolTip = 'Hide Group Layers'; 
+				
+				//SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.GROUP_TOGGLE,false,false,this));
+				var parentGroup:Object = this.parent;
+				//loop through vertGroup elements and find the group
+				for (var i:int = 0; i<parentGroup.numChildren; i++) {
+					if (parentGroup.getElementAt(i) == this) {
+						//add 1 to get the list after the group and make it visible or not
+						parentGroup.getElementAt(i + 1).includeInLayout = !parentGroup.getElementAt(i + 1).includeInLayout;
+						parentGroup.getElementAt(i + 1).visible = !parentGroup.getElementAt(i + 1).visible;
+						break;
+					}
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="closed"/>
+		<s:State name="open"/>
+	</s:states>
+	
+	<!--Until we can get all transitions working right...
+	<s:transitions>
+		<s:Transition id="t1" autoReverse="true">
+			<s:CrossFade
+				target="{groupStateIcon}" 
+				duration="1000" />
+		</s:Transition>
+	</s:transitions>-->
+	
+	<s:HGroup left="5" gap="7" verticalCenter="0" verticalAlign="middle">
+		<!--<s:CheckBox id="groupVisible" width="14" toolTip="Toggle Group Visibility" selected="true"/>-->
+		<s:Group id="holder">
+			<s:Image id="groupStateIcon" 
+					 source.closed="@Embed('assets/icons/plus-small.png')"
+					 source.open="@Embed('assets/icons/minus-small.png')"
+					 click="groupStateIcon_clickHandler(event)"
+					 toolTip="Expand Group"
+					 buttonMode="true"
+					 useHandCursor="true"	/>
+			</s:Group>
+				
+		<s:HGroup gap="1" paddingTop="1">
+			<s:Label id="groupName" fontSize="10.5" fontWeight="bold" text="{groupNameLabel}"/>
+			<s:Label id="layerDetails"
+					 fontStyle="italic" fontSize="9" paddingLeft="3"
+					 text="({visibleLayers})"/>
+			<!--<s:Label id="layerDetails"
+					 fontStyle="italic" fontSize="9" paddingLeft="1"
+					 text="{visibleLayers} of {totalLayers} Layers Visible"/>-->
+		</s:HGroup>
+	</s:HGroup>
+</s:SkinnableContainer>

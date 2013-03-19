@@ -1,0 +1,94 @@
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace utils "solutions.components.utils.*";
+@namespace customTitleWindow "TitleWindowCustom.*";
+@namespace esri "http://www.esri.com/2008/ags";
+@namespace mx "library://ns.adobe.com/flex/mx";
+s|Label
+{
+	font-family: Verdana;
+	font-size: 10;
+	color: #0b333c;
+}
+global {
+	modalTransparencyBlur: 0;
+	modalTransparency: 0;
+	modalTransparencyColor: black;
+	modalTransparencyDuration: 100;
+}
+s|RichText {
+	font-family: Verdana;
+	font-size: 10;
+	color: #CEE7F4;
+}
+s|BorderContainer
+{
+	borderWeight: 3;
+	borderColor: #000000;
+}
+
+s|TextInput:normalWithPrompt {
+	color: #FFFF0A;
+	fontStyle: italic;
+}
+
+s|TextInput:disabledWithPrompt {
+	color: #FFFF0A;
+	fontStyle: italic;
+}
+
+mx|ToolTip {
+	backgroundColor: #EEEEEE;
+	borderColor: #CCCCCC;
+	borderStyle:solid;
+	borderVisible:true;
+	borderAlpha:1;
+	color: #0b333c;
+	fontSize: 12;
+	cornerRadius:4;
+}
+
+esri|Navigation
+{
+	left: NaN;
+	right: 0;
+	top: 0;
+	skinClass: ClassReference("skins.myNavigationSkin");
+}
+
+esri|ScaleBar
+{
+	left: 15;
+	right: NaN;
+	bottom: 2;
+}
+
+global
+{
+}
+mx|Alert
+{
+	color: #1A1517; 
+	background-color: #4C6D8F; 
+	borderStyle: solid; 
+	cornerRadius: 12;
+	textColor: #CEE7F4;
+	font-size: 14; 
+}
+
+customTitleWindow|CustomTitleWindow {
+	skin-class: ClassReference("TitleWindowCustom.skins.CustomTitleWindowSkin");
+	resizeCursorHorizontalSkin: Embed(source="../assets/icons/resizeCursorH.gif");
+	resizeCursorHorizontalXOffset: -10;    
+	resizeCursorHorizontalYOffset: -10;    
+	resizeCursorVerticalSkin: Embed(source="../assets/icons/resizeCursorV.gif");
+	resizeCursorVerticalXOffset: -10;
+	resizeCursorVerticalYOffset: -10;
+	resizeCursorTopLeftBottomRightSkin: Embed(source="../assets/icons/resizeCursorTLBR.gif");
+	resizeCursorTopLeftBottomRightXOffset: -10;
+	resizeCursorTopLeftBottomRightYOffset: -10;
+	resizeCursorTopRightBottomLeftSkin: Embed(source="../assets/icons/resizeCursorTRBL.gif");
+	resizeCursorTopRightBottomLeftXOffset: -10;
+	resizeCursorTopRightBottomLeftYOffset: -10;
+	cornerHandleSize: 10;
+	edgeHandleSize: 4;
+}

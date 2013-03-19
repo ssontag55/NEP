@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+				 xmlns:s="library://ns.adobe.com/flex/spark" 
+				 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:esri="http://www.esri.com/2008/ags"
+				 currentState="out" rollOut="skinnablecontainer1_rollOutHandler(event)">
+	<fx:Declarations>
+		<esri:NavigationTool id="navTool" map="{map}"/>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Map;
+			import com.esri.ags.geometry.Extent;
+			import com.esri.ags.geometry.MapPoint;
+			
+			import mx.events.EffectEvent;
+			
+			[Bindable] public var map:Map;
+			
+			protected function skinnablecontainer1_rollOverHandler(event:MouseEvent):void
+			{
+				currentState = 'in';
+			}
+			
+			protected function skinnablecontainer1_rollOutHandler(event:MouseEvent):void
+			{
+				currentState = 'out';
+			}
+			
+			protected function resize1_effectStartHandler(event:EffectEvent):void
+			{
+				//navZoom.visible= false;				
+			}
+			
+			protected function crossfade1_effectEndHandler(event:EffectEvent):void
+			{
+				//navZoom.visible= true;				
+			}
+			
+		]]>
+	</fx:Script>
+	<!--<s:transitions>
+		<s:Transition id="hideNav" fromState="in" toState="out">
+			<s:Parallel>					
+				<s:Fade duration="1000" targets="{navLinks}" alphaFrom="1" alphaTo="0" effectStart="resize1_effectStartHandler(event)" />				
+				<s:Wipe duration="1000" target="{navLinks}" direction="up"/>			
+				<s:Pause duration="800" effectEnd="crossfade1_effectEndHandler(event)"/>
+				<s:Resize widthTo="0" heightTo="95" duration="1000" target="{navLinks}" />
+							
+			</s:Parallel>
+			
+		</s:Transition>	
+			
+		<s:Transition id="showNav" fromState="out" toState="in">
+			<s:Parallel>
+				<s:Fade duration="1000" target="{navLinks}" />
+			</s:Parallel>	
+		</s:Transition>
+	</s:transitions>-->
+	
+	<s:states>
+		<s:State name="in" />
+		<s:State name="out" />
+	</s:states>
+	<s:SkinnableContainer skinClass="skins.mapInformationSkin" width="30" backgroundAlpha=".5" backgroundColor="#EEEEEE" right="0">
+		<s:VGroup id="navGroup" right="0" gap="0" horizontalCenter="0"  horizontalAlign="center">
+			
+			<esri:Navigation map="{map}" skinClass="skins.myNavigationSkin"/>
+			
+			<!--<s:Group>
+				<s:Rect height="1" width="22" right="2">
+					<s:fill>
+						<s:SolidColor color="0x666666" />
+					</s:fill>
+				</s:Rect>
+			</s:Group>
+			
+			<s:VGroup paddingRight="0" gap="6" paddingTop="6" paddingBottom="6">
+				
+				<s:Button id="back_undo" click="navTool.zoomToPrevExtent()"
+						  enabled="{!navTool.isFirstExtent}"
+						  toolTip="Previous Extent"
+						  skinClass="skins.ToolBarButtonSkin"/>
+				
+				<s:Button id="redo_forward" click="navTool.zoomToNextExtent()"
+						  enabled="{!navTool.isLastExtent}"
+						  toolTip="Next Extent"
+						  skinClass="skins.ToolBarButtonSkin"/>
+			</s:VGroup>-->
+		</s:VGroup>
+	</s:SkinnableContainer>
+	<s:SkinnableContainer id="quick_zoom" skinClass="skins.QuickZoomContainerSkin" right="7"
+						  backgroundColor="0xEEEEEE" alpha=".7" top="180">
+		<s:VGroup id="navZoom" includeIn="out" rollOver="skinnablecontainer1_rollOverHandler(event)" horizontalCenter="0" horizontalAlign="center" gap="-6" paddingBottom="4">
+			<s:Image source="@Embed('assets/icons/arrow_bottom_left.png')" />
+		</s:VGroup>
+		
+		<s:VGroup includeIn="in" gap="12" paddingBottom="12" id="navLinks">
+			<s:Label id="ZoomTo" paddingLeft="4" paddingTop="4" text="Zoom To:" fontWeight="bold"
+					 useHandCursor="true" buttonMode="true" mouseChildren="false"/>
+			<s:HGroup styleName="containerInDragPanel">
+				<s:Label id="Northeast" paddingLeft="4" width="100" text="Northeast" click="map.extent = new Extent(-8266159,4891434,-7506539, 5509767);map.level = 3"
+						 useHandCursor="true" buttonMode="true" mouseChildren="false"/>	
+			</s:HGroup>	
+			<s:HGroup styleName="containerInDragPanel">
+				<s:Label id="MidAtlantic" paddingLeft="4" width="100" text="Cape Cod" click="map.extent = new Extent(-7914942, 5047031, -7749795, 5182372);map.level = 5"
+						 useHandCursor="true" buttonMode="true" mouseChildren="false"/>
+			</s:HGroup>	
+			<s:HGroup styleName="containerInDragPanel">
+				<s:Label id="GulfofMexico" paddingLeft="4" width="100" text="Gulf of Maine" click="map.extent = new Extent(-8077801, 5009408, -7123976, 5727753);map.level = 3"
+						 useHandCursor="true" buttonMode="true" mouseChildren="false"/>
+			</s:HGroup>	
+			<s:HGroup styleName="containerInDragPanel">
+				<s:Label id="WesternAlaska" paddingLeft="4" width="100" text="Long Island Sound" click="map.extent = new Extent(-8258119, 4883127, -7974497, 5115837);map.level = 5"
+						 useHandCursor="true" buttonMode="true" mouseChildren="false"/>
+			</s:HGroup>			
+		</s:VGroup>	
+	</s:SkinnableContainer>
+</s:Group>

@@ -1,0 +1,593 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+									 xmlns:s="library://ns.adobe.com/flex/spark" 
+									 xmlns:mx="library://ns.adobe.com/flex/mx" 
+									 creationComplete="init()" xmlns:toc="solutions.components.toc.*" 
+									 xmlns:esri="http://www.esri.com/2008/ags"
+									 xmlns:components="solutions.components.*"
+									 width="100%" xmlns:DynamicLegend="solutions.components.DynamicLegend.*" xmlns:ns="library://ns.tink.ws/flex/mx" xmlns:components1="org.flashcommander.components.*" >
+	<fx:Style>
+		.matchStyle
+		{
+		font-weight    : bold;
+		color        : #FF0000;
+		}
+	</fx:Style>
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Map;
+			import com.esri.ags.events.DetailsEvent;
+			import com.esri.ags.events.LayerEvent;
+			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+			import com.esri.ags.layers.FeatureLayer;
+			import com.esri.ags.layers.Layer;
+			import com.esri.ags.layers.supportClasses.LayerDetails;
+			import com.esri.ags.layers.supportClasses.LayerInfo;
+			import com.esri.ags.tasks.DetailsTask;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.ScrollPolicy;
+			import mx.managers.CursorManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.http.HTTPService;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			import solutions.components.DynamicLegend.complexLegend;
+			
+			import spark.components.Button;
+			import spark.components.List;
+			
+			[Bindable] public var map:Map = new Map();
+			[Bindable] public var displayGroup:Array = new Array();
+			[Bindable]
+			private var groupArrayList:ArrayList = new ArrayList();
+			[Bindable]
+			private var layerArrayList:ArrayList = new ArrayList();
+			[Bindable]
+			private var layerListFull:Array = new Array();
+			[Bindable]
+			private var targets:Array = new Array();
+			[Bindable]
+			private var propertiesXML:XML = new XML();
+			
+			[Bindable]public var tocXML:XML;
+			[Bindable]public var loaded:Boolean = false;
+			
+			[Embed(source="assets/icons/arrow_up_blue.png")] 
+			private var upImage:Class; 
+			[Embed(source="assets/icons/arrow_down_blue.png")] 
+			private var downImage:Class;
+			[Embed(source="assets/icons/search.png")] 
+			private var serch:Class;
+			/* [Embed(source="assets/icons/loader.swf")] 
+			private var loadingImg:Class; */
+			[Bindable]private var legendLoaded:Boolean = false;
+			[Bindable]private var legendArray:Array= [];
+			[Bindable]private var fullyloaded:Boolean = false;
+			//[Bindable]private var lgdPopUp:complexLegend;
+			
+			private var timer:Timer; 
+			private var timer2:Timer; 
+			
+			protected function init():void
+			{
+				if(loaded == false)
+				{
+					//SiteContainer.addEventListener(TemplateEvent.REFRESH_TOC, refreshTOC);	
+					//SiteContainer.addEventListener(TemplateEvent.CUSTOM_TOC, customTOC);
+					
+					var configService:HTTPService = new HTTPService();
+					//configService.url = "http://csc.noaa.gov/dataservices/CMSP/GetTOC";
+					configService.url = "xml/asaTOC.xml";
+					configService.resultFormat = "e4x";
+					configService.addEventListener(ResultEvent.RESULT, tocResult);
+					configService.addEventListener(FaultEvent.FAULT, tocFault);	
+					configService.send();
+					
+					var configService2:HTTPService = new HTTPService();
+					configService2.url = "xml/PropertiesPage_New.xml";
+					//configService2.url = "http://csc.noaa.gov/dataservices/CMSP/GetAllPropertyPages"; 
+					configService2.resultFormat = "e4x";
+					configService2.addEventListener(ResultEvent.RESULT, ppResult);
+					configService2.addEventListener(FaultEvent.FAULT, ppFault);	
+					configService2.send();
+					
+					//add event listener for openning/closing groups of layers
+					//SiteContainer.addEventListener(TemplateEvent.GROUP_TOGGLE, groupToggle);
+					SiteContainer.addEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE, visibleLayerToggle);
+					SiteContainer.addEventListener(TemplateEvent.TOC_STATE_CHANGE, updateTOCState);
+					SiteContainer.addEventListener(TemplateEvent.CLEAR_LAYERS, clearAllL);
+					
+					//Send map to layer details component for legends
+					layerDetails._map = map;
+					loaded = true;
+					
+					setLegendTimer();
+					/* MapUtil.forEachMapLayer(map, function( layer:Layer ):void {					
+						legendArray.push(layer);	
+					}); */
+				}
+			}
+			
+			/* private function groupToggle(event:TemplateEvent):void
+			{
+				var group:TOCGroupComp = event.data as TOCGroupComp;
+				var parentGroup:Object = group.parent;
+				//loop through vertGroup elements and find the group
+				for (var i:int = 0; i<parentGroup.numChildren; i++) {
+					if (parentGroup.getElementAt(i) == group) {
+						//add 1 to get the list after the group and make it visible or not
+						parentGroup.getElementAt(i + 1).includeInLayout = !parentGroup.getElementAt(i + 1).includeInLayout;
+						parentGroup.getElementAt(i + 1).visible = !parentGroup.getElementAt(i + 1).visible;
+						break;
+					}
+				}
+			} */
+			
+			private function searchLayers():void
+			{
+				fullyloaded = true;
+				CursorManager.setBusyCursor();
+				if(layTex.text != "")
+				{
+					layerVGroupResults.removeAllElements();
+					var resultsXML:XML = <group></group>;
+					for each(var group:XML in tocXML..group)
+					{
+						for each (var node:XML in group.layer)
+						{
+							//if(String(node.@displayName).toLowerCase().search(layTex.text.toLowerCase())>-1)
+							if(String(node.@displayName).toLowerCase().search(layTex.text.toLowerCase())>-1 || String(node.@keywordsearch).toLowerCase().search(layTex.text.toLowerCase())>-1)
+							{
+								resultsXML.appendChild(node);
+							}
+						}
+					}
+					this.currentState = 'results';
+					if(resultsXML.layer.length() > 0){
+						noLayers.visible = false;
+						createTOCGroupsResults(resultsXML);
+					}
+					else{
+						noLayers.visible = true;
+					}
+				}
+				CursorManager.removeBusyCursor();
+			}
+			
+			protected function clearAllL(event:TemplateEvent):void
+			{
+				CursorManager.setBusyCursor();
+								
+				for (var q:int=0;q<map.layerIds.length;q++)
+				{
+					if(map.getLayer(map.layerIds[q]) is ArcGISDynamicMapServiceLayer)
+					{
+						var dsLyr2:ArcGISDynamicMapServiceLayer = map.getLayer(map.layerIds[q]) as ArcGISDynamicMapServiceLayer;
+						dsLyr2.visibleLayers.removeAll();
+						//map.getLayer(map.layerIds[q]).visible = false;
+						//SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_OFF_TOC, false, false, map.getLayer(map.layerIds[q])));
+					}
+				}
+				
+				var leg:complexLegend = legendVGroup.getElementAt(0) as complexLegend;
+				leg.unregisterAllMapLayers();
+				
+				CursorManager.removeBusyCursor();
+			}
+			
+			protected function refreshTOC(event:TemplateEvent):void
+			{				
+				layerVGroup.removeAllElements();
+			}	
+			
+			private function visibleLayerToggle(event:TemplateEvent):void
+			{
+				var dsLyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(event.data.data.serviceID) as ArcGISDynamicMapServiceLayer;
+				
+				for each (var lyrInfo:LayerInfo in dsLyr.layerInfos){
+					var grpLayer:Boolean;
+					grpLayer = false;
+					
+					if (lyrInfo.subLayerIds != null && lyrInfo.layerId ==0){
+						grpLayer = true;
+					}
+				} 
+									
+				for (var i:int=0;i<dsLyr.visibleLayers.length;i++) if(dsLyr.visibleLayers[i] == -1) dsLyr.visibleLayers.removeItemAt(i);
+				
+				//if checked add to visible layer array
+				//else assume number is in array and remove
+				if (event.data.visibleLayer.selected == true) {				
+					
+					dsLyr.visibleLayers.addItem(event.data.data.layerID);
+					
+					event.data.data.parentGroupElement.visibleLayers++;
+					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_ON_TOC, false, false, dsLyr));
+					dsLyr.visible = true;
+				} 
+				else {
+					for (var j:int=0;j<dsLyr.visibleLayers.length;j++) {
+						if(dsLyr.visibleLayers[j] == event.data.data.layerID) {
+							dsLyr.visibleLayers.removeItemAt(j); 
+							event.data.data.parentGroupElement.visibleLayers--;
+							SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_OFF_TOC, false, false, dsLyr));
+						}
+					}
+				}
+			}
+			
+			private function returnLayerInfo(id:String):Layer
+			{
+				var returnLyr:Layer;
+				for each(var lyr:Layer in map.layers){
+					if(lyr.id == id) {
+						returnLyr = lyr; 
+						break;
+					}
+				}
+				return returnLyr;
+			}
+			
+			private function returnLayerInfoVisible(id:String,layID:Number):Boolean
+			{
+				var ya:Boolean = false;
+				var returnLyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(id) as ArcGISDynamicMapServiceLayer;
+				
+				for (var ii:int = 0; ii<returnLyr.visibleLayers.length; ii++)
+				{
+					if(returnLyr.visibleLayers[ii] == layID){
+						ya = true;
+					}
+				}
+				return ya;
+			}
+			
+			private function updateTOCState(event:TemplateEvent):void
+			{
+				if(event.data.state == 'toc'){
+					this.currentState = 'toc';
+					layTex.text = "";
+				} 
+				else if (event.data.state == 'layer') 
+				{
+					for (var i:int = 0; i<propertiesXML.children().length(); i++ )
+					{
+						if(propertiesXML..PropertyPage[i].@ViewerLayerTitle == event.data.layer.name){
+							
+							var objDetails:Object = {
+								id: propertiesXML..PropertyPage[i].@ViewerLayerID,
+								title: propertiesXML..PropertyPage[i].@ViewerLayerTitle,
+								lastUpdate: propertiesXML..PropertyPage[i].@LastDataUpdate,
+								contentDate: propertiesXML..PropertyPage[i].@ContentDate, 
+								description: propertiesXML..PropertyPage[i].@LayerDescription,
+								extentName: propertiesXML..PropertyPage[i].@GeographicExtentName,
+								serviceLink: propertiesXML..PropertyPage[i].@ServiceLink,
+								metadata: propertiesXML..PropertyPage[i].@MetadataLink,
+								dataLink: propertiesXML..PropertyPage[i].@DataLink,
+								sourceOrg: propertiesXML..PropertyPage[i].@SourceOrganization,
+								sourceLink: propertiesXML..PropertyPage[i].@SourceLink,
+								webService: propertiesXML..PropertyPage[i].@ServiceLink,
+								references: propertiesXML..PropertyPage[i].@AdditionalInformation,
+								referencesAlias: propertiesXML..PropertyPage[i].@AdditionalInformationAlias
+							}
+							sendDetailsToLayerComp1(objDetails);
+						}	
+					} 					
+					var lyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(event.data.layer.serviceID) as ArcGISDynamicMapServiceLayer;
+					
+					var dT:DetailsTask = new DetailsTask(lyr.url);
+					dT.addEventListener(DetailsEvent.GET_DETAILS_COMPLETE, dTDone);
+					dT.getDetails(event.data.layer.layerID);
+					
+					this.currentState = 'layer';
+				}
+			}
+			
+			private function dTDone(event:DetailsEvent):void
+			{
+				var l:LayerDetails= event.layerDetails;
+				if(l.type == "Raster Layer"){
+					layerDetails.selectedLayerDetails = l;
+				}
+				else{					
+					var myFeatureLayer:FeatureLayer = new FeatureLayer(event.currentTarget.url+"/"+l.id);
+					myFeatureLayer.addEventListener(LayerEvent.LOAD, featureLoaded);
+					myFeatureLayer.refresh();
+					map.addLayer(myFeatureLayer); 
+				}
+			}
+			
+			private function featureLoaded(l:LayerEvent):void
+			{
+				layerDetails.selectedLayer = l.layer as FeatureLayer;
+			}
+			
+			private function sendDetailsToLayerComp(details:LayerDetails):void
+			{
+				layerDetails.selectedLayerDetails = details;
+			}
+			
+			private function sendDetailsToLayerComp1(obj:Object):void
+			{
+				layerDetails._selectedLayerObject = obj;
+			}
+			
+			private function tocResult(event:ResultEvent):void
+			{
+				tocXML = event.result as XML;
+				
+				for each(var group:XML in tocXML..group)
+				{
+					createTOCGroups(group);
+				}
+			}
+			
+			private function tocFault(event:FaultEvent):void
+			{
+				Alert.show("Error reading in Table of Contents XML")
+			}
+			
+			private function createTOCGroups(groupXML:XML):void
+			{
+				var groupCtn:TOCGroupComp = new TOCGroupComp();
+			
+				groupCtn.groupNameLabel = groupXML.@displayName;
+				groupCtn.height = 30;
+				groupCtn.percentWidth = 100;
+				groupCtn.id = groupXML.@id;
+				if(String(groupXML.@id).search('topGroup')>-1){
+					groupCtn.expand = true;
+				} 
+				layerVGroup.addElement(groupCtn); 
+				
+				createLayerList(groupXML);
+			}
+			
+			private function createLayerList(groupXML:XML):void
+			{
+				//create list and set properties
+				var layerList:List = new List();
+				layerList = setLayerListProperties(layerList);
+				
+				var layerArrayList:ArrayList = new ArrayList();
+				var visibleCount:int = 0;
+				var count:int = 0;
+				
+				//grab the 'group' component and set the number of layers
+				var listParent:TOCGroupComp = layerVGroup.getElementAt(layerVGroup.numElements - 1) as TOCGroupComp;
+				
+				for each (var node:XML in groupXML.layer)
+				{
+					var obj:Object = {
+						serviceID: node.@serviceID,
+							layerID: node.@layerID,
+							visible: node.@visible,
+							minscale: node.@MinScale,
+							parentGroupElement: listParent,
+							name: node.@displayName,
+							urlSel: node.@url,
+							groupText: node.@group.toString()
+					}
+					
+					layerArrayList.addItem(obj);
+					layerListFull.push(obj.name.toString());
+					count++;
+					obj.visible == true ? visibleCount++ : visibleCount;
+				}
+				
+				//layerList.height = 30*count;
+				layerList.dataProvider = layerArrayList;
+				layerVGroup.addElement(layerList);
+				
+				listParent.visibleLayers = visibleCount;
+				listParent.totalLayers = count;		
+			}  
+			
+			private function createTOCGroupsResults(groupXML:XML):void
+			{
+				var groupCtn:TOCGroupComp = new TOCGroupComp();
+				
+				groupCtn.groupNameLabel = "Search Results";
+				//groupCtn.height = 30;
+				groupCtn.percentWidth = 100;
+				groupCtn.expand = true
+				groupCtn.id = '1';
+				layerVGroupResults.addElement(groupCtn); 
+				
+				createLayerListResults(groupXML);
+			}
+			
+			private function createLayerListResults(groupXML:XML):void
+			{
+				//create list and set properties
+				var layerList:List = new List();
+				layerList = setLayerListProperties(layerList);
+				
+				var layerArrayList:ArrayList = new ArrayList();
+				var visibleCount:int = 0;
+				var count:int = 0;
+				
+				//grab the 'group' component and set the number of layers
+				var listParent:TOCGroupComp = layerVGroupResults.getElementAt(layerVGroupResults.numElements - 1) as TOCGroupComp;
+				
+				for each (var node:XML in groupXML.layer)
+				{
+					if(fullyloaded == true)
+					{
+						var obj:Object;
+						if(returnLayerInfoVisible(String(node.@serviceID),Number(node.@layerID))== true)
+						{
+							obj = {
+								serviceID: node.@serviceID,
+									layerID: node.@layerID,
+									visible: true,
+									minscale: node.@MinScale,
+									parentGroupElement: listParent,
+									name: node.@displayName,
+									urlSel: node.@url,
+									groupText: node.@group.toString()
+							}
+						}
+						else{
+							obj = {
+								serviceID: node.@serviceID,
+									layerID: node.@layerID,
+									visible: node.@visible,
+									minscale: node.@MinScale,
+									parentGroupElement: listParent,
+									name: node.@displayName,
+									urlSel: node.@url,
+									groupText: node.@group.toString()
+							}
+						}
+						layerArrayList.addItem(obj);
+						//layerListFull.push(obj.name.toString());
+						count++;
+						obj.visible == true ? visibleCount++ : visibleCount;
+					}
+				}
+				
+				//layerList.height = 30*count;
+				layerList.dataProvider = layerArrayList;
+				layerVGroupResults.addElement(layerList);
+				
+				listParent.visibleLayers = visibleCount;
+				listParent.totalLayers = count;			
+			}
+			
+			private function setLayerListProperties(list:List):List
+			{
+				list.itemRenderer = new ClassFactory(TOCLayerRenderer);
+				list.percentWidth = 100;
+				list.setStyle("borderVisible", false);
+				list.setStyle("verticalScrollPolicy", ScrollPolicy.OFF);
+				list.setStyle("horizontalScrollPolicy", ScrollPolicy.OFF);
+				
+				list.visible = false;
+				list.includeInLayout = false;
+				
+				return list;
+			}
+			
+			protected function ppResult(event:ResultEvent):void
+			{
+				propertiesXML = event.result as XML;
+			}
+			
+			protected function ppFault(event:FaultEvent):void
+			{
+				Alert.show("Error reading in Properties Page XML");
+			}
+			
+			private function legendClick():void
+			{
+				if(legendVGroup.height == 228){
+					legendVGroup.height = 0;
+					ruler1.visible = false;
+					//refr.visible = false;
+					openLeg.toolTip = 'Maximize';
+					openLeg.source= upImage;
+				}
+				else {
+					legendVGroup.height = 228;
+					ruler1.visible = true;
+					//refr.visible = true;
+					openLeg.toolTip = 'Minimize';
+					openLeg.source= downImage;
+				}
+			}
+			
+			/*Timer is to initiate the shitty legend that ESRI has in their services*/
+			private function setLegendTimer():void {
+				timer = new Timer(1700);
+				timer2 = new Timer(2500);
+				timer2.addEventListener(TimerEvent.TIMER, onTimer2);
+				timer2.start();
+				timer.addEventListener(TimerEvent.TIMER, onTimer);
+				timer.start();
+			}
+			private function onTimer2(evt:TimerEvent):void {
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_LOADED));
+				timer2.stop();
+			}
+			
+			private function onTimer(evt:TimerEvent):void {
+				var lgdPopUp:complexLegend = new complexLegend;
+				//loadingImg
+				legendVGroup.addElementAt(lgdPopUp,0);
+				//legendVGroup.height = 0;
+				timer.stop();
+				legendLoaded == true;
+			}
+		]]>
+	</fx:Script>
+	
+	<s:transitions>
+		<s:Transition id="hideTOC" fromState="toc" toState="layer">
+			<!--<s:Wipe direction="left" duration="100" targets="{[tocGroup, layerDetailsHolder]}" />-->			
+			<!--<s:CrossFade duration="1000" targets="{[tocGroup, layerDetailsHolder]}"/>-->
+			<s:Fade duration="20" target="{layerDetailsHolder}" alphaFrom="0" alphaTo="1"/>
+		</s:Transition>
+		<s:Transition id="showTOC" fromState="layer" toState="toc">
+			<!--<s:Wipe direction="right" duration="200" targets="{[layerDetailsHolder, tocGroup]}" />-->
+			<s:CrossFade duration="20" targets="{[layerDetailsHolder, tocGroup]}"/>
+		</s:Transition>
+	</s:transitions>
+	
+	<s:states>
+		<s:State name="toc"/>
+		<s:State name="layer"/>
+		<s:State name="results"/>
+	</s:states>
+	<s:Panel title="Layer List" width="100%" height="100%" skinClass="skins.toolPanelSkin">
+		<s:HGroup horizontalAlign="center" verticalAlign="top" paddingTop="5" paddingLeft="5" id="layerDetailsHolder" height="100%" width="100%">
+			<toc:TOCLayerComp id="layerDetails" 
+							  height="100%" width="100%" visible.results="false"
+							  visible.layer="true" visible.toc="false"/>
+		</s:HGroup>
+		<s:VGroup id="tocGroup" height="100%" width="100%" clipAndEnableScrolling="true"
+				  visible.toc="true" visible.results="false" verticalAlign="middle"
+				  visible.layer="false" >
+			<s:HGroup horizontalAlign="center" verticalAlign="top" paddingTop="3" paddingLeft="2" height="31" width="100%">
+				<components1:AutoComplete  prefixOnly="false" dataProvider="{layerListFull}"  height="29"  id="layTex" enter="searchLayers()" width="{this.width/2+53}" visible.layer="false" visible.toc="true"/>
+				<!--<ns:FilterComboBox editable="true" openDuration="400" matchedTextStyleName="matchStyle" rowCount="10" rollOverColor="red" dataProvider="{layerListFull}"  height="29" fontSize="11"  id="layTex" enter="searchLayers()" width="{this.width-73}" visible.layer="false" visible.toc="true"/>-->
+				<s:Button  label="Search" fontSize="10" icon="@Embed('assets/icons/search.png')" width="80" buttonMode="true" height="29" visible.layer="false" click="searchLayers()" toolTip="Filter Layers By Keyword" visible.toc="true"/>
+			</s:HGroup>
+			<mx:HRule width="100%"/>
+			
+			<s:Scroller width="100%" height="100%" visible.layer="false" >
+				<s:VGroup id="layerVGroup" width="100%"  height="100%" clipAndEnableScrolling="true" gap="0"/>				
+			</s:Scroller>
+			<mx:HRule width="100%" id="ruler1" visible="true"/>
+			<s:VGroup id="legendVGroup" height="228" width="100%" clipAndEnableScrolling="true" gap="0">
+			</s:VGroup>
+			<s:VGroup bottom="-4" width="100%" paddingTop="-6">
+				<mx:HRule width="100%"/>
+				<s:HGroup horizontalAlign="center" paddingLeft="16" verticalAlign="middle">
+					<s:Button buttonMode="true" skinClass="skins.TopBarToolSelectorButtonSkin" icon="@Embed('assets/icons/lgd.png')" toolTip="Open Legend" click="legendClick()"/>
+					<s:Label buttonMode="true" text="Legend  " toolTip="Open Legend" click="legendClick()" fontSize="13" fontWeight="bold"/>
+					<s:Image id="openLeg" toolTip="Minimize" source="{downImage}" buttonMode="true" click="legendClick()"/>
+					<!--<s:Button label="Refresh Legend" visible="false" id="refr" toolTip="Refresh Legend"/>-->
+				</s:HGroup>
+				<mx:HRule width="100%"/>
+			</s:VGroup>
+		</s:VGroup>
+		<s:VGroup id="tocGroup2" height="100%" width="100%" clipAndEnableScrolling="true"
+				  visible.toc="false" visible.results="true"
+				  visible.layer="false" >
+			<s:Scroller width="100%" height="100%" visible.layer="false">
+				<s:VGroup horizontalAlign="center" verticalAlign="top" paddingTop="10" id="layerVGroup2" width="100%" height="100%" clipAndEnableScrolling="true" gap="0">
+					<s:Button icon="@Embed('assets/icons/back_undo.png')" buttonMode="true" label="Show All Layers" click="{this.currentState = 'toc'; layTex.text=''}"/>
+					<s:VGroup id="layerVGroupResults" paddingTop="10" width="100%" clipAndEnableScrolling="true" gap="0"/>
+					<s:Label text="No Layers Found" fontSize="15" paddingTop="10" fontWeight="bold" id="noLayers" visible="false" />
+				</s:VGroup>
+			</s:Scroller>
+		</s:VGroup>
+	</s:Panel>
+</s:Group>

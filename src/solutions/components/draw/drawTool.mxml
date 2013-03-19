@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:esri="http://www.esri.com/2008/ags" xmlns:toc="solutions.components.toc.*"
+					 creationComplete="group1_creationCompleteHandler(event)"
+					 initialize="group1_initializeHandler(event)"
+					 currentState="default">
+	
+	<fx:Declarations>
+		<!-- Symbol for all point shapes -->
+		<esri:SimpleMarkerSymbol id="pointFill" />
+		
+		<!-- Symbol for all line shapes -->
+		<esri:SimpleLineSymbol id="drawlineFill" />
+		
+		<!-- Symbol for all polygon shapes -->
+		<esri:SimpleFillSymbol id="drawpolygonFill" />
+		
+		<!-- Symbol for all buffer shapes -->
+		<esri:SimpleFillSymbol id="bufferFill" />
+		
+		<esri:TextSymbol id="textFill" text="{label_text.text}"/>
+		
+		<esri:DrawTool id="myDrawTool"
+					   drawStart="myDrawTool_drawStartHandler(event)"
+					   drawEnd="drawTool_drawEndHandler(event)"
+					   fillSymbol="{drawpolygonFill}"
+					   lineSymbol="{drawlineFill}"
+					   map="{map}"
+					   markerSymbol="{pointFill}"/>
+		
+		<esri:GeometryService id="geometryService"
+							  concurrency="last"
+							  lengthsComplete="lengthsCompleteHandler(event)"
+							  simplifyComplete="geometryService_simplifyCompleteHandler(event)"
+							  showBusyCursor="true"
+							  url="http://gis.asascience.com/ArcGIS/rest/services/Geometry/GeometryServer"/>
+				
+		<mx:NumberFormatter id="myNumberFormatter"
+							precision="2"
+							useThousandsSeparator="true"/>
+		
+		<mx:ArrayCollection id="distanceUnits"> 
+			<fx:Object data="9036" displayUnit="km" label="Kilometers"/>
+			<fx:Object data="9093" displayUnit="mi" label="Statute Miles"/>
+			<fx:Object data="9030" displayUnit="n.m." label="Nautical Miles"/>
+		</mx:ArrayCollection> 
+		
+		<mx:ArrayCollection id="areaUnits"> 
+			<fx:Object data="esriSquareKilometers" displayUnit="sq. km" label="Kilometers"/>
+			<fx:Object data="esriSquareMiles" displayUnit="sq. mi." label="Statute Miles"/>
+			<fx:Object data="esriSquareMiles" displayUnit="sq. n.m." label="Nautical Miles"/>
+			<fx:Object data="esriAcres" displayUnit="acs" label="Acres"/>
+			<fx:Object data="esriHectares" displayUnit="has" label="Hectares"/>
+		</mx:ArrayCollection> 
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Graphic;
+			import com.esri.ags.Map;
+			import com.esri.ags.SpatialReference;
+			import com.esri.ags.events.DrawEvent;
+			import com.esri.ags.events.GeometryServiceEvent;
+			import com.esri.ags.events.MapMouseEvent;
+			import com.esri.ags.geometry.Geometry;
+			import com.esri.ags.geometry.MapPoint;
+			import com.esri.ags.geometry.Polygon;
+			import com.esri.ags.geometry.Polyline;
+			import com.esri.ags.layers.GraphicsLayer;
+			import com.esri.ags.symbols.TextSymbol;
+			import com.esri.ags.tasks.supportClasses.AreasAndLengthsParameters;
+			import com.esri.ags.tasks.supportClasses.AreasAndLengthsResult;
+			import com.esri.ags.tasks.supportClasses.BufferParameters;
+			import com.esri.ags.tasks.supportClasses.LengthsParameters;
+			import com.esri.ags.tasks.supportClasses.ProjectParameters;
+			import com.esri.ags.tools.DrawTool;
+			import com.esri.ags.utils.GeometryUtil;
+			
+			import flash.text.engine.FontPosture;
+			
+			import mx.collections.ArrayList;
+			import mx.controls.Alert;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.rpc.AsyncResponder;
+			import mx.rpc.Fault;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			/*****--IMPORTANT--*****/
+			//Graphics Layer and Map variable passed in when the draw tool is activated
+			//Must be defined for draw component to work.
+			[Bindable]public var graphicsService:GraphicsLayer = new GraphicsLayer();
+			[Bindable]public var layerArrayList:ArrayList = new ArrayList();
+			[Bindable]public var map:Map = new Map();
+			[Bindable]public var allSymbologyArray:Array = new Array();
+			[Bindable]public var currGraphic:String;
+			[Bindable]public var lastGeometry:Geometry;
+			[Bindable]private var latestEndpoint:MapPoint;
+			[Bindable]private var labelDisplayed:Boolean;
+			
+			//Start events for drawing on press of geometry type button
+			public function drawToolToggle(event:MouseEvent):void
+			{
+				var r:Label = new Label();
+				r.text = "Hover over map for drawing directions";
+				
+				setDrawCursor();
+				pan.enabled = true;
+				
+				var selectedGeometry:String = event.target.data.data;
+				toggleGeometry(selectedGeometry);
+				SiteContainer.addEventListener(TemplateEvent.TOC_STATE_CHANGE, updateTOCState);
+			}
+			
+			private function updateTOCState(event:TemplateEvent):void
+			{
+				removeToolEventListeners();
+				deactivateDraw();
+			}
+			
+			//Activate the Draw Tool and set measurement unit options
+			private function toggleGeometry(s:String):void 
+			{
+				removeToolEventListeners();
+				switch (s)
+				{
+					case "MAPPOINT":
+					{
+						myDrawTool.activate(DrawTool.MAPPOINT);
+						setSymbology('point');
+						currentState="point";
+						break;
+					}
+					case "POLYLINE":
+					{
+						myDrawTool.activate(DrawTool.POLYLINE);
+						measureDropdownSelect("line", measurementUnitSelect.selectedIndex)
+						setSymbology('drawline');
+						break;
+					}
+					case "FREEHAND_POLYLINE":
+					{
+						myDrawTool.activate(DrawTool.FREEHAND_POLYLINE);
+						measureDropdownSelect("line", measurementUnitSelect.selectedIndex)
+						setSymbology('drawline');
+						break;
+					}
+					case "POLYGON":
+					{
+						myDrawTool.activate(DrawTool.POLYGON);
+						measureDropdownSelect("polygon", measurementUnitSelect.selectedIndex)
+						setSymbology('drawpolygon');
+						break;
+					}
+					case "FREEHAND_POLYGON":
+					{
+						myDrawTool.activate(DrawTool.FREEHAND_POLYGON);
+						measureDropdownSelect("polygon", measurementUnitSelect.selectedIndex)
+						setSymbology('drawpolygon');
+						break;
+					}
+					case "LABEL":
+					{
+						var r:Label = new Label();
+						r.text = "1. Add Label Text" +
+							"\n2. Edit Symbology" + 
+							"\n3. Click map where you want the center of the label";
+					
+						
+						myDrawTool.deactivate();
+						currentState = 'drawtext';
+						setSymbology('drawtext');
+						map.addEventListener(MapMouseEvent.MAP_CLICK, mapLabelHandler);
+					}
+				}
+			}
+			
+			private function mapLabelHandler(event:MapMouseEvent):void
+			{
+				if(label_text.text == '') Alert.show('Label Text is empty');
+				var g:Graphic = new Graphic(event.mapPoint, new TextSymbol(label_text.text,null,textFill.color,textFill.alpha,textFill.border,textFill.borderColor,textFill.background,textFill.backgroundColor,textFill.placement,0,0,0,textFill.textFormat,textFill.textAttribute,textFill.textFunction));
+				graphicsService.add(g);
+			}
+			
+			//Update dataProvider for measurement drop down for Polyline/Polygon
+			private function measureDropdownSelect(s:String, i:int):void
+			{
+				if(s == "drawline")
+				{
+					measurementUnitSelect.dataProvider = distanceUnits;
+					if (i <= 2) measurementUnitSelect.selectedIndex = i else measurementUnitSelect.selectedIndex = 2;
+				} else if(s == "drawpolygon")
+				{
+					measurementUnitSelect.dataProvider = areaUnits;
+					measurementUnitSelect.selectedIndex = i;
+				}
+			}
+			
+			private function setSymbology(s:String):void
+			{
+				var swatch:UIComponent = new UIComponent;
+				currentState = s;
+				if(s == 'drawline') {
+					swatch = this[s+"Fill"].createSwatch(30 + this[s+"Fill"].width * 2, 20);
+					swatch.left = 0 - this[s+"Fill"].width;
+				} 
+				if(s == 'drawtext') {
+					updateText();
+				} 
+				else {
+					swatch = this[s+"Fill"].createSwatch(30, 20);
+					swatch.left = 1;
+				}
+				
+				if (s != 'drawtext'){
+				swatchArea.removeAllElements();
+				swatchArea.addElement(swatch); 
+				swatchName.text = s;
+				}
+			}
+			
+			private function updateText():void
+			{
+				var tf:TextFormat = textFill.textFormat;
+				myRectFill.color = textFill.background == true ? textFill.backgroundColor : 0xFFFFFF;
+				myRectStroke.color = textFill.border == true ? textFill.borderColor : 0xFFFFFF;
+				
+				drawTextLabel.setStyle('fontFamily',tf.font);
+				drawTextLabel.setStyle('fontSize',tf.size);
+				drawTextLabel.setStyle('fontStyle',Boolean(tf.italic) ? FontPosture.ITALIC : FontPosture.NORMAL);
+				drawTextLabel.setStyle('fontWeight',Boolean(tf.bold) ? 'bold' : 'normal');
+				drawTextLabel.setStyle('textDecoration',Boolean(tf.underline) ? 'underline' : 'none');
+				drawTextLabel.setStyle('color',tf.color); 
+			}
+			
+			//Finished with one drawing event...now handle measurments or buffers
+			protected function drawTool_drawEndHandler(event:DrawEvent):void
+			{	
+				//If its a LINE and we want to measure
+				if (event.graphic.geometry.type == 'esriGeometryPolyline')
+				{
+					event.graphic.symbol = new SimpleLineSymbol(drawlineFill.style, drawlineFill.color, drawlineFill.alpha, drawlineFill.width);
+					
+					graphicsService.add(event.graphic); //Add Graphic first - so if measurement screws up for whatever reason graphic is still there
+					
+					//Get the line
+					var drawnLine:Polyline = Polyline(event.graphic.geometry);
+					
+					runLengthsMeasure(event.graphic.geometry);
+					
+				} 
+				//If its a POLYGON (We will handle whether the area measure in a later function)
+				else if (event.graphic.geometry.type == 'esriGeometryPolygon')
+				{
+					var drawnPolygon:Polygon = Polygon(event.graphic.geometry);
+					
+					//Check to see if the polygon is self intersecting because
+					//simplifying the polygon to make sure it becomes topologically consistent
+					if (GeometryUtil.polygonSelfIntersecting(drawnPolygon))
+					{
+						// simplify the drawn polygon
+						geometryService.simplify([ drawnPolygon ]);
+					}else
+					{
+						addPolygonToMap(drawnPolygon);
+						projectPolygon(drawnPolygon);
+					}
+				} 
+				else {
+					event.graphic.symbol = new SimpleMarkerSymbol(pointFill.style, pointFill.size, pointFill.color, pointFill.alpha,0,0,0,pointFill.outline);
+					graphicsService.add(event.graphic);
+				}
+			}
+			
+			private function runLengthsMeasure(g:Geometry):void
+			{
+				lastGeometry = g;
+				
+				var drawnLine:Polyline = Polyline(g);
+				
+				//set distance instance (intended rhyme) parameters
+				var lengthsParameters:LengthsParameters = new LengthsParameters();
+				lengthsParameters.geodesic = true; //Allows for more accurate measurements in geographic coordinate system
+				lengthsParameters.polylines = [ g ]; //Add the line to measure
+				lengthsParameters.lengthUnit = Number(measurementUnitSelect.selectedItem.data); //Grab the DATA value from the selected object in the measurement drop down
+				
+				latestEndpoint = drawnLine.paths[0][0] as MapPoint; //get first endpoint and set component level variable for use later
+				
+				geometryService.lengths(lengthsParameters); // Add lengths to out geometry service
+			}
+			
+			//completed the distance measurement
+			private function lengthsCompleteHandler(event:GeometryServiceEvent):void
+			{
+				var dist:Number = (event.result as Array)[0]; 
+				var distanceDisplay:String = myNumberFormatter.format(dist) + " " + measurementUnitSelect.selectedItem.displayUnit; 
+				measurementText.text = "Length: " + distanceDisplay;
+				//Create a graphic displaying the measured distance and add it to our graphics service
+				if (measureLabel.selected && !labelDisplayed) {
+					var g:Graphic = new Graphic(latestEndpoint);
+					g.symbol = new TextSymbol(measurementText.text,null,textFill.color,textFill.alpha,textFill.border,textFill.borderColor,textFill.background,textFill.backgroundColor,textFill.placement,0,0,0,textFill.textFormat,textFill.textAttribute,textFill.textFunction);
+					graphicsService.add(g); 
+					labelDisplayed = true;
+				}
+			}
+			
+			//After simplifying the polygon if we needed to going to functions we would have gone to without simplification needed
+			private function geometryService_simplifyCompleteHandler(event:GeometryServiceEvent):void
+			{
+				if (event.result)
+				{
+					var polygon:Polygon = (event.result as Array)[0]; // we only draw one area at a time
+					addPolygonToMap(polygon);
+					projectPolygon(polygon);
+				}
+			}
+			
+			private function projectPolygon(polygon:Polygon):void
+			{
+				// project to 54034 (World_Cylindrical_Equal_Area)
+				var projPar:ProjectParameters = new ProjectParameters;
+				projPar.geometries = [ polygon ];
+				projPar.outSpatialReference =new SpatialReference(3857);
+				geometryService.project(projPar, new AsyncResponder(project_resultHandler, project_faultHandler, polygon));
+			}
+			
+			private function project_resultHandler(result:Object, token:Object = null):void
+			{
+				if (result)
+				{
+					var g:Geometry = (result as Array)[0];
+					
+					runAreaMeasure(g);
+					var areasAndLengthsParameters:AreasAndLengthsParameters = new AreasAndLengthsParameters();
+					areasAndLengthsParameters.areaUnit = String(measurementUnitSelect.selectedItem.data);
+					areasAndLengthsParameters.polygons = [ g ];
+					
+					geometryService.areasAndLengths(areasAndLengthsParameters, new AsyncResponder(areasAndLengths_resultHandler, areasAndLengths_faultHandler, token)); 
+					
+				} else {
+					addPolygonToMap(result as Polygon);
+				}
+			}
+			
+			private function runAreaMeasure(g:Geometry):void
+			{
+				lastGeometry = g;
+				var areasAndLengthsParameters:AreasAndLengthsParameters = new AreasAndLengthsParameters();
+				areasAndLengthsParameters.areaUnit = String(measurementUnitSelect.selectedItem.data);
+				areasAndLengthsParameters.polygons = [ g ];
+				
+				geometryService.areasAndLengths(areasAndLengthsParameters, new AsyncResponder(areasAndLengths_resultHandler, areasAndLengths_faultHandler, g));
+			}
+			
+			private function project_faultHandler(fault:Fault, token:Object = null):void
+			{
+				Alert.show(fault.faultString + "\n\n" + fault.faultDetail, "project Fault " + fault.faultCode);
+			}
+			
+			private function areasAndLengths_resultHandler(result:AreasAndLengthsResult, token:Object = null):void
+			{
+				//Set area - but check to see if selected unit was Nautical Miles and handle that math
+				const area:String = measurementUnitSelect.selectedItem.label == "Nautical Miles" ? myNumberFormatter.format(result.areas[0] * .76) : myNumberFormatter.format(result.areas[0]);
+				
+				geometryService.labelPoints([ token ], new AsyncResponder(labelPoints_resultHandler, labelPoints_faultHandler, area + " " + measurementUnitSelect.selectedItem.displayUnit));
+			}
+			
+			private function areasAndLengths_faultHandler(fault:Fault, token:Object = null):void
+			{
+				Alert.show(fault.faultString + "\n\n" + fault.faultDetail, "areasAndLengths Fault " + fault.faultCode);
+			}
+			
+			private function labelPoints_resultHandler(result:Object, token:Object = null):void
+			{
+				for each (var geom:Geometry in result)
+				{
+					var g:Graphic = new Graphic();
+					g.geometry = geom;
+					measurementText.text = "Area: " + String(token);
+					if (measureLabel.selected && !labelDisplayed) {
+					g.symbol = new TextSymbol(measurementText.text,null,textFill.color,textFill.alpha,textFill.border,textFill.borderColor,textFill.background,textFill.backgroundColor,textFill.placement,0,0,0,textFill.textFormat,textFill.textAttribute,textFill.textFunction);
+					graphicsService.add(g); 
+					labelDisplayed = true;
+					}
+				}
+			}
+			
+			private function labelPoints_faultHandler(fault:Fault, token:Object = null):void
+			{
+				Alert.show(fault.faultString + "\n\n" + fault.faultDetail, "labelPoints Fault " + fault.faultCode);
+			}
+			
+			private function addPolygonToMap(polygon:Polygon):void
+			{
+				var newGraphic:Graphic = new Graphic(polygon);
+				//newGraphic.autoMoveToTop = false;
+				newGraphic.symbol = new SimpleFillSymbol(drawpolygonFill.style, drawpolygonFill.color, drawpolygonFill.alpha, drawpolygonFill.outline);
+				graphicsService.add(newGraphic);
+			}
+			
+			protected function myDrawTool_deactivateHandler(event:TemplateEvent):void
+			{
+				map.removeEventListener(MapMouseEvent.MAP_CLICK, mapLabelHandler);
+				myDrawTool.deactivate();
+				drawGeometryButtonBar.selectedIndex = -1;
+				//swatchArea.removeAllElements();
+				//swatchArea.width = 0;
+				//changeSymbolButton.visible = false;
+				currentState = 'default';
+			}
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				map.addLayer(graphicsService);
+			}
+			
+			private function clearAllGraphics():void
+			{
+				if (graphicsService.numChildren > 0) graphicsService.clear();
+			}
+			
+			private function beginEraseGraphics():void
+			{
+				deactivateDraw();
+				pan.enabled = true;
+				
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,'Eraser'));
+				graphicsService.addEventListener(MouseEvent.CLICK, graphicRemoveMeHandler);
+				
+				var r:Label = new Label();
+				r.text = "1. Click on graphic in map to erase" +
+					"\n2. Select to draw a new graphic \nor pan when finished";
+			}
+			
+			private function deactivateDraw():void
+			{
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,'Default'));
+				drawGeometryButtonBar.selectedIndex = -1;
+				myDrawTool.deactivate();
+			}
+			
+			private function graphicRemoveMeHandler(event:Event):void
+			{
+				if(event.target is Graphic)
+				{
+					var graphic:Graphic = event.target as Graphic;
+				} else {
+					var graphic:Graphic = event.target.parent as Graphic;
+				}
+				for (var i:int = graphicsService.numGraphics - 1; i >= 0; i--)
+				{
+					if(graphicsService.graphicProvider[i] == graphic)
+						graphicsService.remove(graphicsService.graphicProvider[i]);
+				} 
+			}
+			
+			private function toggleDrawGraphic(event:TemplateEvent):void
+			{
+				var requestedToggleValue:Boolean = event.data as Boolean;				
+				graphicsService.visible=requestedToggleValue;	
+			}
+			
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				SiteContainer.addEventListener(TemplateEvent.UPDATE_SYMBOLOGY, updateSymbology);
+				SiteContainer.addEventListener(TemplateEvent.DRAW_END_HANDLER, myDrawTool_deactivateHandler);
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.SYMBOLOGY_CHANGE, false, false, null));
+				SiteContainer.addEventListener(TemplateEvent.DRAW_GRAPHICS_TOGGLE, toggleDrawGraphic);
+				SiteContainer.addEventListener(TemplateEvent.SYMBOL_CHANGED, updateSymbology);
+				
+				//point
+				var pointOutlineSymbol:SimpleLineSymbol = new SimpleLineSymbol("solid",0xDD0000,.5,2);
+				var pointSymbol:SimpleMarkerSymbol = new SimpleMarkerSymbol("circle",8,0x000000,.5,0,0,0,pointOutlineSymbol);
+				pointFill = pointSymbol;
+				
+				//line
+				var lineSymbol:SimpleLineSymbol = new SimpleLineSymbol("solid",0x0066FF,.5,4);
+				drawlineFill = lineSymbol;
+				
+				//polygon
+				var polygonOutlineSymbol:SimpleLineSymbol = new SimpleLineSymbol("solid",0x006600,.5,4);
+				var polygonSymbol:SimpleFillSymbol = new SimpleFillSymbol("solid", 0x00FF66, .5, polygonOutlineSymbol);
+				drawpolygonFill = polygonSymbol;
+				
+				//buffer
+				var bufferOutlineSymbol:SimpleLineSymbol = new SimpleLineSymbol("solid",0x006600,.5,4);
+				var bufferSymbol:SimpleFillSymbol = new SimpleFillSymbol("solid", 0x00FF66, .5, bufferOutlineSymbol);
+				bufferFill = bufferSymbol;
+				
+				//Text
+				var textFormat:TextFormat = new TextFormat('Verdana', 15);
+				var textSymbol:TextSymbol = new TextSymbol('Label Symbology',null,0x000000,textFill.alpha, false, 0x000000, false, 0xCCCCCC, 'middle',0,0,0,textFormat,null,null);
+				textFill = textSymbol;
+			}
+			
+			private function updateSymbology(event:TemplateEvent):void
+			{
+				if (event.data.from == 'draw')
+				{
+					this[event.data.item + "Fill"] = event.data.symbol;
+				}
+				setSymbology(event.data.item);
+			}
+			
+			protected function button1_clickHandler(event:MouseEvent, item:String):void
+			{
+				var obj:Object = {
+					item: item,
+					type: item != 'buffer' ? item : 'drawpolygon',
+					from: item,
+					symbol: this[item+"Fill"]
+				}
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.CHANGE_SYMBOL, false, false, obj));
+			}
+			
+			protected function addMeasurementLabelBtn_clickHandler(event:MouseEvent):void
+			{
+			}
+			
+			protected function measurementUnitSelect_changeHandler(event:IndexChangeEvent):void
+			{
+				if (lastGeometry.type == 'esriGeometryPolygon') runAreaMeasure(lastGeometry);
+				else (runLengthsMeasure(lastGeometry));
+			}
+			
+			private function setDrawCursor():void
+			{
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR, false, false, "Draw"));
+			}
+			
+			protected function drawGeometryButtonBar_caretChangeHandler(event:IndexChangeEvent):void
+			{
+				if(event.target.selectedIndex == -1) map.removeEventListener(MapMouseEvent.MAP_CLICK, mapLabelHandler);
+			}
+			
+			protected function pan_clickHandler(event:MouseEvent):void
+			{
+				removeToolEventListeners();
+				deactivateDraw();
+				event.target.enabled = false;
+			}
+			private function removeToolEventListeners():void
+			{
+				map.removeEventListener(MapMouseEvent.MAP_CLICK, mapLabelHandler);
+				graphicsService.removeEventListener(MouseEvent.CLICK, graphicRemoveMeHandler);
+			}
+			
+			protected function myDrawTool_drawStartHandler(event:DrawEvent):void
+			{
+				labelDisplayed = false;
+			}
+			
+			protected function backToTOC_clickHandler(event:MouseEvent):void
+			{
+				removeToolEventListeners();
+				deactivateDraw();
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_WIN_CHANGE, false, false, "layers"));
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="default"/>
+		<s:State name="point" stateGroups="drawing"/>
+		<s:State name="drawline" stateGroups="drawing"/>
+		<s:State name="drawpolygon" stateGroups="drawing"/>
+		<s:State name="drawtext"/>
+	</s:states>
+	
+	<s:Panel title="Draw and Measure" skinClass="skins.toolPanelSkin" height="100%" width="100%">
+		<s:layout>
+			<s:VerticalLayout />
+		</s:layout>
+		
+	<s:VGroup width="100%" clipAndEnableScrolling="true"
+			  paddingLeft="8" paddingTop="8" gap="13">
+		<s:HGroup paddingBottom="0" paddingTop="6" paddingLeft="1" verticalAlign="middle" click="backToTOC_clickHandler(event)" buttonMode="true">		
+			<s:Image id="backToTOC1" source="@Embed('assets/icons/back_undo.png')" right="8"
+					 click="backToTOC_clickHandler(event)" />	
+			<s:Label text="Back to Layers" />
+		</s:HGroup>	
+		
+		<s:Label text="Select Graphic Type to Draw:" fontSize="15" fontWeight="bold" paddingTop="8"/>
+		<s:HGroup>
+			<s:Button id="pan" label="Pan Map" toolTip="Pan Map" icon="@Embed('assets/icons/pan.png')" skinClass="skins.ButtonSquareSkin" 
+					  width="30" height="27" click="pan_clickHandler(event)" enabled="false"/>		
+			<s:ButtonBar id="drawGeometryButtonBar" click="drawToolToggle(event)" skinClass="skins.DrawGeometryButtonBarSkin" caretChange="drawGeometryButtonBar_caretChangeHandler(event)">
+				<mx:ArrayCollection> 
+					<fx:Object data="MAPPOINT" label="Point" src="@Embed('assets/icons/point.png')"/>
+					<fx:Object data="POLYLINE" label="Line" src="@Embed('assets/icons/line.png')"/>
+					<fx:Object data="FREEHAND_POLYLINE" label="Free Line" src="@Embed('assets/icons/freehand_polyline.png')"/>
+					<fx:Object data="POLYGON" label="Polygon" src="@Embed('assets/icons/polygon.png')"/>
+					<fx:Object data="FREEHAND_POLYGON" label="Free Polygon" src="@Embed('assets/icons/freehand_polygon.png')"/>
+					<fx:Object data="LABEL" label="Label" src="@Embed('assets/icons/text.png')"/>
+				</mx:ArrayCollection> 
+			</s:ButtonBar>
+			
+		</s:HGroup>
+		
+		<s:Label text="Measurements:" fontWeight="bold" paddingTop="18"/>
+			
+		<s:Label id="measurementText" text="0"/>
+		
+		<s:DropDownList id="measurementUnitSelect" width="150"
+						change="measurementUnitSelect_changeHandler(event)"
+						dataProvider="{distanceUnits}" selectedIndex="2"
+						width.default="150"
+						enabled.point="false"/>
+		
+		<s:CheckBox id="measureLabel" selected="true" label="Add Measurement to next Graphic" toolTip="If selected, measurements will be added the next draw graphic on the map."/>
+				
+		<s:VGroup id="map_label_group" includeIn="drawtext">
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Label Text: "/>
+			<s:TextInput id="label_text" width="148" />
+			</s:HGroup>
+			<s:Button id="use_last_measurement" label="Add Last Measurement as Label Text" click="{label_text.text = measurementText.text}"/>
+		</s:VGroup>
+		
+		<s:Label text="Symbology:" fontWeight="bold" paddingTop="8"/>
+		
+		<s:Label text="Graphic:" />
+		<s:Group width="100%" >
+			<s:HGroup verticalAlign="middle" verticalCenter="0" width="{width}">
+				
+				<s:Group id="swatchArea" excludeFrom="default, drawtext" width="30" height="30" />
+				
+				<s:Label id="swatchName" excludeFrom="drawtext" text.default="Select Graphic First!"/>
+				
+				<s:Group includeIn="drawtext" width="{drawTextLabel.width}" height="{drawTextLabel.height+8}">
+					<s:Rect width="100%" height="100%">
+						<s:stroke>
+							<s:SolidColorStroke id="myRectStroke" weight="2"/>
+						</s:stroke>
+						<s:fill>
+							<s:SolidColor id="myRectFill" />
+						</s:fill>
+					</s:Rect>
+					<s:Label id="drawTextLabel" text="Sample Map Label"
+							 paddingLeft="4" paddingTop="-3"/>
+				</s:Group>
+			</s:HGroup>
+			<s:HGroup paddingRight="15" paddingLeft="191" width="40">
+				<s:Button id="changeSymbolButton" label="Change Style"  click="button1_clickHandler(event, currentState)" excludeFrom="default"/>
+			</s:HGroup> 
+		</s:Group>
+		
+		<s:Label text="Clear Graphics:" fontWeight="bold" paddingTop="8"/>
+		<s:HGroup verticalAlign="middle">
+			<s:Label text="Erase Single Feature:"/>
+			<s:Button id="erase" label="Erase Graphic" toolTip="Erase Graphic" icon="@Embed('assets/icons/eraser.png')" skinClass="skins.ButtonSquareSkin" 
+					  width="30" height="26" click="beginEraseGraphics()"/>
+			<s:Label text="Clear All:"/>
+			<s:Button id="clear" label="Clear All Graphics" toolTip="Clear All Graphics" icon="@Embed('assets/icons/clear.png')" skinClass="skins.ButtonSquareSkin"  
+					  width="30" height="26" click="clearAllGraphics()"/>
+		</s:HGroup>
+	</s:VGroup>
+	<s:Spacer height="8"/>
+	</s:Panel> 
+</s:Group>

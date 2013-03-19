@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009"
+			 xmlns:s="library://ns.adobe.com/flex/spark"
+			 xmlns:fb="http://ns.adobe.com/flashbuilder/2009"
+			 minWidth="21" minHeight="21" stateChangeComplete="stateChanged2()"
+			 alpha.disabled="0.5" xmlns:mx="library://ns.adobe.com/flex/mx">
+	
+	<!-- host component -->
+	<fx:Metadata>
+		<![CDATA[ 
+		/** 
+		* @copy spark.skins.spark.ApplicationSkin#hostComponent
+		 * 
+		 * 
+			 width="30" height="30"
+		*/
+		[HostComponent("spark.components.ButtonBarButton")]
+		]]>
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+		import mx.events.FlexEvent;
+		import spark.components.TabBar;
+		
+			
+		[Embed(source="assets/icons/new_header/bar.png")] 
+		[Binable]private var middleImage:Class; 
+			
+		protected function stateChanged2():void
+		{
+			var dataObj:Object = hostComponent.data;
+			if(this.currentState == 'up'){
+				buttonImage.source = dataObj.iconStart;
+			}
+			else if(this.currentState == 'down'|| this.currentState == 'downAndSelected'|| this.currentState == 'upAndSelected'){
+				buttonImage.source = dataObj.iconClick;
+			}
+		}
+			
+		protected function gr_creationComplete(evt:FlexEvent):void {
+			var dataObj:Object = hostComponent.data;
+			
+			buttonImage.source = dataObj.icon;
+			hostComponent.toolTip = dataObj.obj;
+		}
+		
+		]]>
+	</fx:Script>
+	
+	<!-- states -->
+	<s:states>
+		<s:State name="up" />
+		<s:State name="over" stateGroups="overStates" />
+		<s:State name="down" stateGroups="downStates" />
+		<s:State name="disabled" stateGroups="disabledStates" />
+		<s:State name="selected" stateGroups="selectedUpStates, disabledStates, selectedStates" />
+		<s:State name="upAndSelected" stateGroups="selectedStates, selectedUpStates" />
+		<s:State name="overAndSelected" stateGroups="overStates, selectedStates" />
+		<s:State name="downAndSelected" stateGroups="downStates, selectedStates" />
+		<s:State name="disabledAndSelected" stateGroups="selectedUpStates, disabledStates, selectedStates" />
+	</s:states>
+	
+	<!--- layer 2: fill @private
+	<s:Rect id="fill" radiusX="6" radiusY="6" width="100%" height="100%">
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xFFFFFF" 
+								 color.selectedUpStates="0xE2E2E2"
+								 color.overStates="0xBBBDBD" 
+								 color.downStates="0xAAAAAA" 
+								 alpha="0.0" 
+								 alpha.over=".85"
+								 alpha.selectedStates="1" />
+				<s:GradientEntry color="0xD8D8D8" 
+								 color.selectedUpStates="0xD9D9D9"
+								 color.over="0x9FA0A1" 
+								 color.overAndSelected="0x8E8F90"
+								 color.downStates="0x929496" 
+								 alpha="0.0"
+								 alpha.over=".85"
+								 alpha.selectedStates="1" />
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>-->
+	
+	
+	<!-- layer 8: text -->
+	<!--- @copy spark.components.supportClasses.ButtonBase#labelDisplay -->
+	<s:HGroup gap="8">
+		<s:Graphic id="gr"
+				   creationComplete="gr_creationComplete(event);"
+				   horizontalCenter="0" verticalCenter="0" >
+			<s:BitmapImage id="buttonImage" />
+		</s:Graphic>
+		<s:Image y="10" source="{middleImage}"  />
+	</s:HGroup>
+</s:SparkSkin>

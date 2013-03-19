@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow 	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 		xmlns:s="library://ns.adobe.com/flex/spark" 
+		 		xmlns:mx="library://ns.adobe.com/flex/mx"			
+				width="300" skinClass="TitleWindowCustom.skins.CustomTitleWindowSkin4"
+				height="235" 
+				title="Print/Export"	
+				cornerRadius="7"
+				verticalCenter="0"
+				horizontalCenter="0"
+				creationComplete="this.controlBarVisible = true; init()"
+				close="closeHandler(event);"				
+				>
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Map;
+			
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
+			import mx.graphics.ImageSnapshot;
+			import mx.managers.PopUpManager;
+			import mx.printing.FlexPrintJob;
+			import mx.printing.FlexPrintJobScaleType;
+			
+			/* import org.alivepdf.display.*;
+			import org.alivepdf.fonts.*;
+			import org.alivepdf.layout.*; */
+			
+			import spark.components.BorderContainer;
+			import spark.components.Panel;
+			import spark.primitives.BitmapImage;		
+			
+			private var map:Map = FlexGlobals.topLevelApplication.mainMap;
+			/* [Bindable]public var myToolPanelContainer:SkinnableContainer = FlexGlobals.topLevelApplication.toolPanel.toolPanelContainer;
+			[Bindable]public var mygraphicsService:GraphicsLayer; */
+			
+			public var myprintLegend:Panel;
+			
+			protected function closeHandler(event:CloseEvent):void
+			{
+				PopUpManager.removePopUp(event.target as IFlexDisplayObject);
+				
+				//revert the viewer back to normal.
+				PopUpManager.removePopUp(myprintLegend);
+				
+				/* FlexGlobals.topLevelApplication.mainMap.zoomSliderVisible=true;
+				FlexGlobals.topLevelApplication.myNavigationGroup.navGroup.visible=true;
+				FlexGlobals.topLevelApplication.myNavigationGroup.visible=true;
+				FlexGlobals.topLevelApplication.mapCoords.visible=true;
+				FlexGlobals.topLevelApplication.toolPanel.visible=true; */
+			}
+			
+			private function init():void{	
+				
+				//focusManager.setFocus(mapTitle as IFocusManagerComponent);
+							
+				//Create EventListeners to update the title and subtitle based user enteries
+				//mapTitle.addEventListener(KeyboardEvent.KEY_UP, updateMapTitles);
+				//mapSubTitle.addEventListener(KeyboardEvent.KEY_UP, updateMapTitles);
+				
+				//create the legend , set legend to visible layers
+				/* var jArray:ArrayCollection = map.layers as ArrayCollection;							
+				var jVisLayers:Array = new Array();				
+				for (var i:int=0;i<jArray.length;i++){
+					if (jArray[i] is ArcGISDynamicMapServiceLayer){
+						var mapLayer2:ArcGISDynamicMapServiceLayer = jArray[i] as ArcGISDynamicMapServiceLayer;													
+						if (mapLayer2.visibleLayers.length > 0)	jVisLayers.push( jArray[i]);							
+					}						
+				} */		
+				
+				/* myprintLegend = PopUpManager.createPopUp(this, complexPrintLegend, false) as Panel;
+				myprintLegend.x = FlexGlobals.topLevelApplication.container.width-401;
+				myprintLegend.y = 0;
+				myprintLegend.width = 400;
+				myprintLegend.height = 700;
+				myprintLegend.visible = false;	 */
+			}
+			
+			/* private function exitPrint():void
+			{				
+				//mapTitle.removeEventListener(KeyboardEvent.KEY_UP, updateMapTitles);
+				//mapSubTitle.removeEventListener(KeyboardEvent.KEY_UP, updateMapTitles);
+				
+				//set area for legend and header bar
+				//for the x values, split the difference between the parent map container and shifting the map, seems to work best
+				//scalebar gets shifted =(
+				printMap.width = FlexGlobals.topLevelApplication.mapCanvas.width;
+				printMap.height = FlexGlobals.topLevelApplication.mapCanvas.height;				
+				printMap.y = 0;
+				printMap.x = 0;
+				
+				printMap.zoomSliderVisible = true;				
+				FlexGlobals.topLevelApplication.mainMap.zoomSliderVisible=true;
+				//FlexGlobals.topLevelApplication.myNavigationGroup.forward_small.visible=true;
+				//FlexGlobals.topLevelApplication.myNavigationGroup.back_small.visible=true;
+				FlexGlobals.topLevelApplication.myNavigationGroup.visible = true;
+				//FlexGlobals.topLevelApplication.mapTitle.visible=false;
+				//FlexGlobals.topLevelApplication.mapSubTitle.visible=false;				
+				//FlexGlobals.topLevelApplication.layerLegend1.visible=false;
+				//myToolPanelContainer.percentHeight=100;			
+				FlexGlobals.topLevelApplication.mapCoords.visible=true;
+				//FlexGlobals.topLevelApplication.mapScaleGroup.visible=true;	
+				FlexGlobals.topLevelApplication.header.visible=true;
+			} */
+			
+			private function printMap():void
+			{
+				var zoomSliderVisibleBeforePrint:Boolean;
+				if (map.zoomSliderVisible)
+				{
+					map.zoomSliderVisible = false;
+					zoomSliderVisibleBeforePrint = true;
+				}
+				var printJob:FlexPrintJob = new FlexPrintJob();
+				printJob.printAsBitmap = false;
+				if (printJob.start())
+				{
+					var h:Number = printJob.pageHeight;
+					var w:Number = printJob.pageWidth;
+					//VGROUP
+					var printBox:VGroup = new VGroup();
+					//printBox.styleName = "PrintBox";
+					printBox.width = map.width;
+					this.addChild(printBox); // add now to workaround https://bugs.adobe.com/jira/browse/SDK-26906
+					try
+					{
+						//TITLE
+						var printTitle:Label = new Label();
+						printTitle.text = mapTitle.text;
+							// TODO: make fontsize specified in stylename overwrite this fontSize 
+						printTitle.percentWidth = 100;
+						printBox.addElement(printTitle);
+						//SUBTITLE
+						var printSubtitle:Label = new Label();
+						printSubtitle.text = mapSubTitle.text;
+						// TODO: make fontsize specified in stylename overwrite this fontSize 
+						printSubtitle.setStyle("fontSize", h / 30);
+						printSubtitle.percentWidth = 100;
+						printBox.addElement(printSubtitle);
+						//MAP
+						//var bmpMap:BitmapData = ImageSnapshot.captureBitmapData(map);
+						this.visible = false;		//Removes print widget from map view
+						var bmpMap:BitmapData = ImageSnapshot.captureBitmapData(FlexGlobals.topLevelApplication.mapCanvas);
+						var printImg:BitmapImage = new BitmapImage();
+						printImg.smooth = true;
+						printImg.source = bmpMap;
+						this.visible = true;		//Makes Print widget visible again
+						printBox.addElement(printImg);
+						//COPYRIGHT
+						var now:Date = new Date();
+						var printCopy:Label = new Label();
+						printCopy.text = "Copyright 2012. Printed on " + now.toLocaleString() + ".";
+						// TODO: make fontsize specified in stylename overwrite this fontSize 
+						printCopy.setStyle("fontSize", h / 48);
+						printCopy.percentWidth = 100;
+						printBox.addElement(printCopy);
+						//PRINT
+						printJob.addObject(printBox, FlexPrintJobScaleType.SHOW_ALL);
+						printJob.send();
+						bmpMap.dispose();
+					}
+					catch (error:Error)
+					{
+						Alert.show(error.toString(),"Print Error");
+					}
+					finally
+					{
+						this.removeChild(printBox);
+					}
+				}
+			}
+			
+			private function convertInToMM(inch:Number) : Number { 
+				var mm:Number = inch * 25.4;
+				return mm;
+			} 
+			
+			private function convertPxToMM(px:Number) : Number {
+				var mm:Number = px * 0.264583333;
+				return mm;
+			}
+			
+			/* private function generatePDF():void
+			{
+				var date:Date = new Date();
+				
+				FlexGlobals.topLevelApplication.mainMap.zoomSliderVisible=false;
+				FlexGlobals.topLevelApplication.myNavigationGroup.visible=false;
+				//FlexGlobals.topLevelApplication.mapScaleGroup.visible=false;
+				FlexGlobals.topLevelApplication.mapCoords.visible=false;
+				FlexGlobals.topLevelApplication.toolPanel.visible=false;
+				FlexGlobals.topLevelApplication.header.visible=false;
+				//myprintLegend.visible = true;
+			
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.PRINT_LGD_SCROLLR,false, false, false));
+				
+				var pdf:PDF = new PDF(Orientation.LANDSCAPE, Unit.MM, Size.LETTER);
+				pdf.setDisplayMode( Display.DEFAULT, Layout.SINGLE_PAGE );
+				pdf.addPage();
+				pdf.setDisplayMode(Display.DEFAULT, Layout.SINGLE_PAGE);
+				
+				pdf.textStyle(new RGBColor(0x0055a4));
+				pdf.setFont(FontFamily.TIMES, Style.NORMAL, 32);
+				pdf.setXY(15,convertInToMM(.2));                                      
+				pdf.writeText(convertInToMM(.15), mapTitle.text);
+				
+				pdf.setFont(FontFamily.TIMES, Style.NORMAL, 20);
+				pdf.setXY(15,convertInToMM(0.50));                                      
+				pdf.writeText(convertInToMM(.155), mapSubTitle.text);				
+				
+				pdf.textStyle(new RGBColor(0x0093d0));
+				pdf.setXY(14,convertInToMM(.55));
+				pdf.setFont(FontFamily.TIMES, Style.NORMAL, 12);
+				pdf.writeFlashHtmlText(convertInToMM(0.15),"_____________________________________________________________________________________________________________________");
+				
+				pdf.addImage(FlexGlobals.topLevelApplication.container,15,20,210,135, ImageFormat.PNG, 100, 1,ResizeMode.NONE, BlendMode.NORMAL,true); 
+				
+				pdf.textStyle(new RGBColor(0x000000));
+				pdf.drawRect(new Rectangle (15,20,210,135));
+				
+				var image:ImageSnapshot =  ImageSnapshot.captureImage(myprintLegend,300, new JPEGEncoder);				
+				pdf.addImageStream(image.data, 210,20,53,135);
+								
+				pdf.textStyle(new RGBColor(0x000000));
+				pdf.drawRect(new Rectangle (210,20,53,135));
+				
+				pdf.textStyle(new RGBColor(0x000000));
+				pdf.setXY(14,156);
+				pdf.setFont(FontFamily.TIMES, Style.NORMAL, 10);
+				pdf.writeText(convertInToMM(.15), "Date of Map: "+ date.toDateString());
+				
+				pdf.textStyle(new RGBColor(0x000000));
+				pdf.setXY(14,170);
+				pdf.setFont(FontFamily.TIMES, Style.NORMAL, 10);
+				pdf.writeText(convertInToMM(.15), 
+					"Disclaimer: The information in this map has been compiled from a variety of sources, " +
+					"and is subject to change without notice to the user. NOAA and BOEM make no warranties" +
+					" or representations whatsoever regarding the availability, quality, accuracy, content," +
+					" completeness or suitability for the user's needs of such information.");
+				
+				pdf.setTitle("Multipurpose Marine Cadastre");
+				pdf.textStyle( new RGBColor(0), 1  );
+				//pdf.save(Method.REMOTE, "http://csc-s-web-p.csc.noaa.gov/alivepdf/CreatePDFServlet", Download.ATTACHMENT, "mmc.pdf");
+				pdf.save(Method.REMOTE, "http://csc-s-web-p.csc.noaa.gov/alivepdf/CreatePDFServlet", Download.INLINE, "mmc.pdf");
+				
+				//PopUpManager.removePopUp(myprintLegend);
+				myprintLegend.visible =  false;
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.PRINT_LGD_SCROLLR,false, false, true));
+				
+				printMap.y = 0;
+				printMap.x = 0;
+				
+				FlexGlobals.topLevelApplication.mainMap.zoomSliderVisible=true;
+				FlexGlobals.topLevelApplication.myNavigationGroup.navGroup.visible=true;
+				FlexGlobals.topLevelApplication.myNavigationGroup.visible=true;
+				//FlexGlobals.topLevelApplication.mapScaleGroup.visible=true;
+				FlexGlobals.topLevelApplication.mapCoords.visible=true;
+				FlexGlobals.topLevelApplication.toolPanel.visible=true;	
+				FlexGlobals.topLevelApplication.header.visible=true;
+				
+				//FlexGlobals.topLevelApplication.mapTitle.left="335";
+				//FlexGlobals.topLevelApplication.mapSubTitle.left="335";	
+			} */
+			
+			protected function setLgd_clickHandler(event:Event):void
+			{
+				/* if(setLgd.selected == true){
+					myprintLegend.visible = true;
+					myprintLegend.height =  map.height/2;
+					myprintLegend.width =  map.width/7;
+					myprintLegend.y=50;
+				}
+				else{
+					myprintLegend.visible = false;
+				} */
+			}
+			
+			import mx.graphics.codec.PNGEncoder;
+			import mx.managers.CursorManager;
+			private function mapExport():void
+			{	
+				this.visible = false;
+				var bmpMap:BitmapData = ImageSnapshot.captureBitmapData(FlexGlobals.topLevelApplication.mapCanvas);
+				var image:ImageSnapshot = ImageSnapshot.captureImage(bmpMap, 300, new PNGEncoder);
+				var f2:FileReference = new FileReference();
+				f2.save(image.data, "Northeast_Ocean_Map.png");
+				this.visible = true;
+				
+				/*var exportPDF:PDF=new PDF(Orientation.LANDSCAPE,"Mm",Size.A4);
+				var rs:Resize= new Resize("ResizePage","centered");
+				exportPDF.setDisplayMode(Display.FULL_PAGE);
+				exportPDF.addPage();
+				exportPDF.addImage(this.map,rs,0,0,0,0,0,1,true,"PNG",3); //this.stage
+				var bytes:ByteArray=exportPDF.save(Method.LOCAL);
+				var f:FileReference=new FileReference();
+				f.save(bytes,"Map.pdf");*/
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:BorderContainer borderWeight="5" borderStyle="inset" backgroundColor="0xD1D1D1" borderColor="0x000000"/>
+	</fx:Declarations>
+		<s:VGroup horizontalAlign="center">	
+			<mx:Form id="myForm" width="100%">
+				
+				<mx:FormItem label="Map Title">
+					<mx:TextInput id="mapTitle" width="180"/>
+				</mx:FormItem>
+				
+				<mx:FormItem label="Map Subtitle">
+					<mx:TextInput id="mapSubTitle" width="180"/>
+				</mx:FormItem>
+				
+				<!--<mx:FormItem label="Show Drawn Graphics?">
+					<s:CheckBox selected="true" click="toggleDrawnGraphics(event);"/>	
+				</mx:FormItem>
+				
+				<mx:FormItem label="Show Coordinate Graphics?">
+					<s:CheckBox selected="true" click="toggleCoordGraphics(event);"/>	
+				</mx:FormItem>-->
+				
+			</mx:Form>
+			<!--<s:CheckBox change="setLgd_clickHandler(event)" visible="false" id="setLgd" label="Show Legend" />-->
+			<s:VGroup width="100%" gap="11" horizontalAlign="center">
+				<s:Button click="printMap()" label="Print" icon="@Embed('assets/icons/print.png')" buttonMode="true"/>
+				<s:Label text="(Use landscape option when printing)" color="0xCA0E00" fontSize="11"/>
+				<s:Button click="mapExport()" label="Export to Image" buttonMode="true"/>
+			</s:VGroup>
+		</s:VGroup>	
+	<s:controlBarContent/>
+</s:TitleWindow>

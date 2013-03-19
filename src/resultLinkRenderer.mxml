@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:MXDataGridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						  xmlns:s="library://ns.adobe.com/flex/spark" 
+						  xmlns:mx="library://ns.adobe.com/flex/mx" 
+						  focusEnabled="true" >
+	
+	<fx:Script>
+		<![CDATA[
+			import flash.net.navigateToURL;
+			
+			//import mx.controls.Alert;
+			
+			protected function lblData_clickHandler(event:MouseEvent):void
+			{
+				if (dataGridListData.label.indexOf("http")==0)
+				{
+					//Alert.show(dataGridListData.label);
+					navigateToURL(new URLRequest(data.Value));
+				}
+				else{
+					//Alert.show(String(dataGridListData.label.indexOf("http")));
+				}
+			}
+			[Bindable]private var dataValue:String
+			protected function init():void
+			{
+				if (dataGridListData.label.indexOf("http")==0)
+				{
+					lblData.mouseEnabled=true;
+					lblData.buttonMode= true;
+				}
+				else{
+					lblData.mouseEnabled=false;
+					lblData.buttonMode=false;
+				}
+			}
+		]]>
+	</fx:Script>
+	<mx:LinkButton id="lblData" top="0" left="0" right="0" bottom="0" label="{dataGridListData.label}" click="lblData_clickHandler(event)" toolTip="{dataGridListData.label}" textAlign="left" />
+	
+</s:MXDataGridItemRenderer>

@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx" 
+					  xmlns:esri="http://www.esri.com/2008/ags"
+					  initialize="group1_initializeHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Graphic;
+			import com.esri.ags.Map;
+			import com.esri.ags.events.MapMouseEvent;
+			import com.esri.ags.geometry.Geometry;
+			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+			import com.esri.ags.layers.GraphicsLayer;
+			import com.esri.ags.layers.Layer;
+			import com.esri.ags.tasks.supportClasses.IdentifyParameters;
+			import com.esri.ags.tasks.supportClasses.IdentifyResult;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.CursorManager;
+			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncResponder;
+			import mx.utils.ObjectUtil;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			[Bindable]            
+			public var lastIdentifyResultGraphic:Graphic;
+			[Bindable]public var map:Map = new Map();
+			[Bindable]public var graphicsService:GraphicsLayer= new GraphicsLayer();
+			[Bindable]public var layersArray:Array= new Array();
+			[Bindable]public var mapPointEvent:MapMouseEvent;
+			[Bindable]public var selectedLayerID:String;
+			[Bindable]public var selectedLayerURL:String;
+			
+			[Bindable]
+			private var identifyArrayCollection:ArrayCollection;	
+			[Bindable]private var identifiedObj:Object;
+			private var identifiedLayers:Object;
+			private var displayName:String;
+			
+			[Embed(source="assets/icons/plus.png")]
+			[Binable]public var closedIcon:Class;
+			
+			[Embed(source="assets/icons/minus.png")]
+			[Binable]public var openIcon:Class;
+			
+			//create XML variables
+			[Bindable]private var identifyXML:XML = 
+				<results>
+				</results>;	
+			
+			private function popIdentifyDataGrid(event:ListEvent):void
+			{
+				//create temporary ArrayCollection that will 
+				//be the identifyDataGrid data provider
+				var outArrayCollection:ArrayCollection = new ArrayCollection();
+				
+				//loop through each object in identify results array
+				for each(var obj:Object in identifyArrayCollection)
+				{
+					//grab the object with same name as selectedItem in tree
+					if(obj['name'] == event.currentTarget.selectedItem.@name
+						&& obj['values']['OBJECTID'] == event.currentTarget.selectedItem.@id)
+					{
+						var fld:String;
+						var value:String;
+						//loop through child object
+						for (fld in obj['values'])
+						{
+							value = obj['values'][fld].toString();
+							/* if (value.indexOf("http://")==0){
+								Alert.show(value);
+							} */
+							var tempIdentifiedLayers:Object = 
+								{
+									Attribute: fld, 
+									Value: value
+								}
+								
+							//add to the dataProvider array (all but OBJECTID)
+							if(fld != 'OBJECTID') outArrayCollection.addItem(tempIdentifiedLayers);
+						} 
+					}
+				}
+				//set dataProvider
+				identifyDataGrid.dataProvider = outArrayCollection;
+			}
+			
+			private var count:int;
+			public function mapClickIdentifyHandler(event:MapMouseEvent):void
+			{
+				//Remove Identify Cursor and set to Busy Cursor
+				CursorManager.removeAllCursors();
+				CursorManager.setBusyCursor();  
+				
+				var result:Boolean = false;
+				if (count == 0) {
+					identifyTree.dataProvider = new XMLList();
+					mapPointEvent = event;
+					identifyXML = 
+						<results>
+						</results>;
+					graphicsService.clear();	
+				}
+				//Not dynamic but it will work for now since we only have one layer
+				var dynLyr:ArcGISDynamicMapServiceLayer = new ArcGISDynamicMapServiceLayer();
+				for each(var layerObj:Layer in map.layers){						
+					if(layerObj is ArcGISDynamicMapServiceLayer){						
+						dynLyr = layerObj as ArcGISDynamicMapServiceLayer;
+						
+						if (dynLyr.url ==  layersArray[count].url){								
+							var dynLyrVis:Array = dynLyr.visibleLayers as Array;
+							
+							var identifyParams:IdentifyParameters = new IdentifyParameters();
+							identifyParams.returnGeometry = true;
+							identifyParams.tolerance = 8;//identify_tolerance.value;
+							identifyParams.width = map.width;
+							identifyParams.height = map.height;
+							identifyParams.geometry = event.mapPoint;                
+							identifyParams.mapExtent = map.extent;                
+							identifyParams.spatialReference = map.spatialReference;
+							
+							//Not dynamic but it will work for now
+							var a:Array = new Array();
+							for each(var s:String in dynLyr.visibleLayers) 
+							{	
+								if (s != '9999'){
+									a.push(s);
+								}
+							}
+							identifyParams.layerIds = a;	
+							
+							//if (dynLyrVis != null) identifyParams.layerIds = dynLyrVis;				
+							identifyParams.layerOption = IdentifyParameters.LAYER_OPTION_VISIBLE;
+							
+							//Clear Tree and Grid
+							identifyDataGrid.dataProvider = '';
+							
+							//layerLabel.text = "Active Layer: " + myLayers.layerSelectedName;  
+							var clickGraphic:Graphic = new Graphic(event.mapPoint, clickPtSym); 				          
+							graphicsService.add(clickGraphic);
+							map.addLayer(graphicsService);
+							
+							identifyTask.url  = layersArray[count].url;
+							identifyTask.execute(identifyParams, new AsyncResponder(myResultFunction, myFaultFunction, clickGraphic));							
+						}
+					}
+				} 
+				count++;
+			}
+			
+			private function myResultFunction(identifyResults:Array, clickGraphic:Graphic = null):void
+			{	
+				if (identifyResults && identifyResults.length > 0)
+				{
+					//Set identify ArrayCollection to nothing
+					identifyArrayCollection = new ArrayCollection();
+										
+					var newLayerNode:XML;
+					
+					//get last layer so you know when to create a new one
+					var lastLayerName:String = '';
+					//var identifyXMLListTest:XMLList;
+					//loop through identify results
+					
+					//create a unique ID
+					var i:int = 0;
+					for each (var identifyResult:IdentifyResult in identifyResults)
+					{
+							var result:IdentifyResult = identifyResult;
+							
+							var resultGraphic:Graphic = result.feature;
+							
+							switch (resultGraphic.geometry.type)
+							{
+								case Geometry.MAPPOINT:
+								{
+									resultGraphic.symbol = smsIdentify;
+									break;
+								}
+								case Geometry.POLYLINE:
+								{
+									resultGraphic.symbol = slsIdentify;
+									break;
+								}
+								case Geometry.POLYGON:
+								{
+									resultGraphic.symbol = sfsIdentify;
+									break;
+								}
+							} 						
+				
+							//get attribute objects
+							identifiedObj = identifyResult.feature.attributes;
+							
+							//Check to see if layer name is different - if it is -
+							//start new <layer> xml tag
+							if(lastLayerName != identifyResult.layerName) 
+							{
+								newLayerNode = <layer></layer>;
+								newLayerNode.@name = identifyResult.layerName;
+								identifyXML.appendChild(newLayerNode);
+								lastLayerName = identifyResult.layerName;
+							}
+							
+							//create new <displayname> tag that will be the
+							// identified feature display name and add it to parent <layer>
+							var newDisplayNameNode:XML = <displayname></displayname>;
+							var s:Object = ObjectUtil.getClassInfo(identifyResult.feature.attributes);
+							
+							if(identifiedObj[identifyResult.displayFieldName] != null){
+								displayName = identifyResult.displayFieldName;	
+							}
+							else{
+								displayName = s.properties[1].localName;
+							}
+							newDisplayNameNode.@name = identifiedObj[displayName];
+							newDisplayNameNode.@id = identifiedObj['OBJECTID'];
+							newDisplayNameNode.@grphcID = i;
+							newLayerNode.appendChild(newDisplayNameNode);
+							
+							//Build graphics
+							//Leveraging displayFieldName from identifiedObj
+							lastIdentifyResultGraphic = resultGraphic;
+							lastIdentifyResultGraphic.name =  identifiedObj[displayName]+ i;								
+							lastIdentifyResultGraphic.attributes = resultGraphic.attributes;
+							graphicsService.add(lastIdentifyResultGraphic);
+							
+							//create XML List from XML tags and add it to tree
+							var identifyXMLList:XMLList = new XMLList(identifyXML);
+							//identifyXMLListTest = identifyXMLList;
+							identifyTree.dataProvider = '';
+							identifyTree.dataProvider = identifyXMLList;
+							
+							//throw the identify results into an ArrayCollection to save results
+							var identifyResultsObj:Object =
+								{
+									name: identifiedObj[displayName],	//String
+									values: identifiedObj				//Object
+								}
+							identifyArrayCollection.addItem(identifyResultsObj);
+							//logger2('identifySuccess');
+						
+							//add to cound
+							i++;
+					}
+					
+					identifyTree.validateNow();
+					identifyTree.expandChildrenOf(identifyXML, true);
+					
+					/* primary_direction_group.removeAllElements();
+					var r:Label = new Label();
+					r.text = "1. Click on identified feature in tree below\n to view attributes in grid\n" +
+						"\n2. Or click on map to identify again";
+					primary_direction_group.addElement(r); */
+					clearResultsLabel.visible = true;
+				} 
+				/* else {
+					primary_direction_group.removeAllElements();
+					var r:Label = new Label();
+					r.text = "No Identify Results." +
+						"\nPlease click on map again.";
+					primary_direction_group.addElement(r);
+				} */
+				//Remove Busy Cursor and set to back to Identify Cursor
+				CursorManager.removeBusyCursor();
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,"Identify"));
+				
+				checkToIdentifyAgain();
+			}
+			
+			private function myFaultFunction(error:Object, clickGraphic:Graphic = null):void            
+			{      
+				//Commented out so that we could get the No Results Found Alert
+				//above withouth this corresponding error 
+				
+				//Alert.show(identifyTask.url+" " + String(error), "Identify Error"  );  
+				//Alert.show("Please click on the layer in the TOC you would like to identify."); 
+				checkToIdentifyAgain();
+				
+				//Remove Busy Cursor and set to back to Identify Cursor
+				CursorManager.removeBusyCursor();
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,"Identify"));
+			}
+			
+			protected function checkToIdentifyAgain():void
+			{
+				if (count < layersArray.length)
+				{
+					mapClickIdentifyHandler(mapPointEvent);
+				} else {
+					count = 0;
+				} 
+			}
+			
+			protected function beginIdentify(event:TemplateEvent):void
+			{
+				map.addEventListener(MapMouseEvent.MAP_CLICK, mapClickIdentifyHandler)
+			}
+			
+			protected function customtitlewindow3_closeHandler(event:CloseEvent):void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				SiteContainer.addEventListener(TemplateEvent.IDENTIFY_BEGIN_HANDLER, beginIdentify);
+				SiteContainer.addEventListener(TemplateEvent.IDENTIFY_END_HANDLER, endIdentify);
+				SiteContainer.addEventListener(TemplateEvent.SEND_LAYERS_TO_IDENTIFY, recieveLayers);
+			}
+			protected function recieveLayers(event:TemplateEvent):void
+			{
+				layersArray = event.data as Array;
+			}
+			
+			protected function endIdentify(event:Event):void
+			{
+				map.removeEventListener(MapMouseEvent.MAP_CLICK, mapClickIdentifyHandler);
+			}
+			
+			private function onItemRollOver( event:ListEvent ) : void
+			{		
+				var data:Object = event.itemRenderer.data;		
+				if(data.hasOwnProperty("@name")){					
+					var grphcIDTree:String = data.@name + data.@grphcID	
+					var rollOverGrphc:Graphic = findGraphicByAttribute(grphcIDTree);
+				}
+				
+				if (rollOverGrphc) {  					
+					switch (rollOverGrphc.geometry.type)
+					{
+						case Geometry.MAPPOINT:
+						{
+							rollOverGrphc.symbol = smsIdentifyRO;
+							break;
+						}
+						case Geometry.POLYLINE:
+						{						
+							rollOverGrphc.symbol = slsIdentifyRO;						
+							break;
+						}
+						case Geometry.POLYGON:
+						{
+							rollOverGrphc.symbol = sfsIdentifyRO;
+							
+							break;
+						}							
+					}
+				}	
+			}
+			
+			private function onItemRollOut( event:ListEvent ) : void
+			{	
+				var data:Object = event.itemRenderer.data;		
+				if(data.hasOwnProperty("@name")){					
+					var grphcIDTree:String = data.@name + data.@grphcID	
+					var rollOverGrphc:Graphic = findGraphicByAttribute(grphcIDTree);
+				}
+				
+				if (rollOverGrphc) {  					
+					switch (rollOverGrphc.geometry.type)
+					{
+						case Geometry.MAPPOINT:
+						{
+							rollOverGrphc.symbol = smsIdentify;
+							break;
+						}
+						case Geometry.POLYLINE:
+						{						
+							rollOverGrphc.symbol = slsIdentify;						
+							break;
+						}
+						case Geometry.POLYGON:
+						{
+							rollOverGrphc.symbol = sfsIdentify;
+							
+							break;
+						}							
+					}	
+				}	
+			}
+			
+			public function findGraphicByAttribute(strName:String) : Graphic
+			{
+				for each( var graphic:Graphic in graphicsService.graphicProvider)
+				{	
+					if (graphic.attributes != null){
+						
+						if (graphic.name == strName)
+						{ 						
+							return graphic;
+							graphic.autoMoveToTop = true
+						}
+					}
+				}            
+				return null;
+			}
+			
+			private function clearAllResults():void
+			{			
+				clearResultsLabel.visible = true;
+				graphicsService.clear();
+				identifyTree.dataProvider = new XMLList();
+				identifyDataGrid.dataProvider = '';
+			}
+			
+			protected function backToTOC_clickHandler(event:MouseEvent):void
+			{
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_WIN_CHANGE, false, false, "layers"));
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,"Default"));
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Identify Task -->        
+		<esri:IdentifyTask id="identifyTask"            
+						   concurrency="last" showBusyCursor="true"/> 
+		<!--Symbol for identify click X  -->
+		<esri:SimpleMarkerSymbol id="clickPtSym" style="x" color="0xFF0000" size="6">
+			<esri:SimpleLineSymbol color="0xFF0000" width="2"/>  
+		</esri:SimpleMarkerSymbol>
+		
+		<!-- Symbol for Identify Result as Polyline -->
+		<esri:SimpleLineSymbol id="slsIdentify"
+							   width="2"
+							   alpha="1"
+							   color="0x00FF00"
+							   style="solid"/>
+		
+		<!-- Symbol for Identify Result as Point -->
+		<esri:SimpleMarkerSymbol id="smsIdentify"
+								 color="0x00FF00"
+								 size="15"
+								 style="diamond"/>
+		
+		<!-- Symbol for Identify Result as Polygon -->
+		<esri:SimpleFillSymbol id="sfsIdentify" />
+		
+		<!-- Symbol for Identify Result as Polyline -->
+		<esri:SimpleLineSymbol id="slsIdentifyRO"
+							   width="2"
+							   alpha="1"
+							   color="0xF44B4B"
+							   style="solid"/>
+		
+		<!-- Symbol for Identify Result as Point -->
+		<esri:SimpleMarkerSymbol id="smsIdentifyRO"
+								 color="0xF44B4B"
+								 size="15"
+								 style="diamond"/>
+		
+		<!-- Symbol for Identify Result as Polygon -->
+		<esri:SimpleFillSymbol id="sfsIdentifyRO"
+							   color="0xF44B4B"/>
+	</fx:Declarations>
+	<s:Panel title="Identify" width="100%" height="100%" skinClass="skins.toolPanelSkin">
+		
+		<s:VGroup width="100%" clipAndEnableScrolling="true" height="100%" paddingBottom="12"
+			paddingLeft="6" paddingTop="13" paddingRight="8">
+			
+			<s:HGroup height="31" paddingBottom="6" paddingLeft="1" verticalAlign="middle" >		
+				<s:Image id="backToTOC1" source="@Embed('assets/icons/back_undo.png')" right="8"
+						 click="backToTOC_clickHandler(event)" />	
+				<s:Label text="Back to Layers" paddingRight="77" click="backToTOC_clickHandler(event)" />
+				<s:Button label="Clear Results" click="clearAllResults()" visible="false" id="clearResultsLabel"/>
+			</s:HGroup>	
+			
+			<s:VGroup height="17" id="primary_direction_group" gap="4">
+				<s:Label text="Click on map to Identify Layers" fontSize="15" fontWeight="bold"/>
+			</s:VGroup>
+			
+			<!--<s:Label text="Identify Tolerance:" visible="false" fontWeight="bold" paddingTop="0"/>
+			<s:HGroup gap="2" height="0" visible="false">
+				<s:Label text="0" fontSize="9" fontWeight="normal"/>
+				<s:HSlider id="identify_tolerance" value="8" minimum="1" maximum="20" snapInterval="1"/>
+				<s:Label text="20" fontSize="9" fontWeight="normal"/>
+			</s:HGroup>-->
+			
+		<s:Spacer height="1"/>			
+			<s:HGroup height="15">
+				<s:Label text="Results:" fontWeight="bold"/>
+				<s:Label text="(Only visible layers returned)" />
+			</s:HGroup>
+			<mx:VDividedBox width="100%" height="100%">
+				<mx:Tree id="identifyTree" folderClosedIcon="{null}" folderOpenIcon="{null}" disclosureClosedIcon="{closedIcon}" disclosureOpenIcon="{openIcon}" width="100%" height="100%" showRoot="false" labelField="@name"
+						 itemClick="popIdentifyDataGrid(event)" horizontalScrollPolicy="auto"  itemRollOver="onItemRollOver(event)" itemRollOut="onItemRollOut(event)" />
+				
+				<mx:DataGrid id="identifyDataGrid" variableRowHeight="true" height="100%" width="100%" >
+					<mx:columns>
+						<mx:DataGridColumn dataField="Attribute" width="120" showDataTips="true" dataTipField="dataGridListData.label"/>
+						<!--<mx:DataGridColumn dataField="Value" />-->
+						<mx:DataGridColumn dataField="Value" itemRenderer="resultLinkRenderer" showDataTips="true" dataTipField="dataGridListData.label" textAlign="left"/>					
+					</mx:columns>
+				</mx:DataGrid>  
+			</mx:VDividedBox>
+		</s:VGroup>
+	</s:Panel>
+</s:Group>

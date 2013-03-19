@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkSkin
+	xmlns:fx="http://ns.adobe.com/mxml/2009"
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx">
+	
+	<fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+    
+    <fx:Metadata>
+        [HostComponent("spark.components.Button")]
+    </fx:Metadata>
+    
+    <s:states>
+        <s:State name="up" />
+        <s:State name="over" stateGroups="overStates"/>
+        <s:State name="down" stateGroups="overStates" />
+        <s:State name="disabled" />
+    </s:states>
+    
+    <s:Group>
+	    <s:Rect width="20" height="20"/>
+	    <s:Ellipse x="1" y="1" width="18" height="18">
+	      <s:fill>
+	        <s:SolidColor color="{getStyle('borderColor')}"/>
+	      </s:fill>
+	      <s:stroke>
+	        <s:SolidColorStroke color="#ffffff" caps="none" weight="0.6" joints="miter" miterLimit="4"/>
+	      </s:stroke>
+	    </s:Ellipse>
+	    <s:Line xFrom="6.71436" yFrom="12.8525" xTo="12.7148" yTo="6.85205">
+	      <s:stroke>
+	        <s:SolidColorStroke color="#ffffff" caps="none" weight="2" joints="miter" miterLimit="4"/>
+	      </s:stroke>
+	    </s:Line>
+	    <s:Line xFrom="6.71436" yFrom="6.85205" xTo="12.7148" yTo="12.8525">
+	      <s:stroke>
+	        <s:SolidColorStroke color="#ffffff" caps="none" weight="2" joints="miter" miterLimit="4"/>
+	      </s:stroke>
+	    </s:Line>
+	</s:Group>
+</s:SparkSkin>

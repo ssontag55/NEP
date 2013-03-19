@@ -1,0 +1,984 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+									 xmlns:s="library://ns.adobe.com/flex/spark" 
+									 xmlns:mx="library://ns.adobe.com/flex/mx" 
+									 creationComplete="init()"
+									 xmlns:esri="http://www.esri.com/2008/ags"
+									 width="100%" xmlns:toc="solutions.components.toc.*"  >
+	<fx:Style>
+		.TitleWin{
+		dropShadowEnabled: true;
+		borderAlpha: 1.0;
+		borderColor: haloSilver;
+		backgroundColor: haloSilver;
+		cornerRadius:12;
+		}
+	</fx:Style>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Graphic;
+			import com.esri.ags.Map;
+			import com.esri.ags.events.LayerEvent;
+			import com.esri.ags.geometry.WebMercatorMapPoint;
+			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+			import com.esri.ags.layers.GraphicsLayer;
+			import com.esri.ags.layers.Layer;
+			import com.esri.ags.layers.WMSLayer;
+			import com.esri.ags.layers.supportClasses.LayerInfo;
+			
+			import mx.charts.CategoryAxis;
+			import mx.charts.Legend;
+			import mx.charts.LineChart;
+			import mx.charts.LinearAxis;
+			import mx.charts.series.LineSeries;
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			import mx.containers.TabNavigator;
+			import mx.containers.TitleWindow;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.UIComponent;
+			import mx.events.CloseEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.events.PropertyChangeEvent;
+			import mx.managers.CursorManager;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.http.HTTPService;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			import solutions.components.external.toc.TOC;
+						
+			[Bindable] public var map:Map = new Map();
+			[Bindable] public var displayGroup:Array = new Array();
+			[Bindable]
+			private var groupArrayList:ArrayList = new ArrayList();
+			[Bindable]
+			private var layerArrayList:ArrayList = new ArrayList();
+			[Bindable]
+			private var targets:Array = new Array();
+			[Bindable]
+			private var propertiesXML:XML = new XML();
+				
+			[Bindable]private var stationType:String;
+			[Bindable]private var stationName:String;
+			[Bindable]private var stationID:String;
+			[Bindable]private var stationArray:Array;
+			
+			[Bindable]public var tocCustomXML:XML;
+			[Bindable]public var massList:XMLList;
+			
+			[Bindable]public var tocXML:XML;
+			[Bindable]public var loaded:Boolean = false;
+			
+			[Bindable]private var buoyLayer:GraphicsLayer = new GraphicsLayer;
+			[Bindable]private var buoyLayerCoop:GraphicsLayer = new GraphicsLayer;
+			
+			[Bindable]private var massGISWMS:WMSLayer = new WMSLayer;
+			private var tabs:TabNavigator = new TabNavigator;
+			private var groupChart:VGroup = new VGroup;
+			private var graph:TitleWindow = new TitleWindow;
+			
+			[Embed(source="assets/icons/arrow_up_blue.png")] 
+			private var upImage:Class; 
+			[Embed(source="assets/icons/arrow_down_blue.png")] 
+			private var downImage:Class;
+			[Bindable]
+			[Embed(source="../../../assets/icons/external/BOEM.png")]
+			public var logoBOEM:Class;			
+			[Bindable]
+			[Embed(source="../../../assets/icons/external/NGDC.png")]
+			public var logoNGDC:Class;
+			[Bindable]
+			[Embed(source="../../../assets/icons/external/CCOM.png")]
+			public var logoCCOM:Class;
+			[Bindable]
+			[Embed(source="../../../assets/icons/external/noaa_csc.png")]
+			public var logoMMC:Class;
+			[Bindable]
+			[Embed(source="../../../assets/icons/external/noaa_nos.png")]
+			public var logoOUA:Class;
+			[Bindable]
+			[Embed(source="../../../assets/icons/external/TNC.png")]
+			public var logoTNC:Class;
+			[Bindable]
+			[Embed(source="../../../assets/icons/external/moris.png")]
+			public var logoMA:Class;
+			
+			[Bindable]
+			private var numParams:Number = 0;
+			[Bindable]
+			private var numParamsDone:Number = 0;
+						
+			protected function init():void
+			{
+				FlexGlobals.topLevelApplication.pb.label = "Loading External Layers";
+				var coopIcon:Sprite = new Sprite();
+				var ndbcIcon:Sprite = new Sprite();
+				var cUI:UIComponent = new UIComponent;
+				var nUI:UIComponent = new UIComponent;
+				coopIcon.graphics.beginFill(0x33CC00, 0.7);
+				coopIcon.graphics.drawCircle(10, 0, 7);
+				coopIcon.graphics.endFill();
+				cUI.addChild(coopIcon)
+				coopG.addChild(cUI);
+				
+				ndbcIcon.graphics.beginFill(0x0707CF, 0.7);
+				ndbcIcon.graphics.drawCircle(10,0, 7);
+				ndbcIcon.graphics.endFill();
+				nUI.addChild(ndbcIcon)
+				ndbcG.addChild(nUI);
+				 
+				if(loaded == false)
+				{					
+					var configService:HTTPService = new HTTPService();
+					configService.url = "xml/externalTOC.xml";
+					configService.resultFormat = "e4x";
+					configService.addEventListener(ResultEvent.RESULT, tocResult);
+					configService.addEventListener(FaultEvent.FAULT, tocFault);	
+					configService.send();
+					
+					//add event listener for openning/closing groups of layers
+					//SiteContainer.addEventListener(TemplateEvent.GROUP_TOGGLE, groupToggle);
+					//SiteContainer.addEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE, visibleLayerToggle);
+					//SiteContainer.addEventListener(TemplateEvent.TOC_STATE_CHANGE, updateTOCState);
+					SiteContainer.addEventListener(TemplateEvent.CLEAR_LAYERS, clearAllL);
+					SiteContainer.addEventListener(TemplateEvent.TOC_STATE_CHANGE, updateTOCState);
+					
+					loaded = true;
+				} 
+			}
+			
+			private function updateTOCState(event:TemplateEvent):void
+			{
+				CursorManager.removeBusyCursor();
+				FlexGlobals.topLevelApplication.pb.visible = false;
+			}
+			
+			protected function clearAllL(event:TemplateEvent):void
+			{
+				buoyLayerCoop.visible = false;
+				buoyLayer.visible = false;
+				ndbccheck.selected = false;
+				coopcheck.selected = false;
+				massGISWMS.visible = false;
+				
+				//uncheck WMS layers
+				for each(var xm:XML in massList){
+					xm.@selected = 'false';
+				}
+				for(var i:int = 0; i < map.layerIds.length;i++) 
+				{
+					if(map.layers[i] is ArcGISDynamicMapServiceLayer)
+					{
+						var layer:ArcGISDynamicMapServiceLayer = map.getLayer(map.layerIds[i]) as ArcGISDynamicMapServiceLayer;
+						
+						layer.visible = false;
+						dispatchEvent(PropertyChangeEvent.createUpdateEvent(this, "visible", true, false));
+					}
+				}
+			}
+			
+			private function tocFault(event:FaultEvent):void
+			{
+				Alert.show("Error reading in Table of Contents XML")
+			}
+			
+			private function visibleLayerToggle(event:TemplateEvent):void
+			{
+				var dsLyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(event.data.data.serviceID) as ArcGISDynamicMapServiceLayer;
+				
+				for each (var lyrInfo:LayerInfo in dsLyr.layerInfos){
+					var grpLayer:Boolean;
+					grpLayer = false;
+					
+					if (lyrInfo.subLayerIds != null && lyrInfo.layerId ==0){
+						grpLayer = true;
+					}
+				} 
+				
+				for (var i:int=0;i<dsLyr.visibleLayers.length;i++) if(dsLyr.visibleLayers[i] == -1) dsLyr.visibleLayers.removeItemAt(i);
+				
+				//if checked add to visible layer array
+				//else assume number is in array and remove
+				if (event.data.visibleLayer.selected == true) {				
+					
+					dsLyr.visibleLayers.addItem(event.data.data.layerID);
+					
+					event.data.data.parentGroupElement.visibleLayers++;
+					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_ON_TOC, false, false, dsLyr));
+					dsLyr.visible = true;
+				} 
+				else {
+					for (var j:int=0;j<dsLyr.visibleLayers.length;j++) {
+						if(dsLyr.visibleLayers[j] == event.data.data.layerID) {
+							dsLyr.visibleLayers.removeItemAt(j); 
+							event.data.data.parentGroupElement.visibleLayers--;
+							SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_OFF_TOC, false, false, dsLyr));
+						}
+					}
+				}
+			}
+			
+			private function returnLayerInfo(id:String):Layer
+			{
+				var returnLyr:Layer;
+				for each(var lyr:Layer in map.layers){
+					if(lyr.id == id) {
+						returnLyr = lyr; 
+						break;
+					}
+				}
+				return returnLyr;
+			}
+			
+			private function searchLayers():void{
+			}	
+				
+			private function tocResult(event:ResultEvent):void
+			{
+				tocXML = event.result as XML;
+				massList = tocXML.mass.children() as XMLList;
+				
+				/* MASS GIS layer*/
+				morrisList.dataProvider = massList;
+				massGISWMS.id = 'maGIS';
+				massGISWMS.name = 'maGIS';
+				massGISWMS.url = tocXML.massURL;
+				var a:Array = [];//'massgis:MORIS.CCAP_MA_06_RD'
+				var aList:ArrayList = new ArrayList(a);
+				massGISWMS.visibleLayers = aList;
+				massGISWMS.visible = true;
+				massGISWMS.skipGetCapabilities = true;
+				massGISWMS.version = "1.1.1";
+				massGISWMS.addEventListener(LayerEvent.UPDATE_START,loadin);
+				massGISWMS.addEventListener(LayerEvent.UPDATE_END,loadindone);
+				map.addLayer(massGISWMS);
+				 
+				var boemTOC:TOC = new TOC(map);
+				boemTOC.layerMain = createLayers(tocXML.boem.children() as XMLList);
+				boem.addChild(boemTOC);
+				FlexGlobals.topLevelApplication.pb.visible = false;
+			}
+			
+			private function addTOC(event:IndexChangedEvent):void
+			{
+				/* Other ESRI GIS layer
+				//TOC only for Dynamic layers */
+				if(event.newIndex == 1 && boem.numChildren==0){
+					FlexGlobals.topLevelApplication.pb.label = "Loading BOEM Layers";
+					FlexGlobals.topLevelApplication.pb.visible = true;
+					var boemTOC:TOC = new TOC(map);
+					boemTOC.layerMain = createLayers(tocXML.boem.children() as XMLList);
+					boem.addChild(boemTOC);
+				}
+				else if(event.newIndex == 6&& tnc.numChildren==0){
+					FlexGlobals.topLevelApplication.pb.label = "Loading TNC Layers";
+					FlexGlobals.topLevelApplication.pb.visible = true;
+					var tncTOC:TOC = new TOC(map);
+					tncTOC.layerMain = createLayers(tocXML.tnc.children() as XMLList);
+					tnc.addChild(tncTOC);
+				}
+				else if(event.newIndex == 2&& oua.numChildren==0){
+					FlexGlobals.topLevelApplication.pb.label = "Loading NH/ME Layers";
+					FlexGlobals.topLevelApplication.pb.visible = true;
+					var ouaTOC:TOC = new TOC(map);
+					ouaTOC.layerMain = createLayers(tocXML.nhsmocean.children() as XMLList);
+					oua.addChild(ouaTOC);
+				}
+				else if(event.newIndex == 4&& ngdc.numChildren==0){
+					FlexGlobals.topLevelApplication.pb.label = "Loading NGDC Layers";
+					FlexGlobals.topLevelApplication.pb.visible = true;
+					var ngdcTOC:TOC = new TOC(map);
+					ngdcTOC.layerMain = createLayers(tocXML.ngdc.children() as XMLList);
+					ngdc.addChild(ngdcTOC);
+				}
+				else if(event.newIndex == 3&& mmc.numChildren==0){
+					FlexGlobals.topLevelApplication.pb.label = "Loading MMC Layers";
+					FlexGlobals.topLevelApplication.pb.visible = true;
+					var mmcTOC:TOC = new TOC(map);
+					mmcTOC.layerMain = createLayers(tocXML.cadastre.children() as XMLList);
+					mmc.addChild(mmcTOC);
+				}
+				else if(event.newIndex == 5&& ccom.numChildren==0){
+					FlexGlobals.topLevelApplication.pb.label = "Loading CCOM Layers";
+					FlexGlobals.topLevelApplication.pb.visible = true;
+					var ccomTOC:TOC = new TOC(map);
+					ccomTOC.layerMain = createLayers(tocXML.unh.children() as XMLList);
+					ccom.addChild(ccomTOC);
+				}
+			}
+			
+			private function createLayers(xml:XMLList):ArrayCollection
+			{
+				var layerCollection:ArrayCollection = new ArrayCollection();
+				var emptyLayers:ArrayCollection = new ArrayCollection();
+				
+				for each(var x:XML in xml){
+					var lyr:ArcGISDynamicMapServiceLayer = new ArcGISDynamicMapServiceLayer(x.@url);
+					lyr.name = x.@name;
+					lyr.visibleLayers = emptyLayers;
+					lyr.addEventListener(LayerEvent.UPDATE_START,loadin);
+					lyr.addEventListener(LayerEvent.UPDATE_END,loadindone);
+					map.addLayer(lyr);
+					layerCollection.addItem(lyr);
+				}
+				return layerCollection;
+			}
+			
+			private function loadin(event:LayerEvent):void{
+				FlexGlobals.topLevelApplication.pb.label = "Loading Layers";
+				FlexGlobals.topLevelApplication.pb.visible = true;
+			}
+			private function loadindone(event:LayerEvent):void{
+				FlexGlobals.topLevelApplication.pb.visible = false;
+			}
+			
+			private function addservicecoop(event:ResultEvent): void
+			{
+				//// Messy way of parsing the Get Capabilities but the service doesn't seem to 
+				////  supply the event.result in the correct XML type.  Doesn't fit XMLList or XML 
+				var parsedrecords:Array = event.result.split("<ObservationOffering ");
+				
+				for ( var n:int = 1; n < parsedrecords.length; n++ ) {
+					var t:String = parsedrecords[n];
+					var station:String = t.substring( t.search("gml:id=\"")+String("gml:description>").length, t.search(">")-1);
+					var desc:String = t.substr(t.search("<gml:description>")+String("<gml:description>").length, t.search("</gml:description>")-t.search("<gml:description>")-17);
+					var latlon:String = t.substr(t.search("<gml:lowerCorner>")+String("<gml:lowerCorner>").length, t.search("</gml:lowerCorner>")-t.search("<gml:lowerCorner>")-17);
+					var retire:int = t.search("indeterminatePosition");
+					//Removes all Retired Stations
+					if (retire > 5)
+					{
+						var splitLatLong:Array = latlon.split(" ");
+						var buoyPoint:WebMercatorMapPoint = new WebMercatorMapPoint(splitLatLong[1],splitLatLong[0]);
+						
+						var attr:Object = new Object;
+						attr.id = station;
+						attr.desc = desc;
+						attr.type = "coop";
+						
+						var buoyGraphicCoop:Graphic = new Graphic(buoyPoint);
+						buoyGraphicCoop.symbol = buoyPointSymCoop;
+						
+						buoyGraphicCoop.toolTip = "" + desc + " \nID:  " + station;
+						
+						buoyGraphicCoop.addEventListener(MouseEvent.CLICK,mouseClickBuoy);
+						buoyGraphicCoop.addEventListener(MouseEvent.MOUSE_OVER,mouseOverBuoyCOOP);
+						buoyGraphicCoop.addEventListener(MouseEvent.MOUSE_OUT,mouseOutBuoyCOOP);
+						
+						var obsProperties:Array = t.split("<observedProperty xlink:href=");
+						var obsProp:Array = new Array;
+						for ( var o:int = 1; o < obsProperties.length; o++ ) {
+							var op:String = obsProperties[o];
+							var str:Array = op.split("/");
+							var feat:String = str[6];
+							var chopEnd:Array = feat.split("\"");
+							feat = chopEnd.join(""); 
+							obsProp.push(feat);
+						}
+						attr.properties = obsProp;
+						buoyGraphicCoop.attributes = attr; 						
+						buoyLayerCoop.add(buoyGraphicCoop);
+					}
+				}				
+				buoyLayerCoop.id = "coop";
+				map.addLayer(buoyLayerCoop);
+				buoyLayerCoop.visible = true;
+				enableObs.visible = true;
+				FlexGlobals.topLevelApplication.pb.visible = false;
+			}
+			
+			private function addserviceNDBC(event:ResultEvent): void
+			{
+				//// Messy way of parsing the Get Capabilities but the service doesn't seem to 
+				////  supply the event.result in the correct XML type.  Doesn't fit XMLList or XML 
+				var parsedrecords:Array = event.result.split("<sos:ObservationOffering ");
+				
+				for ( var n:int = 1; n < parsedrecords.length; n++ ) {
+					var t:String = parsedrecords[n];
+					var station:String = t.substring( t.search("gml:id=\"station-")+String("gml:description>").length, t.search(">")-1);
+					var desc:String = t.substr(t.search("<gml:description>")+String("<gml:description>").length, t.search("</gml:description>")-t.search("<gml:description>")-17);
+					var latlon:String = t.substr(t.search("<gml:lowerCorner>")+String("<gml:lowerCorner>").length, t.search("</gml:lowerCorner>")-t.search("<gml:lowerCorner>")-17);
+					var retire:int = t.search("indeterminatePosition");
+					
+					//Removes all Retired Stations
+					if (retire > 5)
+					{
+						var splitLatLong:Array = latlon.split(" ");
+						var buoyPoint:WebMercatorMapPoint = new WebMercatorMapPoint(splitLatLong[1],splitLatLong[0]);
+						
+						var attr:Object = new Object;
+						attr.id = station;
+						attr.desc = desc;
+						attr.type = "ndbc";
+						var buoyGraphic:Graphic = new Graphic(buoyPoint);
+						buoyGraphic.symbol = buoyPointSym;
+						
+						buoyGraphic.toolTip = "" + desc + " \nID:  " + station;
+						
+						buoyGraphic.addEventListener(MouseEvent.CLICK,mouseClickBuoy);
+						buoyGraphic.addEventListener(MouseEvent.MOUSE_OVER,mouseOverBuoyNDBC);
+						buoyGraphic.addEventListener(MouseEvent.MOUSE_OUT,mouseOutBuoyNDBC);
+						
+						var obsProperties:Array = t.split("<sos:observedProperty xlink:href=");
+						var obsProp:Array = new Array;
+						for ( var o:int = 1; o < obsProperties.length; o++ ) {
+							var op:String = obsProperties[o];
+							var str:Array = op.split("/");
+							var feat:String = str[6];
+							var chopEnd:Array = feat.split("\"");
+							feat = chopEnd.join(""); 
+							obsProp.push(feat);
+						}
+						attr.properties = obsProp;
+						buoyGraphic.attributes = attr; 						
+						buoyLayer.add(buoyGraphic);
+					}
+				}			
+				buoyLayer.id = "ndbc";
+				map.addLayer(buoyLayer);
+				buoyLayer.visible = true;
+				enableObs.visible = true;
+				FlexGlobals.topLevelApplication.pb.visible = false;
+			}
+			
+			private function loadndbc():void
+			{
+				if(map.getLayer("ndbc") == null){
+					FlexGlobals.topLevelApplication.pb.visible = true;
+					FlexGlobals.topLevelApplication.pb.label = 'Loading Stations..';
+					var NDBCservrequest:HTTPService = new HTTPService();
+					NDBCservrequest.addEventListener(ResultEvent.RESULT, addserviceNDBC);
+					var ndbcstr:String = tocXML.ndbcService;
+					NDBCservrequest.url = tocXML.proxy+escape(ndbcstr);
+					//Alert.show(configXML.proxy+escape(ndbcstr));
+					NDBCservrequest.resultFormat = "text";
+					NDBCservrequest.addEventListener(FaultEvent.FAULT, loadErrorndbc);
+					NDBCservrequest.send();	
+				}
+				else if(ndbccheck.selected == true){
+					buoyLayer.visible = true;
+				}
+				else{
+					buoyLayer.visible = false;
+				}
+			}
+			
+			private function loadcoops():void
+			{
+				if(map.getLayer("coop") == null){
+					FlexGlobals.topLevelApplication.pb.visible = true;
+					FlexGlobals.topLevelApplication.pb.label = 'Loading Stations..';
+					var coopservrequest:HTTPService = new HTTPService();
+					coopservrequest.addEventListener(ResultEvent.RESULT, addservicecoop);
+					coopservrequest.addEventListener(FaultEvent.FAULT, loadErrorcoop);
+					var coopstr:String = tocXML.coopservice;
+					coopservrequest.url = tocXML.proxy+escape(coopstr);
+					coopservrequest.resultFormat = "text";
+					coopservrequest.send();	
+				}
+				else if(coopcheck.selected == true){
+					buoyLayerCoop.visible = true;
+				}
+				else{
+					buoyLayerCoop.visible = false;
+				}
+			}
+			
+			//on fault
+			private function loadErrorcoop(event:FaultEvent):void
+			{                    
+				Alert.show("Sorry, There is a service problem with this CO-OP observation.");
+				coopcheck.selected = false;
+			}
+			
+			private function loadErrorndbc(event:FaultEvent):void
+			{                    
+				Alert.show("Sorry, There is a service problem with this NDBC observation.");
+				ndbccheck.selected = false;
+			}
+			
+			private function mouseOverBuoyNDBC(event:MouseEvent):void
+			{
+				const graphic:Graphic = Graphic(event.currentTarget);
+				graphic.symbol = buoyPointSym_over;
+			}
+			
+			private function mouseOutBuoyNDBC(event:MouseEvent):void
+			{
+				const graphic:Graphic = Graphic(event.currentTarget);
+				graphic.symbol = buoyPointSym;
+			}
+			
+			private function mouseOverBuoyCOOP(event:MouseEvent):void
+			{
+				const graphic:Graphic = Graphic(event.currentTarget);
+				graphic.symbol = buoyPointSymCoop_over;
+			}
+			
+			private function mouseOutBuoyCOOP(event:MouseEvent):void
+			{
+				const graphic:Graphic = Graphic(event.currentTarget);
+				graphic.symbol = buoyPointSymCoop;
+			}
+			
+			private function mouseClickBuoy(event:MouseEvent):void
+			{
+				CursorManager.setBusyCursor();
+				FlexGlobals.topLevelApplication.pb.label = "Loading real-time Data";
+				FlexGlobals.topLevelApplication.pb.visible = true;
+				stationID = event.currentTarget.attributes.id;
+				stationName = event.currentTarget.attributes.desc;
+				stationType = event.currentTarget.attributes.type;
+				stationArray = event.currentTarget.attributes.properties;
+					
+				var toDate:Date = new Date();
+				var fromDate:Date = new Date(toDate.getFullYear(),toDate.getMonth(),toDate.getDate()-1);
+				
+				PopUpManager.removePopUp(graph);
+				
+				graph = new TitleWindow;
+				graph.horizontalScrollPolicy = 'off';
+				graph.verticalScrollPolicy = 'off';
+				
+				tabs=new TabNavigator;
+				tabs.horizontalScrollPolicy = 'off';
+				tabs.verticalScrollPolicy = 'off';
+				
+				numParams = stationArray.length;
+				
+				for (var e:int = 0; e < stationArray.length; e++)
+				{
+					var obs:String = stationArray[e];
+					
+					var toyr:String = "2013";
+					var fryr:String = "2013";
+					toyr = toDate.fullYear.toString();
+					fryr = fromDate.fullYear.toString();
+					var tomonth:String = new String;
+					var frmonth:String = new String;
+					tomonth = zeroPad((toDate.month + 1),2);
+					frmonth = zeroPad((fromDate.month + 1),2);
+					var today:String = new String;
+					var frday:String = new String;
+					today = zeroPad((toDate.date),2);
+					frday = zeroPad((fromDate.date),2);
+					var toHr:String = new String;
+					var fromHr:String = new String;
+					toHr = zeroPad((toDate.hours + 1),2);
+					fromHr = zeroPad((fromDate.hours + 1),2);
+										
+					var metstr:String = new String;
+					var METservrequest:HTTPService = new HTTPService();
+					METservrequest.resultFormat = "e4x";
+					METservrequest.addEventListener(FaultEvent.FAULT, loadError);
+					METservrequest.addEventListener(ResultEvent.RESULT, addserviceInfoMET);						
+					
+					if(stationType == "coop"){
+						metstr = tocXML.metWS+"&observedProperty="+obs+"&offering=urn:ioos:station:NOAA.NOS.CO-OPS:"+stationID+"&eventTime="+fryr+"-"+frmonth+"-"+frday+"T"+fromHr+":00:00Z/"+toyr+"-"+tomonth+"-"+today+"T"+toHr+":59:59Z";
+						METservrequest.url = "http://services.asascience.com/proxy/Proxy.ashx?u="+escape(metstr);
+						METservrequest.send();
+					}
+					else{
+						metstr = tocXML.ndbcserviceWS+"&observedProperty="+obs+"&offering=urn:ioos:station:wmo:"+stationID+"&version=1.0.0&eventtime="+fryr+"-"+frmonth+"-"+frday+"T"+fromHr+":00:00Z/"+toyr+"-"+tomonth+"-"+today+"T"+toHr+":59:59Z";
+						METservrequest.url = "http://services.asascience.com/proxy/Proxy.ashx?u="+escape(metstr);
+						METservrequest.send();
+					}
+				}
+			}
+			
+			function addserviceInfoMET(event:ResultEvent):void
+			{	
+				var result:String = String(event.result);
+				var resultLine:Array = result.split("\n");
+				
+				var h:String = new String;
+				var qa:String = new String;
+				var tempChart:LineChart = new LineChart;
+				var series1:LineSeries = new LineSeries;
+				var va:LinearAxis = new LinearAxis;
+				
+				var datas:Array = new Array();
+				var obs2:String = new String();
+				var obs1:String = new String;
+				
+				var s:Array = resultLine[0].split(" ");
+				
+				numParamsDone = numParamsDone+1;
+				
+				if (s[0] == "<ExceptionReport")
+				{
+					CursorManager.removeBusyCursor();
+					FlexGlobals.topLevelApplication.pb.visible = false;
+					Alert.show("No data available for this station or parameter");
+				}
+					
+				else if(resultLine.length > 1)
+				{
+					if(stationType == "coop"){
+						for (var i:int = 1; i < resultLine.length; i++) {
+							var lineData:Array = resultLine[i].split(",");
+							if (lineData[0] != "") {
+								datas.push({
+									sensor: lineData[1],
+									time: lineData[4],
+									data: lineData[5],
+									data2: lineData[6]
+								});
+							}
+						}
+						//Sensor Look up for type of station property
+						if(datas[0].sensor != null)
+						{
+							obs2 = datas[0].sensor;
+							var obsA:Array = new Array();
+							obsA = obs2.split(":");
+							obs1 = obsA[5];
+							
+							if (obs1 == "Workhorse-ADCP-210"){
+								h = "Currents (under development)";
+								qa = "Currents?";
+								series1.yField = "data2";
+							}
+							if (obs1 == "G1"){
+								h = "Conductivity (mS/cm)";
+								qa = "Conductivity";
+								series1.yField = "data";
+							}
+							if (obs1 == "D1"){
+								h = "Surface Height Amplitude (m)";
+								qa = "Surface Ht Amp";
+								series1.yField = "data";
+							}
+							if (obs1 == "D1"){
+								h = "Air Temp (c)";
+								qa = "Air Temp";
+								series1.yField = "data";
+							}
+							if (obs1 == "E2"){
+								h = "Surface Height (m)";
+								qa = "Surface Ht";
+								series1.yField = "data";
+							}
+							if (obs1 == "E1"){
+								h = "Water Temp (c)";
+								qa = "Water Temp";
+								series1.yField = "data";
+							}
+							if (obs1 == "B1"){
+								h = "Surface Height (m)";
+								qa = "Surface Ht";
+								series1.yField = "data";
+							}
+							if (obs1 == "C1"){
+								h = "Winds (m/s)";
+								qa = "Wind Sp";
+								series1.yField = "data2";
+							}
+							if (obs1 == "F1"){
+								h = "Air Pressure (hPa)";
+								qa = "Air Pressure";
+								series1.yField = "data";
+							}
+							if (obs1 == "A1"){
+								h = "Surface Height (m)";
+								qa = "Surface Ht";
+								series1.yField = "data";
+							}
+							if (obs1 == "V1"){
+								h = "Surface Height (m)";
+								qa = "Surface Ht";
+								series1.yField = "data";
+							}
+							if (obs1 == "SALINITY"){
+								h = "Salinity";
+								qa = "Salinity";
+								series1.yField = "data";
+							}
+							if (obs1 == "PREDICTIONS"){
+								h = "Sea height Prediction (m)";
+								qa = "Sea Ht";
+								series1.yField = "data";
+							}
+						}
+					}
+					else{
+						for (var c:int = 1; c < resultLine.length; c++) {
+							var lineData1:Array = resultLine[c].split(",");
+							
+							if (lineData1[0] != "") {
+								datas.push({
+									sensor: lineData1[1],
+									time: lineData1[4],
+									data: lineData1[5],
+									data2: lineData1[6],
+									data7: lineData1[7]
+								});
+							}
+						}
+						//Sensor Look up for type of station property
+						if(datas[0].sensor != null)
+						{
+							obs2 = datas[0].sensor;
+							var obsA1:Array = new Array();
+							obsA1 = obs2.split("::");
+							obs1 = obsA1[1];
+							
+							if (obs1 == "tsunameter0"){
+								h = "Ocean Depth";
+								qa = "Ocean Dpt";
+								series1.yField = "data";
+							}
+							if (obs1 == "anemometer1"){
+								h = "Winds (m/s)";
+								qa = "Wind";
+								series1.yField = "data7";
+							}
+							if (obs1 == "airtemp1"){
+								h = "Air Temp (c)";
+								qa = "Air Temp";
+								series1.yField = "data2";
+							}
+							if (obs1 == "baro1"){
+								h = "Air Pressure (hPa)";
+								qa = "Air Pressure";
+								series1.yField = "data2";
+							}
+							if (obs1 == "ct1"){
+								h = "Sea Temp (c)";
+								qa = "Sea Temp";
+								series1.yField = "data2";
+							}
+							if (obs1 == "watertemp1"){
+								h = "Sea Temp (c)";
+								qa = "Sea Temp";
+								series1.yField = "data2";
+							}
+							if (obs1 == "ct1"){
+								h = "Sea Temp (c)";
+								qa = "Sea Temp";
+								series1.yField = "data2";
+							}
+							if (obs1 == "wpm1"){
+								h = "Waves (m)";
+								qa ="Waves Ht";
+								series1.yField = "data";
+							}
+							if (obs1 == "summarywav1"){
+								h = "Waves (m)";
+								qa = "Waves Ht";
+								series1.yField = "data2";
+							}
+						}
+					}			
+					tempChart.showDataTips = true;
+					tempChart.dataProvider = datas;
+					var hAxis:CategoryAxis= new CategoryAxis();
+					hAxis.labelFunction = noLabel;
+					function noLabel():String {
+						return "";
+					}
+					hAxis.categoryField = "time";
+					hAxis.displayName = "Date";
+					tempChart.horizontalAxis = hAxis;
+					
+					tempChart.verticalAxis = va;
+					tempChart.height = 260;
+					tempChart.width = 480;
+					
+					series1.displayName = h;
+					
+					// Add the series.
+					var mySeries:Array=new Array();
+					mySeries.push(series1);
+					
+					tempChart.series = mySeries;
+					
+					// Create a legend.
+					var legend1:Legend = new Legend();
+					legend1.dataProvider = tempChart;
+					
+					graph.styleName = 'TitleWin';
+					graph.title = stationName+ " - Data for last 24 hours";
+					graph.showCloseButton = true;
+					graph.addEventListener(CloseEvent.CLOSE, removePop);
+					
+					function removePop(event:CloseEvent):void{
+						PopUpManager.removePopUp(graph);
+						CursorManager.removeBusyCursor();
+					}
+					
+					if(h == "")
+					{
+					}
+					else{
+						var v:VBox = new VBox;
+						v.label = qa;
+						v.horizontalScrollPolicy = 'off';
+						v.verticalScrollPolicy = 'off';
+						v.addChild(tempChart);
+						v.addChild(legend1);
+						
+						tabs.addChild(v);
+						
+						graph.height = 371;
+						graph.width = 493;
+						graph.addChild(tabs);
+						PopUpManager.addPopUp(graph, this.parentApplication.parent, false);
+						PopUpManager.centerPopUp(graph);
+						
+						if(numParams == numParamsDone)
+						{
+							numParamsDone= 0;
+							CursorManager.removeBusyCursor();
+							FlexGlobals.topLevelApplication.pb.visible = false;
+						}
+					}
+				}
+				else
+				{
+					FlexGlobals.topLevelApplication.pb.visible = false;
+					CursorManager.removeBusyCursor();
+				}
+			}
+			
+			public function zeroPad(number:int, width:int):String {
+				var ret:String = ""+number;
+				while( ret.length < width )
+					ret="0" + ret;
+				return ret;
+			}
+			
+			private function loadError(event:FaultEvent):void
+			{                    
+				//Alert.show("Sorry, No data for this sensor."); 
+				numParamsDone = numParamsDone+1;
+			}
+			
+			public function updateWMS(layerName:String,turnon:Boolean):void
+			{
+				if(turnon == true){
+					massGISWMS.visibleLayers.addItem(layerName);
+				}
+				else{
+					var ar:ArrayList = massGISWMS.visibleLayers as ArrayList;
+					var obj:Object = layerName;
+					massGISWMS.visibleLayers.removeItemAt(massGISWMS.visibleLayers.getItemIndex(obj));
+				}				
+			}
+			
+			protected function backToTOC_clickHandler(event:MouseEvent):void
+			{
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_WIN_CHANGE, false, false, "layers"));
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,"Default"));
+			}
+			
+
+			protected function layerAcc_changeHandler(event:IndexChangedEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<esri:SimpleMarkerSymbol id="buoyPointSym" color="0x0707CF" size="8" alpha="0.7" style="circle">
+			<esri:SimpleLineSymbol color="0x333333" width="1" alpha="1" style="solid" />
+		</esri:SimpleMarkerSymbol>
+		<esri:SimpleMarkerSymbol id="buoyPointSym_over" color="0x0707CF" size="13" alpha="0.7" style="circle">
+			<esri:SimpleLineSymbol color="0x333333" width="1" alpha="1" style="solid" />
+		</esri:SimpleMarkerSymbol>
+		<esri:SimpleMarkerSymbol id="buoyPointSymCoop" color="0x33CC00" size="8" alpha="0.7" style="circle">
+			<esri:SimpleLineSymbol color="0x333333" width="1" alpha="1" style="solid" />
+		</esri:SimpleMarkerSymbol>
+		<esri:SimpleMarkerSymbol id="buoyPointSymCoop_over" color="0x33CC00" size="13" alpha="0.7" style="circle">
+			<esri:SimpleLineSymbol color="0x333333" width="1" alpha="1" style="solid" />
+		</esri:SimpleMarkerSymbol>
+	</fx:Declarations>
+	<s:states>
+		<s:State name="toc"/>
+		<s:State name="layer"/>
+	</s:states>
+	<s:Panel title="External Layer List" width="100%" height="100%" skinClass="skins.toolPanelSkin">
+		<s:VGroup id="tocGroup" height="100%" width="100%" clipAndEnableScrolling="true"
+				  visible.toc="true" verticalAlign="middle"
+				  visible.layer="false" >
+			<s:HGroup paddingBottom="3" paddingTop="6" paddingLeft="8" verticalAlign="middle">		
+				<s:Image id="backToTOC1" source="@Embed('assets/icons/back_undo.png')" 
+						 click="backToTOC_clickHandler(event)" buttonMode="true"/>	
+				<s:Label fontSize="9" text="Back to Layers" right="8" click="backToTOC_clickHandler(event)" buttonMode="true"/>
+				<s:Label fontSize="9" width="180" paddingLeft="12" fontStyle="italic" height="100%" text="Northeast Portal is not responsibile for the performance of these layers"/>
+			</s:HGroup>	
+			<s:HGroup horizontalAlign="center" verticalAlign="top" paddingBottom="-5" paddingTop="-4" paddingLeft="0" id="layerDetailsHolder" height="100%" width="100%">
+				<mx:Accordion borderVisible="false" id="layerAcc" width="100%" height="100%" change="addTOC(event)" openDuration="290">
+					<mx:VBox id="ma" label="MassGIS" width="100%" height="100%" icon="{logoMA}" >
+						<mx:List id="morrisList" width="100%" height="100%" horizontalScrollPolicy="off" rowHeight="24"
+								 alternatingItemColors="[#EEEEEE, white]">
+							<mx:itemRenderer>
+								<fx:Component>
+									<mx:CheckBox  label="{data.@title}" selected="{data.@selected == 'true'}" 
+												 change="onChange(event);">
+										<fx:Script>
+											<![CDATA[
+											private function onChange(evt:Event):void {
+												if(evt.currentTarget.selected == true){
+													data.@selected = 'true';
+													outerDocument.updateWMS(data.@name,true);
+												}
+												else{
+													data.@selected = 'false';
+													outerDocument.updateWMS(data.@name,false);
+												}
+											}
+											]]>
+										</fx:Script>
+									</mx:CheckBox>
+								</fx:Component>
+							</mx:itemRenderer>
+						</mx:List>
+					</mx:VBox>
+					<mx:VBox id="boem" width="100%" height="100%" icon="{logoBOEM}"  label="Bureau of Ocean Energy Management" >
+						
+					</mx:VBox>
+					<mx:VBox id="oua" width="100%" height="100%" icon="{logoOUA}"   label="NH/ME Ocean Use Atlas" >
+						
+					</mx:VBox>
+					<mx:VBox id="mmc" width="100%" height="100%" icon="{logoMMC}"   label="Multipurpose Marine Cadastre">
+						
+					</mx:VBox>
+					<mx:VBox id="ngdc" width="100%" height="100%" icon="{logoNGDC}"  label="NOAA NGDC" >
+						
+					</mx:VBox>
+					<mx:VBox id="ccom" width="100%" height="100%" icon="{logoCCOM}"  label="CCOM"  >
+						
+					</mx:VBox>
+					<mx:VBox id="tnc" width="100%" height="100%" label="The Nature Conservancy" icon="{logoTNC}">
+						
+					</mx:VBox>
+				</mx:Accordion>
+			</s:HGroup>
+			<s:VGroup id="layerVGroup" width="100%" height="115" minHeight="90" clipAndEnableScrolling="true" gap="7">
+				<mx:HRule width="100%"/>
+				<s:Label text="Real-time Observation Data" paddingLeft="10" fontSize="15" fontWeight="bold"/>
+				<mx:HRule width="100%"/>
+				<s:VGroup gap="10" paddingLeft="15" paddingTop="3">
+					<s:HGroup>
+						<mx:HBox id="ndbcG" width="26" paddingTop="8" paddingRight="6"/>
+						<s:CheckBox label="NDBC Stations" fontSize="14" change="loadndbc()" id="ndbccheck"/>
+						<s:Image source="assets/icons/i.png" buttonMode="true" click="{navigateToURL(new URLRequest('http://opendap.co-ops.nos.noaa.gov'),'_blank')}"/>
+					</s:HGroup>
+					<s:HGroup>							
+						<mx:HBox id="coopG" width="26" paddingTop="8" paddingRight="6"/>
+						<s:CheckBox label="CO-OP Stations" fontSize="14" change="loadcoops()" id="coopcheck"/>
+						<s:Image source="assets/icons/i.png" buttonMode="true" click="{navigateToURL(new URLRequest('http://sdf.ndbc.noaa.gov'),'_blank')}"/>
+					</s:HGroup>
+					<s:Label text="*Click on Observation for 24-hour Data" fontWeight="bold" paddingTop="-1" color="red" fontSize="10" visible="false" id="enableObs"/>
+				</s:VGroup>
+			</s:VGroup>	
+		</s:VGroup>
+	</s:Panel>
+</s:Group>

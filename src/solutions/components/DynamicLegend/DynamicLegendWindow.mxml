@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   xmlns:viewer="com.esri.viewer.*"
+				   xmlns:Legend="widgets.DynamicLegend.*"
+				   initialize="this.controlBarVisible = false; init();"
+				   close="closeHandler(event)"
+				   title="Legend"
+				   cornerRadius="5"
+				   xmlns:DynamicLegend="solutions.components.DynamicLegend.*"	
+				   minWidth="300"
+				   >
+	<fx:Script>
+		<![CDATA[
+			
+			import com.esri.ags.Map;
+			import com.esri.ags.events.DetailsEvent;
+			import com.esri.ags.events.MapEvent;
+			import com.esri.ags.events.ZoomEvent;
+			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+			import com.esri.ags.layers.FeatureLayer;
+			import com.esri.ags.layers.GraphicsLayer;
+			import com.esri.ags.layers.Layer;
+			import com.esri.ags.layers.supportClasses.LayerDetails;
+			import com.esri.ags.renderers.*;
+			import com.esri.serialization.json.JSON;
+			
+			import mx.collections.ArrayCollection;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
+			import mx.graphics.ImageSnapshot;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.http.HTTPService;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			
+			import spark.primitives.BitmapImage;
+			
+			[Event(name="layervischanged", type="flash.events.Event")]
+			private static const LAYER_VIS_CHANGED:String = "layervischanged";
+			
+			//labels
+			private var legendLabel:String;
+			
+			private var recAC:ArrayCollection;
+			
+			[Bindable]
+			private var legendAC:ArrayCollection;
+			
+			
+			[Bindable]
+			public var map:Map = FlexGlobals.topLevelApplication.mainMap;
+			
+			private var httpServ:HTTPService;
+			private var httpServ2:HTTPService;
+			
+			private var excludeLayers:ArrayCollection;
+			private var excludeGraphicsLayers:Boolean = false;
+			
+			protected function closeHandler(event:CloseEvent):void
+			{
+				removeMapListeners()
+				PopUpManager.removePopUp(event.target as IFlexDisplayObject);
+			}
+			
+			private function init():void
+			{
+				legendAC = new ArrayCollection([]);
+				removeMapListeners();
+				addMapListeners();
+				registerAllMapLayers();
+			}
+			
+			public function exportImage():BitmapImage
+			{
+				var bmpLegend:BitmapData = ImageSnapshot.captureBitmapData(legendDataGroup);
+				var printImg:BitmapImage = new BitmapImage();
+				printImg.smooth = true;
+				printImg.source = bmpLegend;
+				return printImg;
+			}
+			
+			private function unregisterAllMapLayers():void
+			{
+				legendAC.removeAll();
+			}
+			
+			/**
+			 * Registers all existing map layers in the legend.
+			 */
+			private function registerAllMapLayers():void
+			{
+				unregisterAllMapLayers();
+				
+				MapUtil.forEachMapLayer(map, function( layer:Layer ):void {
+					registerMapLayer(layer);
+				});
+			}
+			
+			private function unregisterMapLayer( layer:Layer ):void
+			{
+				for (var i:int = legendAC.length-1; i > -1; i--) {
+					var item:Object = legendAC[i];
+					if (item.lname == layer.id) {
+						legendAC.removeItemAt(i);						
+						//break;
+					}
+				}
+				registerMapLayer(layer);
+			}
+			
+			private function registerMapLayer(layer:*):void
+			{
+				for (var i:int = legendAC.length-1; i > -1; i--) {
+					var item:Object = legendAC[i];
+					if (item.lname == layer.id) {
+						legendAC.removeItemAt(i);						
+						//break;
+					}
+				}
+				
+				var httpServ:HTTPService = new HTTPService();
+				var lname:String
+				if (layer is ArcGISDynamicMapServiceLayer)
+				{
+					if(layer.version >= 10.01)
+					{
+						httpServ.url = ArcGISDynamicMapServiceLayer(layer).url + "/legend?f=json";
+						httpServ.resultFormat = "text";
+						lname = ArcGISDynamicMapServiceLayer(layer).id;
+						httpServ.addEventListener(ResultEvent.RESULT,function(event:ResultEvent):void{processLegend(event,lname)});
+						httpServ.send();
+					}
+					else if(layer.version <= 10.00){
+						/* httpServ.url = "http://utility.arcgis.com/sharing/tools/legend?soapUrl="+ ArcGISDynamicMapServiceLayer(layer).url + "&f=pjson";
+						httpServ.resultFormat = "text";
+						lname = ArcGISDynamicMapServiceLayer(layer).id;
+						httpServ.addEventListener(ResultEvent.RESULT,function(event:ResultEvent):void{processLegend(event,lname)});
+						httpServ.send(); */
+					}
+					else{
+						lname = ArcGISDynamicMapServiceLayer(layer).id;
+						ArcGISDynamicMapServiceLayer(layer).addEventListener(DetailsEvent.GET_ALL_DETAILS_COMPLETE,function(event:DetailsEvent):void{getAllDetailsResult(event,lname)});
+						ArcGISDynamicMapServiceLayer(layer).getAllDetails();
+					}
+				}
+				else if (layer is FeatureLayer)
+				{
+					var FeatServId:Number = Number.NaN;
+					var msName:String = FeatureLayer(layer).url.replace("FeatureServer","MapServer");
+					var x:String = msName.substring(msName.length - 9);
+					if(msName.substring(msName.length - 9) != "MapServer")
+					{
+						httpServ.url = msName.substring(0,msName.lastIndexOf("/")) + "/legend?f=json";
+						FeatServId = parseInt(msName.substring(msName.lastIndexOf("/")+ 1));
+					}else{
+						httpServ.url = msName + "/legend?f=json";
+					}
+					if(layer.layerDetails.version >= 10.01)
+					{
+						httpServ.resultFormat = "text";
+						lname = FeatureLayer(layer).id;
+						httpServ.addEventListener(ResultEvent.RESULT,function(event:ResultEvent):void{processLegend(event,lname,FeatServId)});
+						httpServ.send();
+					} else {
+						lname = FeatureLayer(layer).id;
+						getFeatureResult(FeatureLayer(layer).layerDetails,lname);
+					}
+				}
+			}
+			
+			private function processLegend(event:ResultEvent,lname:String,inconlythisid:Number = Number.NaN):void
+			{
+				var rawData:String = String(event.result);
+				var data:Object = JSON.decode(rawData);
+				
+				for each (var lDetails:* in data.layers){
+					if (!filterOutSubLayer(map.getLayer(lname),lDetails.layerId)){
+						if(!isNaN(inconlythisid) && lDetails.layerId != inconlythisid)
+							continue;
+						//Add the layers name
+						var layName:Object = {
+							lname: lname,
+							id: lDetails.layerId,
+								otype: "layerName",
+								label: lDetails.layerName,
+								minscale: lDetails.minScale,
+								maxscale: lDetails.maxScale,
+								rend: null,
+								imagedata: null
+						}
+							
+						legendAC.addItem(layName);
+						
+						for (var i:int=0; i<lDetails.legend.length; i++)
+						{
+							var lObj:Object = {
+								lname: lname,
+								id: lDetails.layerId,
+									label: lDetails.legend[i].label,
+									minscale: lDetails.minScale,
+									maxscale: lDetails.maxScale,
+									rend: null,
+									imagedata: lDetails.legend[i].imageData
+							}
+							legendAC.addItem(lObj);
+						}
+					}
+				}
+			}
+			
+			private function getFeatureResult(event:LayerDetails,lname:String):void
+			{
+				var lDetails:LayerDetails = event;
+				if (!filterOutSubLayer(map.getLayer(lname),lDetails.id))
+				{
+					if(lDetails.drawingInfo){
+						//Add the layers name
+						var layName:Object = {
+							lname: lname,
+							id: lDetails.id,
+							otype: "layerName",
+							label: lDetails.name,
+							minscale: lDetails.minScale,
+							maxscale: lDetails.maxScale,
+							rend: null,
+							imagedata: null
+						}
+						legendAC.addItem(layName);
+						
+						if(lDetails.drawingInfo.renderer is com.esri.ags.renderers.UniqueValueRenderer)
+						{
+							var uv:UniqueValueRenderer = lDetails.drawingInfo.renderer as UniqueValueRenderer;
+							for (var i:int=0; i<uv.infos.length; i++)
+							{
+								var uvObj:Object = {
+									lname: lname,
+									id: lDetails.id,
+									parentlabel: lDetails.name,
+									minscale: lDetails.minScale,
+									maxscale: lDetails.maxScale,
+									rend: uv.infos[i],
+									imagedata: null
+								}
+								legendAC.addItem(uvObj);
+							}
+						}
+						if(lDetails.drawingInfo.renderer is com.esri.ags.renderers.SimpleRenderer)
+						{
+							var simObj:Object = {
+								lname: lname,
+								id: lDetails.id,
+								parentlabel: lDetails.name,
+								minscale: lDetails.minScale,
+								maxscale: lDetails.maxScale,
+								rend: lDetails.drawingInfo.renderer,
+								imagedata: null
+							}
+							legendAC.addItem(simObj);
+						}
+						if(lDetails.drawingInfo.renderer is com.esri.ags.renderers.ClassBreaksRenderer)
+						{
+							var cb:ClassBreaksRenderer = lDetails.drawingInfo.renderer as ClassBreaksRenderer;
+							for (var j:int=0; j<cb.infos.length; j++)
+							{
+								var cbObj:Object = {
+									lname: lname,
+									id: lDetails.id,
+									parentlabel: lDetails.name,
+									minscale: lDetails.minScale,
+									maxscale: lDetails.maxScale,
+									rend: cb.infos[j],
+									imagedata: null
+								}
+								legendAC.addItem(cbObj);
+							}
+						}
+					}
+				}
+			}
+			
+			private function getAllDetailsResult(event:DetailsEvent,lname:String):void
+			{
+				for each (var lDetails:LayerDetails in event.allDetails.layersDetails){
+					if (!filterOutSubLayer(map.getLayer(lname),lDetails.id))
+					{
+						if(lDetails.drawingInfo){
+							//Add the layers name
+							var layName:Object = {
+								lname: lname,
+								id: lDetails.id,
+								otype: "layerName",
+								label: lDetails.name,
+								minscale: lDetails.minScale,
+								maxscale: lDetails.maxScale,
+								rend: null,
+								imagedata: null
+							}
+							legendAC.addItem(layName);
+							
+							if(lDetails.drawingInfo.renderer is com.esri.ags.renderers.UniqueValueRenderer)
+							{
+								var uv:UniqueValueRenderer = lDetails.drawingInfo.renderer as UniqueValueRenderer;
+								for (var i:int=0; i<uv.infos.length; i++)
+								{
+									var uvObj:Object = {
+										lname: lname,
+										id: lDetails.id,
+										parentlabel: lDetails.name,
+										minscale: lDetails.minScale,
+										maxscale: lDetails.maxScale,
+										rend: uv.infos[i],
+										imagedata: null
+									}
+									legendAC.addItem(uvObj);
+								}
+							}
+							if(lDetails.drawingInfo.renderer is com.esri.ags.renderers.SimpleRenderer)
+							{
+								var simObj:Object = {
+									lname: lname,
+									id: lDetails.id,
+									parentlabel: lDetails.name,
+									minscale: lDetails.minScale,
+									maxscale: lDetails.maxScale,
+									rend: lDetails.drawingInfo.renderer,
+									imagedata: null
+								}
+								legendAC.addItem(simObj);
+							}
+							if(lDetails.drawingInfo.renderer is com.esri.ags.renderers.ClassBreaksRenderer)
+							{
+								var cb:ClassBreaksRenderer = lDetails.drawingInfo.renderer as ClassBreaksRenderer;
+								for (var j:int=0; j<cb.infos.length; j++)
+								{
+									var cbObj:Object = {
+										lname: lname,
+										id: lDetails.id,
+										parentlabel: lDetails.name,
+										minscale: lDetails.minScale,
+										maxscale: lDetails.maxScale,
+										rend: cb.infos[j],
+										imagedata: null
+									}
+									legendAC.addItem(cbObj);
+								}
+							}
+						}
+					}
+				}
+				map.dispatchEvent(new ZoomEvent(ZoomEvent.ZOOM_END));
+			}
+			
+			private function filterOutSubLayer(layer:Layer, id:int):Boolean
+			{
+				var exclude:Boolean = false;
+				if (!exclude && excludeLayers) {
+					exclude = false;
+					for each (var item:* in excludeLayers) {
+						var iArr:Array = item.ids?item.ids:new Array
+						var index:int = iArr.indexOf(id.toString());
+						if (item.name == layer.id || item.name == layer.name){
+							if(index >= 0 || iArr.length == 0)
+							{
+								exclude = true;
+								break;
+							}
+						}
+					}
+				}
+				return exclude;
+			}
+			
+			private function filterOutLayer( layer:Layer ):Boolean
+			{
+				var exclude:Boolean = false;
+				if (excludeGraphicsLayers && layer is GraphicsLayer) {
+					exclude = true;
+				}
+				if (!exclude && excludeLayers) {
+					exclude = false;
+					for each (var item:* in excludeLayers) {
+						if (item.name == layer.name) {
+							exclude = true;
+							break;
+						}
+					}
+				}
+				return exclude;
+			}
+			
+			private function visibleLayerToggle(event:TemplateEvent):void
+			{
+				//registerAllMapLayers();
+				registerMapLayer(event.data);
+				
+				/* if (event.data.visibleLayer.selected == true) {
+					//addNewLyrLgd();
+					
+				}
+				else{
+					Alert.show('remove')
+					for (var i:int = 0; i < legendAC.length; i++) {
+						var item:Object = legendAC[i];
+						//Alert.show(item.lname);
+						//Alert.show(event.data.data.serviceID);
+						if (item.lname == event.data.data.serviceID) {
+							legendAC.removeItemAt(i);
+							break;
+						}
+					}					
+				} */
+			}
+			
+			private function addNewLyrLgd():void{				
+				//dsLyr.visibleLayers.addItem(event.data.data.layerID);
+				//event.data.data.parentGroupElement.visibleLayers++;	
+			} 
+			private function removeLyrLgd():void{
+				/*for (var j:int=0;j<dsLyr.visibleLayers.length;j++) {
+					if(dsLyr.visibleLayers[j] == event.data.data.layerID) {
+						dsLyr.visibleLayers.removeItemAt(j); 
+						event.data.data.parentGroupElement.visibleLayers--;
+					}
+				}*/
+				
+				/* for (var i:int = 0; i < legendAC.length; i++) {
+					var item:Object = legendAC[i];
+					if (item.lname == event.data.data.layerID) {
+						legendAC.removeItemAt(i);
+						break;
+					}
+				} */
+			}
+			
+			private function addMapListeners():void
+			{
+				if (FlexGlobals.topLevelApplication.mainMap) {
+					FlexGlobals.topLevelApplication.mainMap.addEventListener(MapEvent.LAYER_ADD, onLayerAddMap, false, 0, true);
+					FlexGlobals.topLevelApplication.mainMap.addEventListener(MapEvent.LAYER_REMOVE, onLayerRemoveMap, false, 0, true);
+					FlexGlobals.topLevelApplication.mainMap.addEventListener(MapEvent.LAYER_REMOVE_ALL, onLayerRemoveAll, false, 0, true);
+					
+					SiteContainer.addEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE_ON_TOC, onLayerAdd);
+					SiteContainer.addEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE_OFF_TOC, onLayerRemove);
+				
+				}
+			}
+			
+			private function removeMapListeners():void
+			{
+				if (map) {
+					map.removeEventListener(MapEvent.LAYER_ADD, onLayerAddMap);
+					map.removeEventListener(MapEvent.LAYER_REMOVE, onLayerRemoveMap);
+					map.removeEventListener(MapEvent.LAYER_REMOVE_ALL, onLayerRemoveAll);
+					
+					SiteContainer.removeEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE_ON_TOC,onLayerRemove);
+					SiteContainer.removeEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE_OFF_TOC,onLayerRemove);
+				}
+			}
+			
+			/**
+			 * Registers the new map layer in the TOC tree.
+			 */
+			private function onLayerAdd( event:TemplateEvent ):void
+			{
+				
+				registerMapLayer(event.data);
+			}
+			
+			private function onLayerRemove( event:TemplateEvent ):void
+			{
+				
+				unregisterMapLayer(event.data as Layer);
+				
+			}
+			
+			private function onLayerAddMap( event:MapEvent ):void
+			{
+				
+				registerMapLayer(event.data);
+			}
+			
+			private function onLayerRemoveMap( event:MapEvent ):void
+			{
+				
+				unregisterMapLayer(event.data as Layer);
+				
+			}
+			
+			private function onLayerRemoveAll( event:MapEvent ):void
+			{
+				//unregisterAllMapLayers();
+			}
+			
+			
+		]]>
+	</fx:Script>
+			<DynamicLegend:LegendDataGroup id="legendDataGroup" dataProvider="{legendAC}" verticalScrollPosition="0">
+				<DynamicLegend:layout>
+					<s:VerticalLayout gap="0" horizontalAlign="contentJustify"/>
+				</DynamicLegend:layout>
+			</DynamicLegend:LegendDataGroup>
+	<s:controlBarContent/>
+</s:TitleWindow>

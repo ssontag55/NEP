@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx" 
+					  backgroundColor="0xFFFFFF" 
+					  xmlns:esri="http://www.esri.com/2008/ags"
+					  width="100%">
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Map;
+			import com.esri.ags.layers.FeatureLayer;
+			import com.esri.ags.layers.supportClasses.LayerDetails;
+			import com.esri.ags.layers.supportClasses.TableDetails;
+			
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			
+			import spark.components.Panel;
+			import spark.components.TitleWindow;
+			
+			[Bindable]public var _map:Map;
+			[Bindable]public var _selectedLayerDescription:String;
+			[Bindable]public var _selectedLayerObject:Object;
+			
+			[Bindable]private var _selectedLayerDetails:LayerDetails;
+			
+			private var panel:Panel;
+			
+			public function get selectedLayerDetails():LayerDetails
+			{
+				return _selectedLayerDetails;
+			}
+			
+			public function set selectedLayerDetails(value:LayerDetails):void
+			{
+				_selectedLayerDetails = value;
+				
+				var s1:String = _selectedLayerObject.title;
+				var s2:String = _selectedLayerObject.description;
+				var s5:String = value.copyright;
+				var s3:Number = 50
+				var s4:Number = 100;
+				
+				sourceOrg.text = s5;
+				layerName.text = s1;
+				layerDescription.text = s2;
+			}
+			
+			[Bindable]private var _selectedLayer:FeatureLayer;
+			
+			public function get selectedLayer():FeatureLayer
+			{
+				return _selectedLayer;
+			}
+			
+			public function set selectedLayer(value:FeatureLayer):void
+			{
+				_selectedLayer = value;
+				if (_selectedLayerObject.description == 'NULL')
+				{
+					var myLyrDesc1:String = "Not Available";
+					layerDescription.htmlText = myLyrDesc1;
+				}				
+				else 
+				{					
+					var myLyrDesc:String = _selectedLayerObject.description;
+					layerDescription.htmlText = myLyrDesc;
+				}
+				
+				var dsLyr:FeatureLayer = _selectedLayer;	
+				dsLyr.useAMF=true;
+				layerName.text = dsLyr.layerDetails.name;				
+				//layerDescription.text = _selectedLayerObject.description;
+				//scale.text = myScaleFormatter.format(dsLyr.layerDetails.maxScale) + ' to ' + myScaleFormatter.format(dsLyr.layerDetails.minScale);
+				sourceOrg.text = dsLyr.layerDetails.copyright;
+				//sourceOrg.text = _selectedLayerObject.sourceOrg;
+				dsLyr.alpha = 0;
+				dsLyr.name = dsLyr.layerDetails.name;
+				dsLyr.id = dsLyr.layerDetails.name;
+				var lyrArray:Array = [];
+				lyrArray.push(dsLyr);	
+				
+				/* if (_selectedLayerObject.dataLink == 'NULL')
+				{					
+					sourceData.buttonMode =  false;
+					sourceData.setStyle('color', '0xCCCCCC');					
+					sourceData.mouseEnabled= false
+				}
+				
+				if (_selectedLayerObject.dataLink != 'NULL')
+				{					
+					sourceData.buttonMode =  true;
+					sourceData.setStyle('color', '0x1A7FB2');
+					sourceData.mouseEnabled= true;					
+				} 
+				
+				if (_selectedLayerObject.referencesAlias == 'NULL')
+				{											
+					references.text="";
+					references.buttonMode=false;						
+				}
+				else
+				{
+					references.text=_selectedLayerObject.referencesAlias;
+					references.buttonMode=true;	
+				}*/
+				
+				layerLegend.map = _map;
+				layerLegend.layers = lyrArray;
+				
+				//Using a static image for BOEMs 9.3.1 service
+				/* if (dsLyr.layerDetails.version >= 10.01)
+				{
+					fakeittoyoumakeitLegend.visible = false;	
+					fakeittoyoumakeitLegend.source = null;	
+				}
+				
+				if (((dsLyr.layerDetails.version < 10.01)&&(dsLyr.layerDetails.version >= 9.3))||(dsLyr.url.indexOf("http://ocs-gis")==0))
+				{
+					fakeittoyoumakeitLegend.visible = true;		
+					var lyrName:String= dsLyr.layerDetails.name;
+					lyrName = lyrName.replace(/\s+/g, '_');	
+					lyrName = lyrName.replace(/\//, '');	
+					
+					fakeittoyoumakeitLegend.source = 'assets/legendpatch/'+lyrName+'.png';	
+				} */
+			} 
+			private function sendDetailsToLayerComp(details:LayerDetails, td:TableDetails):void
+			{
+				var s1:String = details.name;
+				layerName.text = s1;
+				//layerDescription.text = 'trying this to see what happens'; 
+			}
+			
+			private function detailsFault(event:FaultEvent):void {
+				
+			}
+			protected function backToTOC_clickHandler(event:MouseEvent):void
+			{
+				var obj:Object = {
+					state: 'toc'
+				}
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_STATE_CHANGE, false, false, obj));
+			}
+			
+			protected function sourceOrg_mouseOverHandler(event:MouseEvent):void
+			{				
+				event.target.setStyle("color",0x1A7FB2);	
+				event.target.setStyle("fontWeight", 'bold');
+				
+			}
+			
+			protected function sourceOrg_mouseOutHandler(event:MouseEvent):void
+			{
+				event.target.setStyle("color", 0x000000);
+				event.target.setStyle("fontWeight", 'normal');
+				
+			}
+			
+			public var dataPopUp:TitleWindow = new TitleWindow();
+			public var lnkArr:Array = [];
+			public var j:int;
+			public var dataTypeTxt:String;
+			protected function sourceData_clickHandler(event:MouseEvent):void
+			{
+				dataTypeTxt = "Source data ";
+				var str:String = _selectedLayerObject.dataLink
+				if (str.indexOf('http',0) == 0 ||str.indexOf('ftp',0) == 0){
+					navigateToURL(new URLRequest(_selectedLayerObject.dataLink))
+				}
+				else
+				{	
+					var strg:String = _selectedLayerObject.dataLink
+					lnkArr =  strg.split(',');
+									
+					// Set the TitleWindow container properties.
+					dataPopUp = new TitleWindow();
+					
+					dataPopUp.setStyle("cornerRadius",5);
+					dataPopUp.controlBarVisible =  true;
+					dataPopUp.title = "Data Source Links";
+					dataPopUp.width= 220;
+					dataPopUp.height= 200;					
+					// Call the method to add the Button control to the 
+					// TitleWindow container.
+					populateWindow();
+					dataPopUp.addEventListener("mouseDownOutside", closeTitleWindow);
+					dataPopUp.addEventListener(CloseEvent.CLOSE, closeTitleWindow);
+					// Use the PopUpManager to display the TitleWindow container.
+					PopUpManager.addPopUp(dataPopUp, this, true);
+					dataPopUp.x =200;
+					dataPopUp.y = 250;
+					dataPopUp.closeButton.visible=true;
+					dataPopUp.closeButton.addEventListener(MouseEvent.CLICK, closeTitleWindow);
+				}
+			}
+			
+			protected function metadata_clickHandler(event:MouseEvent):void
+			{
+				dataTypeTxt = "Metadata ";
+				
+				var str:String = _selectedLayerObject.metadata
+				if (str.indexOf('http',0) == 0){
+					//navigateToURL(new URLRequest(_selectedLayerObject.metadata+'.html'))
+					navigateToURL(new URLRequest(_selectedLayerObject.metadata))
+				}
+				else
+				{	
+					var strg:String = _selectedLayerObject.metadata
+					lnkArr =  strg.split(',');
+					
+					// Set the TitleWindow container properties.
+					dataPopUp = new TitleWindow();
+					dataPopUp.setStyle("cornerRadius",5);
+					dataPopUp.title = "Data Source Links";
+					dataPopUp.width= 220;
+					dataPopUp.height= 200;					
+					// Call the method to add the Button control to the 
+					// TitleWindow container.
+					populateWindow();
+					dataPopUp.addEventListener("mouseDownOutside", closeTitleWindow);
+					dataPopUp.addEventListener(CloseEvent.CLOSE, closeTitleWindow);
+					// Use the PopUpManager to display the TitleWindow container.
+					PopUpManager.addPopUp(dataPopUp, this, true);
+					dataPopUp.x =200;
+					dataPopUp.y = 250;
+					dataPopUp.closeButton.visible=true;
+					dataPopUp.closeButton.addEventListener(MouseEvent.CLICK, closeTitleWindow);
+					
+				}
+			}
+			
+			public function populateWindow():void {
+				var vgrp:VGroup =  new VGroup();
+				vgrp.paddingLeft = 10;
+				vgrp.paddingTop = 10;
+				var rchTxtExpl:RichText = new RichText();
+				rchTxtExpl.width = 200;
+				rchTxtExpl.text = dataTypeTxt + "is available for the following regions:"
+				vgrp.addElement(rchTxtExpl);	
+				var i:int;
+				for (i = 0; i<lnkArr.length; i++)
+				{
+					var rchTxt:RichText = new RichText();
+					j=i+1;
+					rchTxt.text = lnkArr[i];
+					rchTxt.buttonMode = true;
+					rchTxt.id = lnkArr[i+1] 
+					rchTxt.addEventListener(MouseEvent.CLICK, linkFunct)
+					rchTxt.setStyle("color",0x1A7FB2);
+					rchTxt.setStyle("fontSize","12px");
+					i++;
+					vgrp.addElement(rchTxt);
+				}
+				
+				dataPopUp.addElement(vgrp); 
+			}
+			
+			public function linkFunct(event:MouseEvent):void{
+				navigateToURL(new URLRequest(event.target.id))
+			}
+			
+			public function closeTitleWindow(event:MouseEvent):void 
+			{
+				PopUpManager.removePopUp(dataPopUp);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<mx:NumberFormatter id="myScaleFormatter" precision="0" useThousandsSeparator="true"/>
+	</fx:Declarations>
+	
+	<s:VGroup width="100%" height="100%" clipAndEnableScrolling="true">
+		<s:VGroup id="headerGroup" paddingLeft="8" paddingTop="8" width="90%" clipAndEnableScrolling="false">
+		<s:HGroup verticalAlign="middle" click="backToTOC_clickHandler(event)" buttonMode="true">		
+			<s:Image id="backToTOC1" source="@Embed('assets/icons/back_undo.png')" right="8"
+					  click="backToTOC_clickHandler(event)" />	
+			<s:Label text="Back to Layers"/>
+		</s:HGroup>	
+			
+		<s:Spacer height="4"/>
+		<s:HGroup width="100%" verticalAlign="bottom">
+			<s:Label id="layerName"  fontWeight="bold" fontSize="12" width="{(displayGroup.width/2)+30}"/>
+			<s:Label id="contentDate" fontWeight="normal" fontSize="10" text="{_selectedLayerObject.contentDate}" paddingLeft="20"/>
+		</s:HGroup>
+		
+		<s:Rect bottom="0" y="4" width="100%" height="4">
+			<s:fill>
+				<s:LinearGradient>
+					<s:GradientEntry color="0xDDDDDD"/>
+					<s:GradientEntry color="0xFFFFFF"/>
+				</s:LinearGradient>
+			</s:fill>
+		</s:Rect>
+		</s:VGroup>
+		
+		<s:Scroller width="100%" height="100%">
+		<s:VGroup id="displayGroup" paddingLeft="8" paddingTop="8" width="90%" clipAndEnableScrolling="true">
+			
+			<s:HGroup>	
+				<s:Label id="source" text="Source:" fontWeight="bold"/>
+				<s:RichText id="sourceOrg" width="220" click="navigateToURL(new URLRequest(_selectedLayerObject.webService))" color="0x1A7FB2"/>
+			</s:HGroup>
+			<s:Spacer height="4"/>
+				
+			<s:Label text="Description:" fontWeight="bold"/>
+			<mx:Text id="layerDescription" width="260"/>
+			
+			<s:Spacer height="0"/>
+			
+			<s:HGroup>
+				<s:Label text="Data:" fontWeight="bold"/>
+				<s:RichText id="webService" text="Web Service" click="navigateToURL(new URLRequest(_selectedLayerObject.webService))" buttonMode="true" color="0x1A7FB2" />
+				<s:RichText text="|"/>
+				<s:RichText id="metadata" text="Metadata" click="metadata_clickHandler(event)" buttonMode="true" color="0x1A7FB2"/>			
+			</s:HGroup>	
+			
+			<s:Spacer height="4"/>
+			
+			<!--<s:VGroup> skinClass="solutions.components.toc.LayerLegendSkin" 
+				<s:Label text="Additional Information:" fontWeight="bold"/>
+				<s:Label id="references"  width="180" click="navigateToURL(new URLRequest(_selectedLayerObject.references))"  color="0x1A7FB2"/>
+			</s:VGroup>	-->
+			<s:Spacer height="8"/>
+			<esri:Legend id="layerLegend" 
+						 respectCurrentMapScale="false" visible="true" width="100%" />
+			<s:Image id="fakeittoyoumakeitLegend" source="" visible="false" />
+		</s:VGroup>
+		</s:Scroller>
+	</s:VGroup>
+</s:SkinnableContainer>

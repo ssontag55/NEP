@@ -1,0 +1,828 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx" 
+					  xmlns:esri="http://www.esri.com/2008/ags" currentState="point"
+					  creationComplete="group1_creationCompleteHandler(event)"
+					  initialize="group1_initializeHandler(event)" xmlns:coordinates="solutions.components.coordinates.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Graphic;
+			import com.esri.ags.Map;
+			import com.esri.ags.SpatialReference;
+			import com.esri.ags.geometry.Extent;
+			import com.esri.ags.geometry.MapPoint;
+			import com.esri.ags.geometry.Polyline;
+			import com.esri.ags.layers.GraphicsLayer;
+			import com.esri.ags.tasks.supportClasses.AddressCandidate;
+			import com.esri.ags.tasks.supportClasses.AddressToLocationsParameters;
+			import com.esri.ags.utils.WebMercatorUtil;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncResponder;
+			import mx.rpc.events.ResultEvent;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			
+			import spark.components.supportClasses.ItemRenderer;
+			import spark.core.NavigationUnit;
+			
+			/*****--IMPORTANT--*****/
+			//Graphics Layer and Map variable passed in when the draw tool is activated
+			//Must be defined for draw component to work.
+			[Bindable]public var dyngraphicsService:GraphicsLayer = new GraphicsLayer();
+			[Bindable]public var graphicsService:GraphicsLayer = new GraphicsLayer();
+			[Bindable]public var map:Map = new Map();
+			[Bindable]public var allSymbologyArray:Array = new Array();
+			
+			[Bindable]private var numCoordinateInputs:int = 1; 
+			[Bindable]
+			private var pointsArray:ArrayCollection = new ArrayCollection([]);
+			private var unit:String;
+			
+			[Bindable]
+			private var locateResultAC:ArrayCollection;
+			[Bindable]private var graphicsLayer:GraphicsLayer= new GraphicsLayer();
+			private var serviceWKID:Number;
+			
+			protected function addPoint_clickHandler(event:MouseEvent):void
+			{
+				var newHGroup:HGroup = new HGroup();
+				newHGroup.id = "coordinateInputGroup"+ numCoordinateInputs;
+				newHGroup.verticalAlign = "middle";
+				//lat
+				var newLatInput:TextInput = new TextInput();
+				newLatInput.id = "lat"+ numCoordinateInputs;
+				newLatInput.text = "latitude";
+				newLatInput.width = 100;
+				newLatInput.addEventListener(FocusEvent.FOCUS_OUT, updateValue);
+				newLatInput.addEventListener(FocusEvent.FOCUS_IN, clearText);
+				//long
+				var newLngInput:TextInput = new TextInput();
+				newLngInput.id = "lng"+ numCoordinateInputs;
+				newLngInput.text = "longitude";
+				newLngInput.width = 100;
+				newLngInput.addEventListener(FocusEvent.FOCUS_OUT, updateValue);
+				newLngInput.addEventListener(FocusEvent.FOCUS_IN, clearText);
+				//remove
+				var newRemoveLabel:LinkButton = new LinkButton();
+				newRemoveLabel.id = "remove_"+ numCoordinateInputs;
+				newRemoveLabel.label = "Remove";
+				newRemoveLabel.addEventListener(MouseEvent.CLICK, remove_clickHandler);
+				
+				newHGroup.addElement(newLatInput);
+				newHGroup.addElement(newLngInput);
+				newHGroup.addElement(newRemoveLabel);
+				
+				coordinateVerticalGroup.addElement(newHGroup);
+				
+				numCoordinateInputs++;
+			}
+			
+			private function updateCoordinates():void
+			{
+				if(pointsArray.length > 0) 
+				{
+					map.removeLayer(dyngraphicsService);
+					dyngraphicsService.clear();
+					dyngraphicsService.add(plotCoordClickHandler());
+					map.addLayer(dyngraphicsService);
+				}
+			}
+			protected function clear_clickHandler(event:MouseEvent):void
+			{
+				text0.text = "";	
+				locateResultAC.removeAll();
+				graphicsLayer.clear();
+			}
+			protected function remove_clickHandler(event:MouseEvent):void
+			{
+				//Grab the number of the row
+				var removeID:String = event.currentTarget.id;
+				removeID = removeID.charAt(removeID.length - 1);
+				//Check if that row had an entry in our array of points that we draw and remove it if exists
+				for (var i:int = 0; i<pointsArray.length; i++)
+				{
+					if (pointsArray[i].Number == removeID) pointsArray.removeItemAt(i);
+				}
+				//remove the group
+				coordinateVerticalGroup.removeElement(event.currentTarget.parent);
+				
+				if (!addPointHGroup.isDocument) 
+				{
+					addPointHGroup.visible = true;
+					addPointHGroup.includeInLayout = true;
+				}
+				
+				map.removeLayer(dyngraphicsService);
+				dyngraphicsService.clear();
+				dyngraphicsService.add(plotCoordClickHandler());
+				map.addLayer(dyngraphicsService);
+			}
+			
+			protected function drawCoordinatesDynamic(pointGroup:HGroup):void
+			{
+				/* Set points in our Array to be used as MapPoints*/
+				/* Grab the lates from the event group if there are any to grab and add them*/
+				var t1:TextInput = pointGroup.getElementAt(0) as TextInput;
+				var t2:TextInput = pointGroup.getElementAt(1) as TextInput;
+				
+				var t1Text:String = convertToDecimalDegrees(t1.text, false);
+				var t2Text:String = convertToDecimalDegrees(t2.text, false);
+				
+				if(!isNaN(Number(t1Text)) && !isNaN(Number(t2Text)))
+				{
+					fillPointArray(t1.id, setDirection(t1.text, t1.id), t1Text);
+					fillPointArray(t2.id, setDirection(t2.text, t2.id), t2Text);
+				}
+				//If we have points in the array lets draw!
+				if(pointsArray.length > 0) 
+				{
+					map.removeLayer(dyngraphicsService);
+					dyngraphicsService.clear();
+					dyngraphicsService.add(plotCoordClickHandler());
+					map.addLayer(dyngraphicsService);
+				}
+			}
+			
+			private function plotCoordClickHandler():Graphic
+			{
+				var myGraphic:Graphic = new Graphic();
+				var dummyObj:Object = 
+					{
+						Number: 0,
+						lat: '',
+						lng: ''
+					}
+				var outputPointsArray:ArrayCollection = new ArrayCollection([]);
+				
+				for (var h:Object in pointsArray) outputPointsArray.addItem(dummyObj);
+				
+				if(pointsArray.length == 1) {
+					var drawPoint:MapPoint = new MapPoint(Number(pointsArray[0].lng), Number(pointsArray[0].lat));
+					drawPoint = WebMercatorUtil.geographicToWebMercator(drawPoint) as MapPoint;
+					
+					myGraphic.geometry = drawPoint;
+					myGraphic.symbol = new SimpleMarkerSymbol(pointFill.style, pointFill.size, pointFill.color, pointFill.alpha,0,0,0,pointFill.outline);;
+					
+					//graphicsService.add(myPointGraphic);
+					
+				} else if (pointsArray.length == 2) {
+					currentState = 'line';
+					var drawPoint1:MapPoint = new MapPoint(Number(pointsArray[0].lng), Number(pointsArray[0].lat));
+					drawPoint1 = WebMercatorUtil.geographicToWebMercator(drawPoint1) as MapPoint;
+					var drawPoint2:MapPoint = new MapPoint(Number(pointsArray[1].lng), Number(pointsArray[1].lat));
+					drawPoint2 = WebMercatorUtil.geographicToWebMercator(drawPoint2) as MapPoint;
+					
+						
+					var line:Polyline = new Polyline();
+					line.addPath([drawPoint1, drawPoint2])
+					line.spatialReference = new SpatialReference(102100);
+					
+					myGraphic.geometry = line;
+					myGraphic.symbol = new SimpleLineSymbol(lineFill.style, lineFill.color, lineFill.alpha, lineFill.width);;
+					
+					//graphicsService.add(myLineGraphic); 
+					
+				} 
+				else if (pointsArray.length > 2) 
+				{
+					currentState = 'polygon';
+					if (pointsArray.length == 4)
+					{
+						for (var i:Number = 0; i < pointsArray.length; i++)
+						{
+							if (pointsArray[i].lat > outputPointsArray[0].lat || outputPointsArray[0].lat == '') 
+							{
+								outputPointsArray.setItemAt(pointsArray[i],0);
+							} else if (pointsArray[i].lat == outputPointsArray[0].lat)
+							{
+								if(pointsArray[i].lng > outputPointsArray[0].lng) outputPointsArray.setItemAt(pointsArray[i],0);
+							} 
+							if(pointsArray[i].lat < outputPointsArray[2].lat || outputPointsArray[2].lat == '')
+							{
+								outputPointsArray.setItemAt(pointsArray[i],2);
+							} else if (pointsArray[i].lat == outputPointsArray[2].lat)
+							{
+								if(pointsArray[i].lng < outputPointsArray[2].lng) outputPointsArray.setItemAt(pointsArray[i],2);
+							}
+						}
+						for (var i:Number = 0; i < pointsArray.length; i++)
+						{
+							if(pointsArray[i].Number != outputPointsArray[0].Number && pointsArray[i].Number != outputPointsArray[2].Number)
+							{
+								if (pointsArray[i].lng < outputPointsArray[1].lng || outputPointsArray[1].lng == '') outputPointsArray.setItemAt(pointsArray[i],1);
+								if (pointsArray[i].lng > outputPointsArray[3].lng || outputPointsArray[3].lng == '') outputPointsArray.setItemAt(pointsArray[i],3);
+							}
+						}
+					} else outputPointsArray = pointsArray;
+					
+					var polygonPoints:Array = new Array();
+					var firstPoint:MapPoint;
+					for (var i:Number = 0; i<pointsArray.length; i++)
+					{
+					
+						var tempPoint:MapPoint = new MapPoint(Number(outputPointsArray[i].lng), Number(outputPointsArray[i].lat));
+						tempPoint = WebMercatorUtil.geographicToWebMercator(tempPoint) as MapPoint;
+						if (i==0) firstPoint = tempPoint;
+						
+						polygonPoints.push(tempPoint);
+						if (i==pointsArray.length-1) polygonPoints.push(firstPoint);
+					}
+					
+				}
+				return myGraphic;
+			}
+			
+			private function convertCoordinates():void
+			{
+				var coordInputs:Array = [];
+				
+				for (var j:int = 0; j<coordinateVerticalGroup.numElements; j++)
+				{
+					var tempHGroup:HGroup = coordinateVerticalGroup.getElementAt(j) as HGroup;
+					coordInputs.push(tempHGroup.getElementAt(0))
+					coordInputs.push(tempHGroup.getElementAt(1))	
+				}
+				
+				for(var i:Number = 0;i<coordInputs.length;i++)
+				{
+					var inputText:TextInput = coordInputs[i];
+					var orgValue:String = inputText.text;
+					orgValue = orgValue.toLocaleLowerCase();
+					var setDir:String = "";
+					
+					setDir = setDirection(orgValue, inputText.id);
+					
+					//convertToDecimalDegrees function cleans and builds whatever the user 
+					//inputs and converts it to Decimal Degrees for use as MapPoint
+					var outValue:String = convertToDecimalDegrees(orgValue, false);
+					
+					if(!isNaN(Number(outValue)) && inputText.text.length > 0)
+					{
+						/* Now take outValue and update the Text Input to the form the user 
+						requested in the dropdown */
+						inputText.text = updateInputCoords(outValue, inputText.id, setDir);
+					}
+				}
+			}
+			
+			protected function updateValue(event:FocusEvent):void
+			{
+				var obj:Object = event.currentTarget;
+				var orgValue:String = obj.text;
+				orgValue = orgValue.toLocaleLowerCase();
+				
+				var setDir:String = "";
+				
+				//Set the Dirction - will be used later to determine
+				//E, W, N, or S
+				setDir = setDirection(orgValue, obj.id);
+				
+				//convertToDecimalDegrees function cleans and builds whatever the user 
+				//inputs and converts it to Decimal Degrees for use as MapPoint
+				var outValue:String = convertToDecimalDegrees(orgValue, true);
+				
+				//make sure the original text is not empty
+				if(!isNaN(Number(outValue)) && orgValue.length > 0)
+				{
+					/* Now take outValue and update the Text Input to the form the user 
+					requested in the dropdown */
+					obj.text = updateInputCoords(outValue, obj.id, setDir);
+				}
+				drawCoordinatesDynamic(obj.parent);
+			}
+			
+			protected function setDirection(s:String, id:String):String
+			{
+				//set Unit variable for this instance
+				unit = id.substr(0,3);
+				s= s.toLocaleLowerCase();
+				if (/* LAT */(unit == "lat" && (s.search("-") != -1 || s.search("s") != -1)) || 
+					/* LONG */(unit == "lng" && (s.search("-") != -1 || s.search("w") != -1))) 
+				{
+					return "-";
+				} else return "";
+			}
+			
+			protected function convertToDecimalDegrees(s:String, showError:Boolean):String
+			{
+				var tempS:String = cleanInputString(s);
+				/* Now our String is just Numbers, Spaces, and Decimals
+				we need to split and break up the string for the numbers */
+				var tempA:Array = splitCleanedString(tempS);
+				/*Based on the number of elements in the array we can assume what form (DD, DM, or DMS)
+				the user was using when entering coordinates.  This is handled in concatValue and creates the
+				Decimal Degree form we need to use as MapPoints*/
+				if(showError) return concatValueWithError(tempA) else return concatValueWithOUTError(tempA);
+			}
+			
+			private function cleanInputString(s:String):String
+			{
+				var tempVal:String = "";
+				for (var i:Number=0; i < s.length; i++) 
+				{
+					//If outValue is Number, Space, or Decimal
+					if((Number(s.charAt(i)) >= 0 && Number(s.charAt(i)) <= 9) || s.charAt(i) == " " || s.charAt(i) == ".")
+					{
+						//Add to temporory variable
+						tempVal += s.charAt(i);
+					} //else add in a space
+					else tempVal += ' ';
+				}
+				return tempVal;
+			}
+			
+			private function splitCleanedString(s:String):Array
+			{
+				//We can split outValue at each Space to create seperate
+				//elements in the array...this preserves decimals values
+				var tempArray:Array = s.split(/ /g);
+				var splitNumbers:Array = new Array();
+				for (var i:Number=0; i < tempArray.length; i++) 
+				{
+					//Create an array that only has the numbers
+					if(tempArray[i] != '') 
+					{
+						splitNumbers.push(Number(tempArray[i]));
+					}
+				}
+				return splitNumbers;
+			}
+			
+			private function concatValueWithOUTError(a:Array):String
+			{
+				//if length is 1 assume it is decimal degrees
+				if (a.length == 1)
+				{
+					return a[0];
+				} 
+					//if length is 2 assume it is degree decimal minutes
+				else if (a.length == 2)
+				{
+					return a[0] + a[1]/60;
+				} 
+					//if length is 3 assume it is degree, minutes, seconds
+				else 
+				{
+					return a[0] + a[1]/60 + a[2]/3600;
+				} 
+			}
+			
+			private function concatValueWithError(a:Array):String
+			{
+				if(unit == 'lat' && a[0] > 90) {
+					Alert.show('Latitudes must be between -90 and 90', 'Unacceptable Latitude');
+				}
+				else if(unit == 'lng' && a[0] > 180) Alert.show('Longitudes must be between -180 and 180!', 'Unacceptable Longitude');
+				//if length is 1 assume it is decimal degrees
+				if (a.length == 1)
+				{
+					return a[0];
+				} 
+					//if length is 2 assume it is degree decimal minutes
+				else if (a.length == 2)
+				{
+					return a[0] + a[1]/60;
+				} 
+					//if length is 3 assume it is degree, minutes, seconds
+				else 
+				{
+					return a[0] + a[1]/60 + a[2]/3600;
+				} 
+			}
+			
+			private function updateInputCoords(s:String, id:String, setDir:String):String
+			{
+				var dir:String = returnDirection(setDir);
+				if (coordFmt.selectedItem.data.toString() == "dd") 
+				{
+					return setDir + Math.round(Number(s)*1000)/1000;
+				} else if (coordFmt.selectedItem.data.toString() == "dm")
+				{
+					return returnDM(s, returnDirection(setDir));
+				} else
+				{
+					return returnDMS(s, returnDirection(setDir));
+				}	
+			}
+			
+			private function fillPointArray(id:String, setDir:String, outValue:String):void
+			{
+				var pointNum:String = id.substr(3,4);
+				var points:Object;
+				var exists:Boolean = false;
+				for each(points in pointsArray)
+				{
+					if(points['Number'] == pointNum) 
+					{
+						points[unit] = setDir + outValue;
+						exists = true;
+					}
+				}
+				if(!exists)
+				{
+					var addObj:Object =
+						{
+							Number: pointNum,
+							lat: unit == 'lat' ? setDir + outValue : '',
+							lng: unit == 'lng' ? setDir + outValue : ''
+						}
+					pointsArray.addItem(addObj);
+				}
+			}
+			
+			/* Returns String for Direction (Only used if DM or DMS) */
+			private function returnDirection(setDir:String):String 
+			{
+				if(unit == "lat" && setDir == '-') return "S";
+				else if(unit == "lat") return "N";
+				else if(unit == "lng" && setDir == '-') return "W";
+				else return "E";
+			}
+			
+			/* Returns String for Degree Decimal Minutes */
+			private function returnDM(s:String, dir:String):String 
+			{
+				var a:Array = s.split(/\./);
+				if (a.length == 1) a[1] = 0;
+				else a[1] = Math.round((Number('.' + a[1])*60)*1000)/1000;
+				
+				return a[0]+"° "+a[1]+"' "+dir;
+			}
+			
+			/* Returns String for Degree, Minutes, Seconds */
+			private function returnDMS(s:String, dir:String):String 
+			{
+				var a:Array = s.split(/\./);
+				if (a.length == 1) a[1] = 0;
+				else a[1] = Number('.' + a[1])*60;
+				
+				var b:Array = a[1].toString().split(/\./);
+				if (b.length == 1) b[1] = 0;
+				else b[1] = Math.round((Number('.' + b[1])*60)*1000)/1000;
+				return a[0]+"° "+b[0]+"' "+b[1]+'" '+dir;
+			}
+			
+			protected function clearText(event:FocusEvent):void
+			{
+				event.currentTarget.text == 'latitude' || event.currentTarget.text == 'longitude' ? event.currentTarget.text = '' : event.currentTarget.text;
+			}
+			
+			protected function customtitlewindow2_closeHandler(event:CloseEvent):void
+			{
+				map.removeLayer(dyngraphicsService);
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function saveCoordinates_clickHandler(event:MouseEvent):void
+			{
+				graphicsService.add(plotCoordClickHandler());
+				Alert.show("Graphic Saved");
+				resetCoordinates();
+				dyngraphicsService.clear();
+			}
+			
+			protected function resetCoordinates():void
+			{
+				coordinateVerticalGroup.removeAllElements();
+				numCoordinateInputs = 0;
+				addPoint.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+				pointsArray = new ArrayCollection([]);
+			}
+			
+			protected function zoomToCoordinates_clickHandler(event:MouseEvent):void
+			{
+				if(pointsArray.length > 0)
+				{
+					var g:Graphic = dyngraphicsService.getChildAt(0) as Graphic;
+					if (g.geometry.type == 'esriGeometryPoint') {
+						map.centerAt(g.geometry as MapPoint);
+					} else {
+						var e:Extent = g.geometry.extent;
+						map.extent = e.expand(1.5); // zoom out a little
+					}
+				}
+			}
+			
+			private function toggleCoordGraphic(event:TemplateEvent):void
+			{
+				//I don't know why, but it works
+				var requestedToggleValue:Boolean = true;
+				requestedToggleValue = event.data as Boolean;				
+				graphicsService.visible=requestedToggleValue;
+				dyngraphicsService.visible = requestedToggleValue;	
+			}
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{				
+				SiteContainer.addEventListener(TemplateEvent.DRAW_GRAPHICS_TOGGLE, toggleCoordGraphic);
+				map.addLayer(graphicsService);
+			}
+			
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{	
+				//point
+				var pointOutlineSymbol:SimpleLineSymbol = new SimpleLineSymbol("solid",0xDD0000,.5,2);
+				var pointSymbol:SimpleMarkerSymbol = new SimpleMarkerSymbol("circle",8,0x000000,.5,0,0,0,pointOutlineSymbol);
+				pointFill = pointSymbol;
+				
+				graphicsLayer.symbol = pictureM;
+				map.addLayer(graphicsLayer);
+			}
+			
+			private function beginEraseGraphics():void
+			{
+				var r:Label = new Label();
+				
+				pan.enabled = true;
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,'Eraser'));
+				graphicsService.addEventListener(MouseEvent.CLICK, graphicRemoveMeHandler);
+			}
+			
+			private function graphicRemoveMeHandler(event:Event):void
+			{
+				if(event.target is Graphic)
+				{
+					var graphic:Graphic = event.target as Graphic;
+				} else {
+					var graphic:Graphic = event.target.parent as Graphic;
+				}
+				for (var i:int = graphicsService.numGraphics - 1; i >= 0; i--)
+				{
+					if(graphicsService.graphicProvider[i] == graphic)
+						graphicsService.remove(graphicsService.graphicProvider[i]);
+				} 
+			}
+			
+			private function clearAllGraphics():void
+			{
+				if (graphicsService.numChildren > 0) graphicsService.clear();
+				graphicsLayer.clear();
+			}
+			
+			protected function pan_clickHandler(event:MouseEvent):void
+			{
+				var r:Label = new Label();
+				
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,'Default'));
+				graphicsService.removeEventListener(MouseEvent.CLICK, graphicRemoveMeHandler);
+				event.target.enabled = false;
+			}
+			
+			private function locateAddress():void
+			{
+				if (locateResultAC)
+				{
+					locateResultAC.removeAll();
+				}
+				var myAddress:Object = { SingleLine: text0.text };
+				var myOutFields:Array = [ "Loc_name" ];
+				var mAddress:AddressToLocationsParameters = new AddressToLocationsParameters;
+				mAddress.address = myAddress;
+				mAddress.outFields = myOutFields;
+				locator.outSpatialReference = new SpatialReference(102100);
+				locator.addressToLocations(mAddress, new AsyncResponder(locateResult, locateError));
+			}
+			
+			private function locateResult(data:Array, token:Object = null):void
+			{
+				if (data.length > 0)
+				{
+					locateResultAC = createLocateResults(data);
+					
+					locateResultAC.getItemAt(0).selected = true;
+					if (locateResultAC.length > 0)
+					{
+						showLocation(locateResultAC.getItemAt(0));
+					}
+					noresults.visible = false;
+				}
+				else
+				{
+					//Alert.show('none');
+					noresults.visible = true;
+				}
+			}
+			
+			//create locate results
+			private function createLocateResults(data:Array):ArrayCollection
+			{
+				var result:ArrayCollection = new ArrayCollection();
+				var mapWKID:Number = map.spatialReference ? map.spatialReference.wkid : NaN;
+				var mapIsWebMercator:Boolean = mapWKID == 102100 || mapWKID == 3857 || mapWKID == 102113;
+				for each (var addrCandidate:AddressCandidate in data)
+				{
+					if (addrCandidate.score >= 40)
+					{
+						var locateResult:LocateResult = new LocateResult();
+						locateResult.symbol = pictureM;
+						locateResult.title = addrCandidate.address.toString();
+						locateResult.content = "Score: " + (addrCandidate.score % 1 == 0 ? addrCandidate.score : addrCandidate.score.toFixed(1));
+						locateResult.point = addrCandidate.location;
+						if (!locateResult.point.spatialReference && !isNaN(serviceWKID)) // AGS 9.X returns locations w/o a SR and doesn't support outSR
+						{
+							var serviceIsWebMercator:Boolean = serviceWKID == 102100 || serviceWKID == 3857 || serviceWKID == 102113;
+							if (mapIsWebMercator && serviceWKID == 4326)
+							{
+								locateResult.point = WebMercatorUtil.geographicToWebMercator(locateResult.point) as MapPoint;
+							}
+							else if (serviceIsWebMercator && mapWKID == 4326)
+							{
+								locateResult.point = WebMercatorUtil.webMercatorToGeographic(locateResult.point) as MapPoint;
+							}
+						}
+						locateResult.link = "";
+						locateResult.selected = false;
+						
+						result.addItem(locateResult);
+					}
+				}
+				return result;
+			}
+			
+			private function showLocation(data:Object):void
+			{
+				graphicsLayer.clear();
+				var ptGraphic:Graphic = new Graphic();
+				ptGraphic.geometry = data.point;
+				//ptGraphic.symbol = pictureM;
+				ptGraphic.toolTip = data.title;
+				ptGraphic.attributes = data;
+				graphicsLayer.add(ptGraphic);
+				graphicsLayer.visible = true;
+				map.centerAt(data.point);
+			}
+			
+			private function locateError(info:Object, token:Object = null):void
+			{
+				Alert.show('error');
+			}
+			
+			private function selectLocation(event:Event):void
+			{
+				var locateResult:LocateResult = ItemRenderer(event.target).data as LocateResult;
+				locateResult.selected = true;
+				
+				// unselect the other selected one
+				for each (var locateResult1:LocateResult in locateResultDG.dataProvider)
+				{
+					if (locateResult1 !== locateResult)
+					{
+						locateResult1.selected = false;
+					}
+				}
+				showLocation(locateResult);
+			}
+			
+			private function onJSONLoad(event:ResultEvent):void
+			{
+				/* var rawData:String = String(event.result);
+				var data:Object = JSON.decode(rawData);
+				
+				if (data.singleLineAddressField && useSingleLine)
+				{
+					
+				} */
+			}
+			
+			protected function locateDG_locateResultDeleteHandler(event:Event):void
+			{
+				var locateResult:LocateResult = ItemRenderer(event.target).data as LocateResult;
+				for (var i:Number = 0; i < locateResultAC.length; )
+				{
+					if (locateResultAC.getItemAt(i) === locateResult)
+					{
+						locateResultAC.removeItemAt(i);
+						
+						if (locateResultAC.length == 0)
+						{
+							graphicsLayer.clear();
+						}
+						else
+						{
+							// if a selected item is deleted, show the 1st one, by default
+							if (locateResult.selected)
+							{
+								locateResultAC.getItemAt(0).selected = true;
+								showLocation(locateResultAC.getItemAt(0));
+								//scroll to the top
+								locateResultDG.verticalScrollPosition = locateResultDG.layout.getVerticalScrollPositionDelta(NavigationUnit.HOME);
+							}
+						}
+						break;
+					}
+					else
+					{
+						i++;
+					}
+				}
+			}
+			
+			protected function backToTOC_clickHandler(event:MouseEvent):void
+			{
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_WIN_CHANGE, false, false, "layers"));
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Symbol for all point shapes -->
+		<esri:SimpleMarkerSymbol id="pointFill"  />
+		<esri:PictureMarkerSymbol id="pictureM" source="@Embed(source='assets/icons/locate.png')"/>
+		<!-- Symbol for all line shapes -->
+		<esri:SimpleLineSymbol id="lineFill" />
+		<mx:HTTPService id="locatorService"
+						result="onJSONLoad(event)"
+						resultFormat="text"
+						url="http://tasks.arcgisonline.com/ArcGIS/rest/services/Locators/TA_Streets_US/GeocodeServer?f=json"/>
+		<esri:Locator id="locator"
+					  url="http://tasks.arcgisonline.com/ArcGIS/rest/services/Locators/TA_Address_NA_10/GeocodeServer"/>
+	</fx:Declarations>
+		
+	<s:states>
+		<s:State name="point"/>
+		<s:State name="line"/>
+		<s:State name="polygon"/>
+	</s:states>
+	
+	<s:Panel skinClass="skins.toolPanelSkin" title="Locate" height="100%" width="100%">
+	<s:VGroup id="coordinateToolGroup2" paddingTop="12" paddingLeft="10" gap="11"
+			  width="100%" height="100%" clipAndEnableScrolling="true">
+		<s:HGroup paddingBottom="2" paddingLeft="1" verticalAlign="middle" click="backToTOC_clickHandler(event)" buttonMode="true">		
+			<s:Image id="backToTOC1" source="@Embed('assets/icons/back_undo.png')" right="8"
+					 click="backToTOC_clickHandler(event)" />	
+			<s:Label text="Back to Layers" />
+		</s:HGroup>	
+		
+		<s:Label text="Seach Location:" fontSize="15" fontWeight="bold" paddingTop="2"/>
+		<s:VGroup>			
+			<s:HGroup verticalAlign="middle">
+				<s:TextInput id="text0"  width="145" enter="locateAddress()"/>
+				<s:Button label="Search" buttonMode="true" fontSize="13" click="locateAddress()" icon="@Embed('assets/icons/search.png')" iconPlacement="right"/>
+				<mx:LinkButton label="Clear" click="clear_clickHandler(event)"/>			
+			</s:HGroup>	
+			<s:Scroller width="100%" height="100%"
+						horizontalScrollPolicy="off">
+				<coordinates:LocateResultDataGroup id="locateResultDG" maxHeight="245"
+											  dataProvider="{locateResultAC}"
+											  locateResultClick="selectLocation(event)"
+											  locateResultDelete="locateDG_locateResultDeleteHandler(event)">
+					<coordinates:layout>
+						<s:VerticalLayout gap="2"
+										  horizontalAlign="justify"
+										  useVirtualLayout="true"/>
+					</coordinates:layout>
+				</coordinates:LocateResultDataGroup>
+			</s:Scroller>
+			<s:Label text="No Results found" id="noresults" visible="false" fontSize="13" fontWeight="bold" color="red" paddingTop="0"/>
+		</s:VGroup>
+		
+		<s:Label text="Enter Any Number of Coordinates:" paddingTop="5" fontSize="13" fontWeight="bold"/>		
+			<s:DropDownList id="coordFmt" selectedIndex="1" width="190" change="convertCoordinates()">
+				<mx:ArrayCollection> 
+					<fx:Object data="dd" label="Decimal Degrees"/>
+					<fx:Object data="dm" label="Degree Decimal Minutes"/>
+					<fx:Object data="dms" label="Degrees Minutes Seconds"/>
+				</mx:ArrayCollection> 
+			</s:DropDownList>
+		
+		<s:VGroup id="coordinateVerticalGroup">			
+			<s:HGroup id="coordinateInputGroup1" verticalAlign="middle">
+				
+				<s:TextInput id="lat0"  focusOut="updateValue(event)" text="latitude" focusIn="clearText(event)"
+							 width="100"/>
+				<s:TextInput id="lng0" focusOut="updateValue(event)" text="longitude" focusIn="clearText(event)"
+							 width="100"/>
+				<mx:LinkButton id="remove0" label="Remove" click="remove_clickHandler(event)"/>			
+			</s:HGroup>			
+		</s:VGroup>
+		
+		<s:HGroup id="addPointHGroup">
+			<s:Button id="addPoint" label="^Add Coordinate(s) ^" skinClass="skins.PlotPointsButtonSkin" click="addPoint_clickHandler(event)"/>
+		</s:HGroup>
+				
+		<s:HGroup paddingTop="8">
+			<s:Button id="zoomToCoordinates" label="Zoom to Feature" click="zoomToCoordinates_clickHandler(event)"/>
+		</s:HGroup>
+		
+		<s:Label text="Clear Graphics:" fontWeight="bold" paddingTop="12"/>
+		<s:HGroup verticalAlign="middle" paddingTop="8">			
+			<s:Label text="Erase Single Feature:"/>
+			<s:Button id="erase" label="Erase Graphic" toolTip="Erase Graphic" icon="@Embed('assets/icons/eraser.png')" skinClass="skins.ButtonSquareSkin" 
+					  width="26" height="26" click="beginEraseGraphics()"/>
+			<s:Label text="Clear All:"/>
+			<s:Button id="clear" label="Clear All Graphics" toolTip="Clear All Graphics" icon="@Embed('assets/icons/clear.png')" skinClass="skins.ButtonSquareSkin"  
+					  width="26" height="26" click="clearAllGraphics()"/>
+			<s:Button id="pan" label="Pan Map" toolTip="Pan Map" icon="@Embed('assets/icons/pan.png')" skinClass="skins.ButtonSquareSkin" 
+					  width="27" height="27" click="pan_clickHandler(event)" enabled="false"/>
+		</s:HGroup>
+	</s:VGroup>
+	</s:Panel>
+</s:Group>

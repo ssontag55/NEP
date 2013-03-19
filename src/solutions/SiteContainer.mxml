@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:comp="solutions.*" 
+	width="100%" 
+	height="100%"
+	horizontalScrollPolicy="off" 
+	verticalScrollPolicy="off"
+	creationComplete="init()">
+
+<mx:Script>
+<![CDATA[
+
+	import solutions.config.ConfigManager;
+	import solutions.TemplateEvent; 	
+	import solutions.ErrorWindow;	
+	import mx.containers.TitleWindow; 
+	import mx.managers.PopUpManager;
+	
+	public static const NAVIGATION_ZOOM_FULL:String = "zoomfull";
+	public static const NAVIGATION_ZOOM_PREVIOUS:String = "zoomprevious";
+	public static const NAVIGATION_ZOOM_NEXT:String = "zoomnext";
+	
+	public var configManager:ConfigManager;  
+	private static var _container:SiteContainer;
+	private static var _lock:Boolean = false;
+	private var _containerEventDispatcher:EventBus;
+	
+	public static var CONTAINER_INITIALIZED:String = "containerInitilized";
+	
+	public function init() : void {
+		_container = this;
+		_lock = true; //make sure only one container is created.
+		 
+		//make sure the event bus is ready.
+		_containerEventDispatcher = EventBus.getInstance();
+		
+		//prepare to show error message
+		SiteContainer.addEventListener(TemplateEvent.APP_ERROR, showError);
+		
+		//tell the modules it's on business.
+		SiteContainer.dispatch(SiteContainer.CONTAINER_INITIALIZED);
+	}
+	
+	private function showError(event:TemplateEvent) : void {
+	
+	    var errorWindow:ErrorWindow = ErrorWindow(PopUpManager.createPopUp(this, ErrorWindow, true));
+	   
+	    // Add title to the title bar.
+	    errorWindow.errorMessage = event.data as String;
+	    	
+	    // Add a close button.
+	    // To close the container, your must also handle the close event.
+	    errorWindow.showCloseButton=true;
+	}
+	 
+	/* -----------------------------------------------
+	static functions as proxy of Event Bus
+	----------------------------------------------- */  
+	public static function getInstance():SiteContainer {
+		if (!_lock){
+			_container = new SiteContainer();
+			_lock = true;
+		}
+		return _container;		
+	}
+	
+	//the following are the methods to allow modules access event bus via the contains.
+	public static function addEventListener(type:String, listener:Function, useCapture:Boolean=false, priority:int=0, useWeakReference:Boolean=false) : void  {
+		EventBus.getInstance().addEventListener(type, listener, useCapture, priority, useWeakReference);
+	}		    
+	
+	public static function removeEventListener(type:String, listener:Function, useCapture:Boolean=false) : void  {
+		EventBus.getInstance().removeEventListener(type, listener, useCapture);
+	}		    
+	
+	//this is the simplest way of communicate. Just use a string.
+	public static function dispatch(type:String) : Boolean {
+		return EventBus.getInstance().dispatch(type);
+	}		    
+	
+	public static function dispatchEvent(event:Event) : Boolean {
+		var eventBase:EventBus = EventBus.getInstance();
+	    return eventBase.dispatchEvent(event);
+	}		    
+	
+	public static function setStatus(status:String) : void {
+		dispatchEvent(new TemplateEvent(TemplateEvent.SET_STATUS, false, false, status));
+	}
+	
+]]>
+</mx:Script>
+
+<mx:Metadata>
+	[DefaultProperty("childen")]
+</mx:Metadata>
+    
+</mx:Canvas>
