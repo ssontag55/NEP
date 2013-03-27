@@ -2,11 +2,12 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
 				xmlns:s="library://ns.adobe.com/flex/spark"
 				xmlns:mx="library://ns.adobe.com/flex/mx"
-				height="27" width="100%" click="handleSelLayer(event)"
+				height="27" width="100%" 
 				creationComplete="init()">
 	
 	<fx:Script>
 		<![CDATA[
+			//click="handleSelLayer(event)"
 			import com.esri.ags.Map;
 			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
 			import com.esri.ags.layers.Layer;
@@ -47,16 +48,12 @@
 				if(event.data.layername.text ==layername.text && event.data.visibleLayer.selected == false)
 				{
 					this.visibleLayer.selected = false;
-					if(this.data.parentGroupElement.groupNameLabel != "Search Results" && this.data.parentGroupElement.groupNameLabel !=  event.data.data.parentGroupElement.groupNameLabel){
-						this.data.parentGroupElement.visibleLayers--;
-					}
+					this.data.parentGroupElement.visibleLayers--;
 				}
 				else if(event.data.layername.text ==layername.text && event.data.visibleLayer.selected == true)
 				{
 					this.visibleLayer.selected = true;
-					if(this.data.parentGroupElement.groupNameLabel != "Search Results" && this.data.parentGroupElement.groupNameLabel !=  event.data.data.parentGroupElement.groupNameLabel){
-						this.data.parentGroupElement.visibleLayers++;
-					}
+					this.data.parentGroupElement.visibleLayers++;
 				}
 			}
 			
@@ -105,8 +102,6 @@
 							} */
 							if ( minScale != 0  && tocMap.scale > minScale )
 							{
-								//visibleLayer.setStyle("symbolColor",0x000000);
-								//visibleLayer.setStyle("chromeColor",0xCCCCCC);
 								visibleLayer.enabled = false;
 								zoomIn.visible = true;
 								layername.setStyle("color",0xCCCCCC);
@@ -133,12 +128,6 @@
 			protected function visibleLayer_changeHandler(event:Event):void
 			{
 				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE, false, false, this));
-				if (visibleLayer.selected == false )
-				{
-					visibleLayer.setStyle("symbolColor",0x000000);
-					visibleLayer.setStyle("chromeColor",0xCCCCCC);
-					layername.setStyle("color",0x000000);
-				} 
 			}
 			
 			protected function layerDetailsButton_clickHandler(event:MouseEvent):void
@@ -158,12 +147,12 @@
 			<s:Label paddingLeft="-11" width="250" paddingTop="8" fontWeight="bold" text="{data.groupText}" fontSize="10" color="black" visible="{data.groupText!= ''}" includeInLayout="{data.groupText!= ''}" />
 			
 			<s:HGroup height="27" width="250" verticalAlign="middle" paddingTop="-6" horizontalAlign="left" id="textGroup">
-				<s:HGroup width="179">
+				<s:HGroup width="175">
 					<s:CheckBox id="visibleLayer" width="14" toolTip="Turn Layer On/Off" enabled="{data.minscale == 0 || data.minscale &#62; tocMap.scale}"
 								click="visibleLayer_changeHandler(event)" selected="{data.visible == true}"/> 
 					<s:Label paddingTop="1" id="layername"  text="{data.name}" width="200"/>
 				</s:HGroup>
-				<s:Label paddingTop="1" id="zoomIn" text="Zoom to View" fontSize="8" color="red" visible="{data.minscale != 0 &#38;&#38; data.minscale &#60; tocMap.scale}" includeInLayout="{data.minscale != 0 &#38;&#38; data.minscale &#60; tocMap.scale}" />			
+				<s:Label paddingTop="1" id="zoomIn" text="Zoom to View" fontSize="8" color="0xA6A6A6" visible="{data.minscale != 0 &#38;&#38; data.minscale &#60; tocMap.scale}" includeInLayout="{data.minscale != 0 &#38;&#38; data.minscale &#60; tocMap.scale}" />			
 			</s:HGroup>
 		</s:VGroup>
 	</s:HGroup>

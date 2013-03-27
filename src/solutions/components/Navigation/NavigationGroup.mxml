@@ -90,8 +90,8 @@
 		</s:VGroup>
 	</s:SkinnableContainer>
 	<s:SkinnableContainer id="quick_zoom" skinClass="skins.QuickZoomContainerSkin" right="7"
-						  backgroundColor="0xEEEEEE" alpha=".7" top="180">
-		<s:VGroup id="navZoom" includeIn="out" rollOver="skinnablecontainer1_rollOverHandler(event)" horizontalCenter="0" horizontalAlign="center" gap="-6" paddingBottom="4">
+						  backgroundColor="0xF2C2C2" alpha=".7" top="183">
+		<s:VGroup toolTip="Bookmarks" id="navZoom" includeIn="out" rollOver="skinnablecontainer1_rollOverHandler(event)" horizontalCenter="0" horizontalAlign="center" gap="-6" paddingLeft="2" paddingTop="4" paddingBottom="4">
 			<s:Image source="@Embed('assets/icons/arrow_bottom_left.png')" />
 		</s:VGroup>
 		

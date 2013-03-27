@@ -654,9 +654,9 @@
 		
 		<s:Label text="Clear Graphics:" fontWeight="bold" paddingTop="8"/>
 		<s:HGroup verticalAlign="middle">
-			<s:Label text="Erase Single Feature:"/>
+			<!--<s:Label text="Erase Single Feature:"/>
 			<s:Button id="erase" label="Erase Graphic" toolTip="Erase Graphic" icon="@Embed('assets/icons/eraser.png')" skinClass="skins.ButtonSquareSkin" 
-					  width="30" height="26" click="beginEraseGraphics()"/>
+					  width="30" height="26" click="beginEraseGraphics()"/>-->
 			<s:Label text="Clear All:"/>
 			<s:Button id="clear" label="Clear All Graphics" toolTip="Clear All Graphics" icon="@Embed('assets/icons/clear.png')" skinClass="skins.ButtonSquareSkin"  
 					  width="30" height="26" click="clearAllGraphics()"/>

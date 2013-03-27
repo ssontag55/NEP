@@ -273,7 +273,7 @@
                 minViewportInset="1">
         <!--- @copy spark.components.supportClasses.SkinnableTextBase#textDisplay -->
         <s:RichEditableText id="textDisplay"
-                            heightInLines="10"
+                            heightInLines="10" color="0xE3E3E3"
                             widthInChars="15"/>
     </s:Scroller>
 

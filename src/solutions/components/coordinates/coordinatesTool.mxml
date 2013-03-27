@@ -97,7 +97,9 @@
 			protected function clear_clickHandler(event:MouseEvent):void
 			{
 				text0.text = "";	
-				locateResultAC.removeAll();
+				if(locateResultAC){
+					locateResultAC.removeAll();
+				}
 				graphicsLayer.clear();
 			}
 			protected function remove_clickHandler(event:MouseEvent):void
@@ -761,7 +763,7 @@
 			<s:Label text="Back to Layers" />
 		</s:HGroup>	
 		
-		<s:Label text="Seach Location:" fontSize="15" fontWeight="bold" paddingTop="2"/>
+		<s:Label text="Search Location:" fontSize="15" fontWeight="bold" paddingTop="2"/>
 		<s:VGroup>			
 			<s:HGroup verticalAlign="middle">
 				<s:TextInput id="text0"  width="145" enter="locateAddress()"/>
@@ -814,10 +816,10 @@
 		
 		<s:Label text="Clear Graphics:" fontWeight="bold" paddingTop="12"/>
 		<s:HGroup verticalAlign="middle" paddingTop="8">			
-			<s:Label text="Erase Single Feature:"/>
+			<!--<s:Label text="Erase Single Feature:"/>
 			<s:Button id="erase" label="Erase Graphic" toolTip="Erase Graphic" icon="@Embed('assets/icons/eraser.png')" skinClass="skins.ButtonSquareSkin" 
 					  width="26" height="26" click="beginEraseGraphics()"/>
-			<s:Label text="Clear All:"/>
+			<s:Label text="Clear All:"/>-->
 			<s:Button id="clear" label="Clear All Graphics" toolTip="Clear All Graphics" icon="@Embed('assets/icons/clear.png')" skinClass="skins.ButtonSquareSkin"  
 					  width="26" height="26" click="clearAllGraphics()"/>
 			<s:Button id="pan" label="Pan Map" toolTip="Pan Map" icon="@Embed('assets/icons/pan.png')" skinClass="skins.ButtonSquareSkin" 

@@ -99,9 +99,9 @@
 					<fx:Object label="Draw" name="draw" iconClick="@Embed('assets/icons/new_header/draw_measure_down.png')"
 							   icon="@Embed('assets/icons/new_header/draw_measure.png')" iconStart="@Embed('assets/icons/new_header/draw_measure.png')"
 							   obj="Draw and Measure"/>
-					<fx:Object label="Coordinates" name="coordinates"  iconClick="@Embed('assets/icons/new_header/search_location_down.png')"
+					<!--<fx:Object label="Coordinates" name="coordinates"  iconClick="@Embed('assets/icons/new_header/search_location_down.png')"
 							   icon="@Embed('assets/icons/new_header/search_location.png')" iconStart="@Embed('assets/icons/new_header/search_location.png')"
-							   obj="Search"/>
+							   obj="Search"/>-->
 				</s:ArrayList>
 			</s:dataProvider>
 		</s:TabBar>

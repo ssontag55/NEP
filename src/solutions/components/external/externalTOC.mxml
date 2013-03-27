@@ -77,6 +77,8 @@
 			[Bindable]private var buoyLayer:GraphicsLayer = new GraphicsLayer;
 			[Bindable]private var buoyLayerCoop:GraphicsLayer = new GraphicsLayer;
 			
+			[Bindable]private var winClosed:Boolean = false;
+			
 			[Bindable]private var massGISWMS:WMSLayer = new WMSLayer;
 			private var tabs:TabNavigator = new TabNavigator;
 			private var groupChart:VGroup = new VGroup;
@@ -574,6 +576,7 @@
 					var metstr:String = new String;
 					var METservrequest:HTTPService = new HTTPService();
 					METservrequest.resultFormat = "e4x";
+					winClosed = false;
 					METservrequest.addEventListener(FaultEvent.FAULT, loadError);
 					METservrequest.addEventListener(ResultEvent.RESULT, addserviceInfoMET);						
 					
@@ -809,9 +812,11 @@
 					function removePop(event:CloseEvent):void{
 						PopUpManager.removePopUp(graph);
 						CursorManager.removeBusyCursor();
+						FlexGlobals.topLevelApplication.pb.visible = false;
+						winClosed = true;
 					}
 					
-					if(h == "")
+					if(h == "" || winClosed == true)
 					{
 					}
 					else{
@@ -830,7 +835,7 @@
 						PopUpManager.addPopUp(graph, this.parentApplication.parent, false);
 						PopUpManager.centerPopUp(graph);
 						
-						if(numParams == numParamsDone)
+						if(numParams <= numParamsDone)
 						{
 							numParamsDone= 0;
 							CursorManager.removeBusyCursor();

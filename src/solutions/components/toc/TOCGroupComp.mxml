@@ -22,10 +22,10 @@
 			private function init():void
 			{
 				SiteContainer.addEventListener(TemplateEvent.CLEAR_LAYERS, clearAllL);
+				var parentGroup:Object = this.parent;
 				if(expand == true)
 				{
 					currentState = "open";
-					var parentGroup:Object = this.parent;
 					
 					for (var i:int = 0; i<parentGroup.numChildren; i++) {
 						if (parentGroup.getElementAt(i) == this) {
@@ -36,6 +36,21 @@
 						}
 					}
 				}
+				/* else{
+					//currentState = "closed";
+					
+					for (var j:int = 0; j<parentGroup.numChildren; j++) {
+						if (parentGroup.getElementAt(j) == this) {
+							//add 1 to get the list after the group and make it visible or not
+							parentGroup.getElementAt(j + 1).includeInLayout = !parentGroup.getElementAt(j + 1).includeInLayout;
+							parentGroup.getElementAt(j + 1).visible = !parentGroup.getElementAt(j + 1).visible;
+							parentGroup.getElementAt(j + 1).includeInLayout = false;
+							parentGroup.getElementAt(j + 1).visible = false;
+							
+							break;
+						}
+					}
+				} */
 			}
 			
 			protected function clearAllL(event:TemplateEvent):void

@@ -78,7 +78,6 @@
 	private var propertiesXML:XML = new XML();
 	[Bindable]public var useCustomTOC:Boolean =  false;
 	
-	
 	//Not sure wha layersForLegend does, think it can be deleted, charlie-11/03
 	[Bindable]public var layersForLegend:Array = [];
 	
@@ -100,7 +99,10 @@
 	[Bindable]public var params:Object;
 	[Bindable]public var result:URLVariables = new URLVariables();
 	[Bindable]public var lastCursor:String;
-	private function init() : void { 
+	
+
+	private function init() : void
+	{ 
 		SiteContainer.addEventListener(TemplateEvent.TOC_LOADED, tocDone);
 		SiteContainer.addEventListener(TemplateEvent.MAP_LEVEL_CHANGE, handleBaseMapsZoom);
 		SiteContainer.addEventListener(TemplateEvent.CONFIG_LOADED, configMap);
@@ -115,7 +117,6 @@
 		SiteContainer.addEventListener(TemplateEvent.UPDATE_CURSOR, updateCursor);
 		
 		var configServiceTOC:HTTPService = new HTTPService();
-		//configServiceTOC.url = "http://csc.noaa.gov/dataservices/CMSP/GetAllPropertyPages";
 		configServiceTOC.url = "xml/PropertiesNew.xml";
 		configServiceTOC.resultFormat = "e4x";
 		configServiceTOC.addEventListener(ResultEvent.RESULT, ppResult);
@@ -256,8 +257,8 @@
 		return search;			
 	}    
 	
-	private function handleURLParams():void{
-		
+	private function handleURLParams():void
+	{	
 		urlParams = getURLParameters() as String;
 		if (urlParams != null){		
 				if (result.XY)

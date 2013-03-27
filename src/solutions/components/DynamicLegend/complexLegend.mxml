@@ -5,7 +5,7 @@
 									 xmlns:TitleWindowCustom="TitleWindowCustom.*"
 									 width="298" borderVisible="false" height="228"						
 									 xmlns:DynamicLegend="solutions.components.DynamicLegend.*"
-									 initialize=" init();" skinClass="TitleWindowCustom.skins.CustomTitleWindowSkin3"							 
+									 initialize=" init();" skinClass="TitleWindowCustom.skins.CustomTitleWindowSkin3" xmlns:esri="http://www.esri.com/2008/ags"							 
 									 >
 	<fx:Script>
 		<![CDATA[
@@ -367,8 +367,8 @@
 							}
 						}
 					}
-				}
-				map.dispatchEvent(new ZoomEvent(ZoomEvent.ZOOM_END));
+				} 
+				//map.dispatchEvent(new ZoomEvent(ZoomEvent.ZOOM_END));
 			}
 			
 			private function filterOutSubLayer(layer:Layer, id:int):Boolean
@@ -424,7 +424,7 @@
 				if (map) {
 					map.addEventListener(MapEvent.LAYER_ADD, onLayerAddMap, false, 0, true);
 					map.addEventListener(MapEvent.LAYER_REMOVE, onLayerRemoveMap, false, 0, true);
-					map.addEventListener(MapEvent.LAYER_REMOVE_ALL, onLayerRemoveAll, false, 0, true);
+					//map.addEventListener(MapEvent.LAYER_REMOVE_ALL, onLayerRemoveAll, false, 0, true);
 					//map.addEventListener(ZoomEvent.ZOOM_END, zoomHandler, false, 0, true);
 					
 					SiteContainer.addEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE_ON_TOC, onLayerAdd);
@@ -437,8 +437,8 @@
 				if (map) {
 					map.removeEventListener(MapEvent.LAYER_ADD, onLayerAddMap);
 					map.removeEventListener(MapEvent.LAYER_REMOVE, onLayerRemoveMap);
-					map.removeEventListener(MapEvent.LAYER_REMOVE_ALL, onLayerRemoveAll);
-					map.removeEventListener(ZoomEvent.ZOOM_END, zoomHandler);
+					//map.removeEventListener(MapEvent.LAYER_REMOVE_ALL, onLayerRemoveAll);
+					//map.removeEventListener(ZoomEvent.ZOOM_END, zoomHandler);
 					
 					SiteContainer.removeEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE_ON_TOC,onLayerRemove);
 					SiteContainer.removeEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE_OFF_TOC,onLayerRemove);
@@ -451,28 +451,24 @@
 			private function onLayerAdd( event:TemplateEvent ):void
 			{
 				legdi=map.layerIds.length-2;
-				//cursorManager.setCursor(FlexGlobals.topLevelApplication.customWaitCursor,2,0,0);
 				registerMapLayer(event.data);
 			}
 			
 			private function onLayerRemove( event:TemplateEvent ):void
 			{
 				legdi=map.layerIds.length-2;
-				//cursorManager.setCursor(FlexGlobals.topLevelApplication.customWaitCursor,2,0,0);
 				unregisterMapLayer(event.data as Layer);
 			}
 			
 			private function onLayerAddMap( event:MapEvent ):void
 			{
 				legdi=map.layerIds.length-2;
-				//cursorManager.setCursor(FlexGlobals.topLevelApplication.customWaitCursor,2,0,0);
 				registerMapLayer(event.layer);
 			}
 			
 			private function onLayerRemoveMap( event:MapEvent ):void
 			{
 				legdi=map.layerIds.length-2;
-				//cursorManager.setCursor(FlexGlobals.topLevelApplication.customWaitCursor,2,0,0);
 				unregisterMapLayer(event.layer);
 			}
 			
@@ -484,7 +480,6 @@
 			private function zoomHandler(event:ZoomEvent):void
 			{
 				legdi=0;
-				//cursorManager.setCursor(FlexGlobals.topLevelApplication.customWaitCursor,2,0,0);
 				registerAllMapLayers();
 			}
 			
@@ -493,12 +488,12 @@
 	
 	<s:Scroller width="100%" horizontalScrollPolicy="off" height="100%">
 		<s:Group>
+			<!--<esri:Legend map="{map}" layers="{legendAC}" id="legendDataGroup"/>-->
 			<DynamicLegend:LegendDataGroup  id="legendDataGroup" dataProvider="{legendAC}" verticalScrollPosition="0" >
 				<DynamicLegend:layout>
 					<s:VerticalLayout gap="0" horizontalAlign="contentJustify"/>
 				</DynamicLegend:layout>
 			</DynamicLegend:LegendDataGroup>
-	
 		</s:Group>
 	</s:Scroller>
 </TitleWindowCustom:CustomTitleWindow>

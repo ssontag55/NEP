@@ -5,7 +5,8 @@
 									 creationComplete="init()" xmlns:toc="solutions.components.toc.*" 
 									 xmlns:esri="http://www.esri.com/2008/ags"
 									 xmlns:components="solutions.components.*"
-									 width="100%" xmlns:DynamicLegend="solutions.components.DynamicLegend.*" xmlns:ns="library://ns.tink.ws/flex/mx" xmlns:components1="org.flashcommander.components.*" >
+									 width="100%" xmlns:DynamicLegend="solutions.components.DynamicLegend.*" 
+									 xmlns:components1="org.flashcommander.components.*" >
 	<fx:Style>
 		.matchStyle
 		{
@@ -15,6 +16,7 @@
 	</fx:Style>
 	<fx:Script>
 		<![CDATA[
+			//xmlns:ns="library://ns.tink.ws/flex/mx" 
 			import com.esri.ags.Map;
 			import com.esri.ags.events.DetailsEvent;
 			import com.esri.ags.events.LayerEvent;
@@ -25,10 +27,8 @@
 			import com.esri.ags.layers.supportClasses.LayerInfo;
 			import com.esri.ags.tasks.DetailsTask;
 			
-			import mx.collections.ArrayCollection;
 			import mx.collections.ArrayList;
 			import mx.controls.Alert;
-			import mx.core.FlexGlobals;
 			import mx.core.ScrollPolicy;
 			import mx.managers.CursorManager;
 			import mx.rpc.events.FaultEvent;
@@ -82,7 +82,6 @@
 					//SiteContainer.addEventListener(TemplateEvent.CUSTOM_TOC, customTOC);
 					
 					var configService:HTTPService = new HTTPService();
-					//configService.url = "http://csc.noaa.gov/dataservices/CMSP/GetTOC";
 					configService.url = "xml/asaTOC.xml";
 					configService.resultFormat = "e4x";
 					configService.addEventListener(ResultEvent.RESULT, tocResult);
@@ -91,7 +90,6 @@
 					
 					var configService2:HTTPService = new HTTPService();
 					configService2.url = "xml/PropertiesPage_New.xml";
-					//configService2.url = "http://csc.noaa.gov/dataservices/CMSP/GetAllPropertyPages"; 
 					configService2.resultFormat = "e4x";
 					configService2.addEventListener(ResultEvent.RESULT, ppResult);
 					configService2.addEventListener(FaultEvent.FAULT, ppFault);	
@@ -108,26 +106,8 @@
 					loaded = true;
 					
 					setLegendTimer();
-					/* MapUtil.forEachMapLayer(map, function( layer:Layer ):void {					
-						legendArray.push(layer);	
-					}); */
 				}
 			}
-			
-			/* private function groupToggle(event:TemplateEvent):void
-			{
-				var group:TOCGroupComp = event.data as TOCGroupComp;
-				var parentGroup:Object = group.parent;
-				//loop through vertGroup elements and find the group
-				for (var i:int = 0; i<parentGroup.numChildren; i++) {
-					if (parentGroup.getElementAt(i) == group) {
-						//add 1 to get the list after the group and make it visible or not
-						parentGroup.getElementAt(i + 1).includeInLayout = !parentGroup.getElementAt(i + 1).includeInLayout;
-						parentGroup.getElementAt(i + 1).visible = !parentGroup.getElementAt(i + 1).visible;
-						break;
-					}
-				}
-			} */
 			
 			private function searchLayers():void
 			{
@@ -206,16 +186,15 @@
 				if (event.data.visibleLayer.selected == true) {				
 					
 					dsLyr.visibleLayers.addItem(event.data.data.layerID);
-					
-					event.data.data.parentGroupElement.visibleLayers++;
 					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_ON_TOC, false, false, dsLyr));
 					dsLyr.visible = true;
-				} 
-				else {
+				}
+				else 
+				{
 					for (var j:int=0;j<dsLyr.visibleLayers.length;j++) {
-						if(dsLyr.visibleLayers[j] == event.data.data.layerID) {
+						if(dsLyr.visibleLayers[j] == event.data.data.layerID) 
+						{
 							dsLyr.visibleLayers.removeItemAt(j); 
-							event.data.data.parentGroupElement.visibleLayers--;
 							SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_OFF_TOC, false, false, dsLyr));
 						}
 					}
@@ -341,7 +320,7 @@
 				groupCtn.height = 30;
 				groupCtn.percentWidth = 100;
 				groupCtn.id = groupXML.@id;
-				if(String(groupXML.@id).search('topGroup')>-1){
+				if(String(groupXML.@id).search('topGroup1')>-1){
 					groupCtn.expand = true;
 				} 
 				layerVGroup.addElement(groupCtn); 
@@ -354,13 +333,15 @@
 				//create list and set properties
 				var layerList:List = new List();
 				layerList = setLayerListProperties(layerList);
+				//this is a fix for list data provider starting at -1 which makes two requests for first layer of List
+				layerList.useVirtualLayout = false;
 				
 				var layerArrayList:ArrayList = new ArrayList();
 				var visibleCount:int = 0;
 				var count:int = 0;
 				
 				//grab the 'group' component and set the number of layers
-				var listParent:TOCGroupComp = layerVGroup.getElementAt(layerVGroup.numElements - 1) as TOCGroupComp;
+				var listParent:TOCGroupComp = layerVGroup.getElementAt(layerVGroup.numElements - 1) as TOCGroupComp;				
 				
 				for each (var node:XML in groupXML.layer)
 				{
@@ -384,9 +365,8 @@
 				//layerList.height = 30*count;
 				layerList.dataProvider = layerArrayList;
 				layerVGroup.addElement(layerList);
-				
 				listParent.visibleLayers = visibleCount;
-				listParent.totalLayers = count;		
+				listParent.totalLayers = count;	
 			}  
 			
 			private function createTOCGroupsResults(groupXML:XML):void
@@ -408,6 +388,7 @@
 				//create list and set properties
 				var layerList:List = new List();
 				layerList = setLayerListProperties(layerList);
+				layerList.useVirtualLayout = false;
 				
 				var layerArrayList:ArrayList = new ArrayList();
 				var visibleCount:int = 0;
@@ -524,7 +505,7 @@
 				//legendVGroup.height = 0;
 				timer.stop();
 				legendLoaded == true;
-			}
+			} 
 		]]>
 	</fx:Script>
 	

@@ -54,16 +54,15 @@ operational - dynamic layers- be sure you use ids that you can reference later
 	</basemaps>		
 	<referencemaps></referencemaps> 
 	<operationalmaps>	
-		<mapservice label="Administrative" vislayers="0" type="dynamic" visible="true" alpha="1" id="admin">http://50.19.218.171/arcgis1/rest/services/NEODviewer-2/Administrative/MapServer</mapservice>
-		<mapservice label="Oceanography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="ocean">http://50.19.218.171/arcgis1/rest/services/Demo/OceanUsesTest/MapServer</mapservice>
-		<mapservice label="Biology" vislayers="9999" type="dynamic" visible="true" alpha="1" id="bio">http://50.19.218.171/arcgis1/rest/services/Demo/BiologyTest/MapServer</mapservice>
-		<mapservice label="Physical Oceanography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="physocean">http://50.19.218.171/arcgis1/rest/services/NEODviewer-2/PhysicalOceanography/MapServer</mapservice>
-		<mapservice label="Demography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="demo">http://50.19.218.171/arcgis1/rest/services/Demo/DemographyTest/MapServer</mapservice>
-		<mapservice label="Cartography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="cart">http://50.19.218.171/arcgis1/rest/services/NEODviewer-2/Cartography/MapServer</mapservice>		
-		<mapservice label="Energy" vislayers="9999" type="dynamic" visible="true" alpha="1" id="energy">http://gis.asascience.com/ArcGIS/rest/services/RegionalPortal/LV_Energy/MapServer</mapservice>
-		<mapservice label="MarCom" vislayers="9999" type="dynamic" visible="true" alpha="1" id="marcom">http://gis.asascience.com/ArcGIS/rest/services/RegionalPortal/LV_MarineTransportation/MapServer</mapservice>
-		<mapservice label="Turtles" vislayers="9999" type="dynamic" visible="true" alpha="1" id="turtles">http://gis.asascience.com/ArcGIS/rest/services/RegionalPortal/LV_MammalsTurtles/MapServer</mapservice>
-		<mapservice label="Fish" vislayers="9999" type="dynamic" visible="true" alpha="1" id="fishtroph">http://gis.asascience.com/ArcGIS/rest/services/RegionalPortal/LV_FishTrophic/MapServer</mapservice>
+		<mapservice label="Administrative" vislayers="0" type="dynamic" visible="true" alpha="1" id="admin">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Administrative/MapServer</mapservice>
+		<mapservice label="Oceanography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="ocean">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer</mapservice>
+		<mapservice label="Biology" vislayers="9999" type="dynamic" visible="true" alpha="1" id="bio">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer</mapservice>
+		<mapservice label="Physical Oceanography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="physocean">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer</mapservice>
+		<mapservice label="Demography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="demo">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Demography/MapServer</mapservice>
+		<mapservice label="Cartography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="cart">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Cartography/MapServer</mapservice>		
+		
+		<mapservice label="HAPC" vislayers="9999" type="dynamic" visible="true" alpha="1" id="hapc">http://egisws02.nos.noaa.gov/ArcGIS/rest/services/NMFS/HAPC/MapServer</mapservice>		
+		<mapservice label="EFH" vislayers="9999" type="dynamic" visible="true" alpha="1" id="efh">http://egisws02.nos.noaa.gov/ArcGIS/rest/services/NMFS/EFHAreasProtectedFromFishing/MapServer</mapservice>		
 		
 	</operationalmaps> 
 	<graphiclayers>
