@@ -3,7 +3,7 @@
 									 xmlns:s="library://ns.adobe.com/flex/spark" 
 									 xmlns:mx="library://ns.adobe.com/flex/mx" 
 									 xmlns:TitleWindowCustom="TitleWindowCustom.*"
-									 width="298" borderVisible="false" height="228"						
+									 width="298" borderVisible="false" height="238"						
 									 xmlns:DynamicLegend="solutions.components.DynamicLegend.*"
 									 initialize=" init();" skinClass="TitleWindowCustom.skins.CustomTitleWindowSkin3" xmlns:esri="http://www.esri.com/2008/ags"							 
 									 >
@@ -489,9 +489,9 @@
 	<s:Scroller width="100%" horizontalScrollPolicy="off" height="100%">
 		<s:Group>
 			<!--<esri:Legend map="{map}" layers="{legendAC}" id="legendDataGroup"/>-->
-			<DynamicLegend:LegendDataGroup  id="legendDataGroup" dataProvider="{legendAC}" verticalScrollPosition="0" >
+			<DynamicLegend:LegendDataGroup id="legendDataGroup" dataProvider="{legendAC}" verticalScrollPosition="0" >
 				<DynamicLegend:layout>
-					<s:VerticalLayout gap="0" horizontalAlign="contentJustify"/>
+					<s:VerticalLayout gap="4"  horizontalAlign="contentJustify"/>
 				</DynamicLegend:layout>
 			</DynamicLegend:LegendDataGroup>
 		</s:Group>

@@ -3,21 +3,36 @@
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
 		 backgroundColor="0xffffff" creationComplete="init()"
-		 currentState="closed">
+		 currentState="closed" xmlns:toc="solutions.components.external.toc.*">
 	
 	<fx:Script>
 		<![CDATA[			
+			import com.esri.ags.Map;
+			import com.esri.ags.layers.Layer;
+			import com.esri.ags.layers.supportClasses.LayerInfo;
+			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+			
 			import solutions.SiteContainer;
 			import solutions.TemplateEvent;
 			
 			[Bindable]
 			public var groupNameLabel:String;
 			[Bindable]
+			public var groupNameService:String;
+			[Bindable]
 			public var visibleLayers:Number;
 			[Bindable]
 			public var totalLayers:Number;
 			[Bindable]
 			public var expand:Boolean = false;
+			[Bindable]
+			public var mainMap:Map;
+			[Bindable]
+			public var showTransparency:Boolean = true;
+			[Bindable]
+			private var layerDefined:Boolean = false;
+			[Bindable]
+			public var mainLayer:Layer = new Layer;
 			
 			private function init():void
 			{
@@ -76,6 +91,26 @@
 				}
 			}
 			
+			private function changeAlpha():void
+			{
+				if(layerDefined == false){
+					//setting transparency for layer - moving to TOC proper
+					for each (var layer:Layer in mainMap.layers)
+					{
+						if(layer is ArcGISDynamicMapServiceLayer){
+							if(layer.id == groupNameService){
+								mainLayer = layer;
+								transSet.value = layer.alpha;
+								layerDefined = true;
+							}
+						}
+					} 
+				}
+				else{
+					mainLayer.alpha = transSet.value;
+				}
+			} 
+			
 		]]>
 	</fx:Script>
 	
@@ -105,7 +140,7 @@
 					 useHandCursor="true"	/>
 			</s:Group>
 				
-		<s:HGroup gap="1" paddingTop="1">
+		<s:HGroup gap="1" width="{this.width-54}"  paddingTop="1">
 			<s:Label id="groupName" fontSize="10.5" fontWeight="bold" text="{groupNameLabel}"/>
 			<s:Label id="layerDetails"
 					 fontStyle="italic" fontSize="9" paddingLeft="3"
@@ -114,5 +149,22 @@
 					 fontStyle="italic" fontSize="9" paddingLeft="1"
 					 text="{visibleLayers} of {totalLayers} Layers Visible"/>-->
 		</s:HGroup>
+		<s:HGroup gap="1" paddingTop="-2">
+			<s:Image id="opacity" visible="{showTransparency}"
+				 source="@Embed('assets/icons/alpha.png')"
+				 toolTip="Set Layer Transparency"
+				 buttonMode="true" click="{transwind.visible=true; transwind.includeInLayout = true;}"
+				 useHandCursor="true"/>
+		</s:HGroup>
+	</s:HGroup>
+	
+	<s:HGroup  id="transwind" x="{this.width-72}" verticalAlign="middle" gap="1" paddingTop="4" includeInLayout="false" visible="false">
+		<!--<s:Label text="min"/>
+		<s:Label text="max"/>-->
+		<s:HSlider maximum="1" minimum="0" change="changeAlpha()" value="1" width="50" snapInterval=".1" id="transSet"/>
+		<s:Button x="68" y="0" height="20" width="20"
+				  click="{transwind.visible=false; transwind.includeInLayout=false}"
+				  toolTip="Done"
+				  skinClass="solutions.components.external.toc.WidgetCloseButtonSkin"/>
 	</s:HGroup>
 </s:SkinnableContainer>

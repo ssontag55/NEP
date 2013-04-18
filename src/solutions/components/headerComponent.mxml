@@ -70,7 +70,7 @@
 	
 	<fx:Declarations>
 		<fx:String id="htmlTxt">
-			<![CDATA[<p align='center'><b>About</b></p><br><br>The Northeast Ocean Data Viewer is developed by the Northeast Ocean Data Portal Working Group, a collaboration between SeaPlan, Northeastern Regional Association of Coastal Ocean Observing Systems (NERACOOS), The Nature Conservancy (TNC), NOAA's Coastal Services Center, Applied Science Associates and the Gulf of Maine Research Institute.<br><br>This viewer was developed to serve the Northeast Regional Ocean Council's (NROC) implementation of the National Policy for the Stewardship of the Ocean, Coasts, and Great Lakes and the Final Recommendations of the Ocean Policy Task Force.<br><br><p align='center'>Please refer all questions to Nick Napoli at nnapoli@northeastoceancouncil.org.</p>]]>
+			<![CDATA[<p align='center'><b>About</b></p><br><br>The Northeast Ocean Data Viewer is being developed to support ocean planning in the Northeast by the Northeast Ocean Data Portal Working Group, a collaboration between the Northeast Regional Ocean Council (NROC), SeaPlan, Northeastern Regional Association of Coastal Ocean Observing Systems (NERACOOS), The Nature Conservancy (TNC), NOAA's Coastal Services Center, Applied Science Associates and the Gulf of Maine Research Institute.<br><br><p align='center'>Please refer all questions to Nick Napoli at <p align='center'><a href="mailto:nnapoli@northeastoceancouncil.org"><font color="#DCC4CD">nnapoli@northeastoceancouncil.org</font></a></p></p><p><p align='center'><a href="http://northeastoceandata.org/?page_id=2" target="_blank"><font color="#DCC4CD">About Northeast Ocean Data Portal</font></a></p></p>]]>
 		</fx:String>
 	</fx:Declarations>
 	
@@ -107,7 +107,7 @@
 		</s:TabBar>
 		
 		<s:HGroup paddingLeft="11" gap="9">
-			<s:Button id="print_btn" buttonMode="true" skinClass="skins.TopBarToolSelectorButtonSkinBig" name="new_header/printer" toolTip="Print Map" click="print_btn_clickHandler(event)"/>
+			<s:Button id="print_btn" buttonMode="true" skinClass="skins.TopBarToolSelectorButtonSkinBig" name="new_header/printer" toolTip="Print and Save Map" click="print_btn_clickHandler(event)"/>
 			<s:Image  source="{midImage}" />
 			<s:Button id="download_btn" buttonMode="true"  skinClass="skins.TopBarToolSelectorButtonSkinBig" name="new_header/download" toolTip="Download Data" click="download_btn_clickHandler(event)"/>
 		</s:HGroup>

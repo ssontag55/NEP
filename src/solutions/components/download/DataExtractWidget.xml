@@ -23,6 +23,6 @@
     <excludelayer>Cetaceans\Striped dolphin</excludelayer>
     <excludelayer>Cetaceans\Sperm whale</excludelayer>
     <excludelayer>Fish & Shellfish</excludelayer>
-    <dataextractionservice>http://50.19.218.171/arcgis1/rest/services/NEODviewer-2/ClipZip/GPServer/Extract%20Data%20TaskKML</dataextractionservice>
+    <dataextractionservice>http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/ClipZip/GPServer/Extract%20Data%20TaskKML</dataextractionservice>
     <aioselectionmethod>draw</aioselectionmethod>
 </configuration>

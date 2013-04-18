@@ -311,9 +311,9 @@
 		<mx:Image id="pic" smoothBitmapContent="true" includeInLayout="false" visible="false" autoLoad="true"/>	
 		<s:Label id="hdrLabel"
 				 fontWeight="bold"
-				 color="#000000"
+				 color="#000000" maxWidth="270"
 				 text="{hlabel}"/>
-		<s:Label id="tLabel"
+		<s:Label id="tLabel" 
 				 fontWeight="normal"
 				 color="#000000"
 				 text="{vlabel}"/>

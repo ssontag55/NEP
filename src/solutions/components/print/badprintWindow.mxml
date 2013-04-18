@@ -4,7 +4,7 @@
 		 		xmlns:mx="library://ns.adobe.com/flex/mx"			
 				width="300" skinClass="TitleWindowCustom.skins.CustomTitleWindowSkin4"
 				height="235" 
-				title="Print/Export"	
+				title="Print/Save"	
 				cornerRadius="7"
 				verticalCenter="0"
 				horizontalCenter="0"
@@ -307,12 +307,12 @@
 		<s:VGroup horizontalAlign="center">	
 			<mx:Form id="myForm" width="100%">
 				
-				<mx:FormItem label="Map Title">
-					<mx:TextInput id="mapTitle" width="180"/>
+				<mx:FormItem label="Map Title (print)">
+					<mx:TextInput id="mapTitle" width="150"/>
 				</mx:FormItem>
 				
-				<mx:FormItem label="Map Subtitle">
-					<mx:TextInput id="mapSubTitle" width="180"/>
+				<mx:FormItem label="Map Subtitle (print)">
+					<mx:TextInput id="mapSubTitle" width="150"/>
 				</mx:FormItem>
 				
 				<!--<mx:FormItem label="Show Drawn Graphics?">
@@ -328,7 +328,7 @@
 			<s:VGroup width="100%" gap="11" horizontalAlign="center">
 				<s:Button click="printMap()" label="Print" icon="@Embed('assets/icons/print.png')" buttonMode="true"/>
 				<s:Label text="(Use landscape option when printing)" color="0xCA0E00" fontSize="11"/>
-				<s:Button click="mapExport()" label="Export to Image" buttonMode="true"/>
+				<s:Button click="mapExport()" icon="@Embed('assets/icons/download.png')" label="Save to Image" buttonMode="true"/>
 			</s:VGroup>
 		</s:VGroup>	
 	<s:controlBarContent/>

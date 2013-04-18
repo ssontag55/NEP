@@ -2,14 +2,18 @@
 <s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 					  xmlns:s="library://ns.adobe.com/flex/spark" 
 					  xmlns:mx="library://ns.adobe.com/flex/mx" 
-					  backgroundColor="0xFFFFFF" 
+					  backgroundColor="0xFFFFFF"
 					  xmlns:esri="http://www.esri.com/2008/ags"
 					  width="100%">
 	<fx:Script>
 		<![CDATA[
 			import com.esri.ags.Map;
+			import com.esri.ags.geometry.Extent;
+			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
 			import com.esri.ags.layers.FeatureLayer;
+			import com.esri.ags.layers.Layer;
 			import com.esri.ags.layers.supportClasses.LayerDetails;
+			import com.esri.ags.layers.supportClasses.LayerInfo;
 			import com.esri.ags.layers.supportClasses.TableDetails;
 			
 			import mx.events.CloseEvent;
@@ -25,10 +29,13 @@
 			[Bindable]public var _map:Map;
 			[Bindable]public var _selectedLayerDescription:String;
 			[Bindable]public var _selectedLayerObject:Object;
+			[Bindable]public var mExtent:Extent = new Extent;
 			
 			[Bindable]private var _selectedLayerDetails:LayerDetails;
 			
 			private var panel:Panel;
+			
+			[Bindable]private var TOCLayer:Layer = new Layer;
 			
 			public function get selectedLayerDetails():LayerDetails
 			{
@@ -38,9 +45,29 @@
 			public function set selectedLayerDetails(value:LayerDetails):void
 			{
 				_selectedLayerDetails = value;
+				//layerLegend.map = _map;
+				//layerLegend.layers = [];
+				layerLegend.visible = false;
 				
-				var s1:String = _selectedLayerObject.title;
-				var s2:String = _selectedLayerObject.description;
+				if (_selectedLayerObject == null)
+				{
+					//var myLyrDesc1:String = _selectedLayerDetails.description;
+					//layerDescription.htmlText = myLyrDesc1;
+					var s1:String =_selectedLayerDetails.name;
+					var s2:String = _selectedLayerDetails.description;
+					mExtent = value.extent;
+				}				
+				else 
+				{		
+					var s1:String =_selectedLayerDetails.name;
+					var s2:String = _selectedLayerDetails.description;
+					mExtent = value.extent;
+					//var s1:String = _selectedLayerObject.title;
+					//var s2:String = _selectedLayerObject.description;
+					//var myLyrDesc:String = _selectedLayerObject.description;
+					//layerDescription.htmlText = myLyrDesc;
+				}
+				
 				var s5:String = value.copyright;
 				var s3:Number = 50
 				var s4:Number = 100;
@@ -58,9 +85,9 @@
 			}
 			
 			public function set selectedLayer(value:FeatureLayer):void
-			{
+			{				
 				_selectedLayer = value;
-				if (_selectedLayerObject.description == 'NULL')
+				if (_selectedLayerObject == null)
 				{
 					var myLyrDesc1:String = "Not Available";
 					layerDescription.htmlText = myLyrDesc1;
@@ -73,6 +100,20 @@
 				
 				var dsLyr:FeatureLayer = _selectedLayer;	
 				dsLyr.useAMF=true;
+				
+				//setting transparency for layer - moving to TOC proper
+				/* for each (var layer:Layer in _map.layers)
+				{
+					if(layer is ArcGISDynamicMapServiceLayer){
+						for each(var layerIn:LayerInfo in layer.layerInfos){
+							if(layerIn.name == dsLyr.name){
+								TOCLayer = layer;
+								transSet.value = layer.alpha;
+							}
+						}
+					}
+				} */
+				
 				layerName.text = dsLyr.layerDetails.name;				
 				//layerDescription.text = _selectedLayerObject.description;
 				//scale.text = myScaleFormatter.format(dsLyr.layerDetails.maxScale) + ' to ' + myScaleFormatter.format(dsLyr.layerDetails.minScale);
@@ -83,52 +124,13 @@
 				dsLyr.id = dsLyr.layerDetails.name;
 				var lyrArray:Array = [];
 				lyrArray.push(dsLyr);	
-				
-				/* if (_selectedLayerObject.dataLink == 'NULL')
-				{					
-					sourceData.buttonMode =  false;
-					sourceData.setStyle('color', '0xCCCCCC');					
-					sourceData.mouseEnabled= false
-				}
-				
-				if (_selectedLayerObject.dataLink != 'NULL')
-				{					
-					sourceData.buttonMode =  true;
-					sourceData.setStyle('color', '0x1A7FB2');
-					sourceData.mouseEnabled= true;					
-				} 
-				
-				if (_selectedLayerObject.referencesAlias == 'NULL')
-				{											
-					references.text="";
-					references.buttonMode=false;						
-				}
-				else
-				{
-					references.text=_selectedLayerObject.referencesAlias;
-					references.buttonMode=true;	
-				}*/
+				mExtent = dsLyr.layerDetails.extent;
 				
 				layerLegend.map = _map;
+				layerLegend.visible = true;
 				layerLegend.layers = lyrArray;
-				
-				//Using a static image for BOEMs 9.3.1 service
-				/* if (dsLyr.layerDetails.version >= 10.01)
-				{
-					fakeittoyoumakeitLegend.visible = false;	
-					fakeittoyoumakeitLegend.source = null;	
-				}
-				
-				if (((dsLyr.layerDetails.version < 10.01)&&(dsLyr.layerDetails.version >= 9.3))||(dsLyr.url.indexOf("http://ocs-gis")==0))
-				{
-					fakeittoyoumakeitLegend.visible = true;		
-					var lyrName:String= dsLyr.layerDetails.name;
-					lyrName = lyrName.replace(/\s+/g, '_');	
-					lyrName = lyrName.replace(/\//, '');	
-					
-					fakeittoyoumakeitLegend.source = 'assets/legendpatch/'+lyrName+'.png';	
-				} */
 			} 
+			
 			private function sendDetailsToLayerComp(details:LayerDetails, td:TableDetails):void
 			{
 				var s1:String = details.name;
@@ -234,7 +236,8 @@
 				}
 			}
 			
-			public function populateWindow():void {
+			public function populateWindow():void 
+			{
 				var vgrp:VGroup =  new VGroup();
 				vgrp.paddingLeft = 10;
 				vgrp.paddingTop = 10;
@@ -269,6 +272,11 @@
 				PopUpManager.removePopUp(dataPopUp);
 			}
 			
+			/* private function changeAlpha():void
+			{
+				TOCLayer.alpha = transSet.value;
+			} */
+			
 		]]>
 	</fx:Script>
 	
@@ -301,6 +309,7 @@
 		</s:VGroup>
 		
 		<s:Scroller width="100%" height="100%">
+			
 		<s:VGroup id="displayGroup" paddingLeft="8" paddingTop="8" width="90%" clipAndEnableScrolling="true">
 			
 			<s:HGroup>	
@@ -314,24 +323,38 @@
 			
 			<s:Spacer height="0"/>
 			
-			<s:HGroup>
-				<s:Label text="Data:" fontWeight="bold"/>
-				<s:RichText id="webService" text="Web Service" click="navigateToURL(new URLRequest(_selectedLayerObject.webService))" buttonMode="true" color="0x1A7FB2" />
-				<s:RichText text="|"/>
-				<s:RichText id="metadata" text="Metadata" click="metadata_clickHandler(event)" buttonMode="true" color="0x1A7FB2"/>			
-			</s:HGroup>	
+			<s:VGroup>
+				<s:HGroup>
+					<s:Label text="Data:" width="36" fontWeight="bold"/>
+					<s:RichText id="webService" text="Web Service" click="navigateToURL(new URLRequest(_selectedLayerObject.webService))" buttonMode="true" color="0x1A7FB2" />
+					<s:RichText text="|"/>
+					<s:RichText id="metadata" text="Metadata" click="metadata_clickHandler(event)" buttonMode="true" color="0x1A7FB2"/>			
+					<s:RichText text="|"/>
+					<s:RichText id="zoom" text="Zoom To Layer" click="{_map.extent = mExtent}" buttonMode="true" color="0x1A7FB2" />
+				</s:HGroup>	
+				<!--<s:HGroup paddingTop="10" paddingLeft="50">
+					<s:RichText text="|"/>
+					<s:RichText visible="true" id="trans" text="Set Transparency" click="{transwind.visible = true}"  buttonMode="true" color="0x1A7FB2"/>			
+				</s:HGroup>	
+				<s:HGroup paddingTop="11" paddingLeft="80" visible="false" id="transwind">
+					<s:Label text="min"/>
+					<s:HSlider maximum="1" minimum="0" change="changeAlpha()" value="1" width="85" snapInterval=".1" id="transSet"/>
+					<s:Label text="max"/>
+				</s:HGroup>-->
+			</s:VGroup>
 			
-			<s:Spacer height="4"/>
+			<s:Spacer height="8"/>
 			
 			<!--<s:VGroup> skinClass="solutions.components.toc.LayerLegendSkin" 
 				<s:Label text="Additional Information:" fontWeight="bold"/>
 				<s:Label id="references"  width="180" click="navigateToURL(new URLRequest(_selectedLayerObject.references))"  color="0x1A7FB2"/>
 			</s:VGroup>	-->
-			<s:Spacer height="8"/>
-			<esri:Legend id="layerLegend" 
-						 respectCurrentMapScale="false" visible="true" width="100%" />
-			<s:Image id="fakeittoyoumakeitLegend" source="" visible="false" />
+			<s:VGroup paddingLeft="-5">
+				<esri:Legend id="layerLegend"
+							 respectCurrentMapScale="false" visible="true" width="100%" />
+			</s:VGroup>
 		</s:VGroup>
+			
 		</s:Scroller>
 	</s:VGroup>
 </s:SkinnableContainer>

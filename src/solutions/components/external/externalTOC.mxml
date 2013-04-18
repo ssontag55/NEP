@@ -908,7 +908,7 @@
 		<s:State name="toc"/>
 		<s:State name="layer"/>
 	</s:states>
-	<s:Panel title="External Layer List" width="100%" height="100%" skinClass="skins.toolPanelSkin">
+	<s:Panel width="100%" height="100%" skinClass="skins.toolPanelSkin">
 		<s:VGroup id="tocGroup" height="100%" width="100%" clipAndEnableScrolling="true"
 				  visible.toc="true" verticalAlign="middle"
 				  visible.layer="false" >
@@ -973,13 +973,13 @@
 				<s:VGroup gap="10" paddingLeft="15" paddingTop="3">
 					<s:HGroup>
 						<mx:HBox id="ndbcG" width="26" paddingTop="8" paddingRight="6"/>
-						<s:CheckBox label="NDBC Stations" fontSize="14" change="loadndbc()" id="ndbccheck"/>
-						<s:Image source="assets/icons/i.png" buttonMode="true" click="{navigateToURL(new URLRequest('http://opendap.co-ops.nos.noaa.gov'),'_blank')}"/>
+						<s:CheckBox label="NDBC Stations" fontSize="14" width="218" change="loadndbc()" id="ndbccheck"/>
+						<s:Image source="assets/icons/document--arrow.png" toolTip="NDBC Website" buttonMode="true" click="{navigateToURL(new URLRequest('http://opendap.co-ops.nos.noaa.gov'),'_blank')}"/>
 					</s:HGroup>
 					<s:HGroup>							
 						<mx:HBox id="coopG" width="26" paddingTop="8" paddingRight="6"/>
-						<s:CheckBox label="CO-OP Stations" fontSize="14" change="loadcoops()" id="coopcheck"/>
-						<s:Image source="assets/icons/i.png" buttonMode="true" click="{navigateToURL(new URLRequest('http://sdf.ndbc.noaa.gov'),'_blank')}"/>
+						<s:CheckBox label="CO-OP Stations" fontSize="14" width="218" change="loadcoops()" id="coopcheck"/>
+						<s:Image source="assets/icons/document--arrow.png" toolTip="CO-OP Website" buttonMode="true" click="{navigateToURL(new URLRequest('http://sdf.ndbc.noaa.gov'),'_blank')}"/>
 					</s:HGroup>
 					<s:Label text="*Click on Observation for 24-hour Data" fontWeight="bold" paddingTop="-1" color="red" fontSize="10" visible="false" id="enableObs"/>
 				</s:VGroup>

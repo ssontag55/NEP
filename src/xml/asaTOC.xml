@@ -4,30 +4,30 @@
     <layer serviceID="admin" layerID="1" MinScale="0" MaxScale="4000000000" displayName="Coastal Barrier Resource System" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Administrative/MapServer/1"  />
     <layer serviceID="admin" layerID="2" MinScale="0" MaxScale="4000000000" displayName="National Marine Sanctuary" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Administrative/MapServer/2"  />
     <layer serviceID="admin" layerID="3" MinScale="0" MaxScale="4000000000" displayName="MA Area Under Consideration for Potential Wind Energy Development" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Administrative/MapServer/3"  />
-    <layer serviceID="admin" layerID="4" MinScale="0" MaxScale="4000000000" displayName="Atlantic OCS Wind Energy Areas -RI Call Area" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Administrative/MapServer/4"  />
+    <layer serviceID="admin" layerID="4" MinScale="0" MaxScale="4000000000" displayName="Atlantic OCS Wind Energy Areas - RI Call Area" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Administrative/MapServer/4"  />
     <layer serviceID="admin" layerID="5" MinScale="0" MaxScale="4000000000" displayName="Outer Continental Lease Blocks" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Administrative/MapServer/5"  />
     <layer serviceID="admin" layerID="6" MinScale="0" MaxScale="4000000000" displayName="Counties" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Administrative/MapServer/6"  />
     <layer serviceID="admin" layerID="7" MinScale="0" MaxScale="4000000000" displayName="States" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Administrative/MapServer/7"  />
   </group>
  
   <group id="topGroup3" displayName="Ocean Uses">
-    <layer serviceID="ocean" layerID="1" MinScale="0" MaxScale="4000000000" group="Energy and Infrastructure" displayName="LNG Sites " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/1"  />
+    <layer serviceID="ocean" layerID="1" MinScale="0" MaxScale="4000000000" group="Energy and Infrastructure" displayName="LNG Sites" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/1"  />
     <layer serviceID="ocean" layerID="2" MinScale="0" MaxScale="4000000000" displayName="Tidal Power Facility ORPC" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/2"  />
-    <layer serviceID="ocean" layerID="3" MinScale="1155581" MaxScale="4000000000" displayName="Permitted Cape Wind " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/3"  />
+    <layer serviceID="ocean" layerID="3" MinScale="0" MaxScale="4000000000" displayName="Permitted Cape Wind " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/3"  />
     <layer serviceID="ocean" layerID="4" MinScale="0" MaxScale="4000000000" displayName="Block Island Proposed Turbine Locations " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/4"  />
     <layer serviceID="ocean" layerID="5" MinScale="0" MaxScale="4000000000" displayName="Block Island Proposed Transmission Cables " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/5"  />
 	<layer serviceID="ocean" layerID="6" MinScale="0" MaxScale="4000000000" displayName="Block Island Renewable Energy Zone" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/6"  />
 	<layer serviceID="ocean" layerID="7" MinScale="0" MaxScale="4000000000" displayName="Muskegat Tidal Energy Project " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/7"  />
-	<layer serviceID="ocean" layerID="8" MinScale="0" MaxScale="4000000000" displayName="Tidal Potential Areas " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/8"  />
+	<layer serviceID="ocean" layerID="8" MinScale="0" MaxScale="4000000000" displayName="Potential Tidal Resources " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/8"  />
 	<layer serviceID="ocean" layerID="9" MinScale="0" MaxScale="4000000000" displayName="Statoil Area of Interest " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/9"  />
 	<layer serviceID="ocean" layerID="10" MinScale="0" MaxScale="4000000000" displayName="Ocean Energy Demonstration Sites " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/10"  />
 	<layer serviceID="ocean" layerID="11" MinScale="0" MaxScale="4000000000" displayName="Northeast Offshore Renewable Energy Innovation Zone " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/11"  />
 	<layer serviceID="ocean" layerID="12" MinScale="0" MaxScale="4000000000" displayName="Submarine Cables" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/12"  />
-	<layer serviceID="ocean" layerID="13" MinScale="1155581" MaxScale="4000000000" displayName="Cable Areas" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/13"  />
-	<layer serviceID="ocean" layerID="14" MinScale="1155581" MaxScale="4000000000" displayName="Pipeline Areas " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/14"  />
+	<layer serviceID="ocean" layerID="13" MinScale="4622324" MaxScale="4000000000" displayName="Cable Areas" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/13"  />
+	<layer serviceID="ocean" layerID="14" MinScale="4622324" MaxScale="4000000000" displayName="Pipeline Areas " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/14"  />
 	
 	<layer serviceID="ocean" layerID="16" MinScale="0" MaxScale="4000000000" group="Industrial" displayName="Energy Facilities " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/16"  />
-    <layer serviceID="ocean" layerID="17" MinScale="2311162" MaxScale="4000000000" displayName="Regulated Facilities " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/17"  />
+    <layer serviceID="ocean" layerID="17" MinScale="0" MaxScale="4000000000" displayName="Regulated Facilities " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/17"  />
     <layer serviceID="ocean" layerID="18" MinScale="0" MaxScale="4000000000" displayName="Ocean Disposal Sites " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/18"  />  MapServer
 	
 	<layer serviceID="ocean" layerID="20" MinScale="2311162" MaxScale="4000000000" group="Navigation and Transportation" displayName="Wrecks and Obstructions " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/20"  />
@@ -35,11 +35,11 @@
     <layer serviceID="ocean" layerID="22" MinScale="0" MaxScale="4000000000" displayName="Unexploded Ordnance Locations " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/22"  />
     <layer serviceID="ocean" layerID="23" MinScale="0" MaxScale="4000000000" displayName="Unexploded Ordnance Areas " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/23"  />
     <layer serviceID="ocean" layerID="24" MinScale="0" MaxScale="4000000000" displayName="Pilot Boarding Areas " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/24"  />
-	<layer serviceID="ocean" layerID="25" MinScale="0" MaxScale="4000000000" displayName="Unofficial Anchorages " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/25"  />
+	<!--<layer serviceID="ocean" layerID="25" MinScale="0" MaxScale="4000000000" displayName="Unofficial Anchorages " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/25"  />-->
 	<layer serviceID="ocean" layerID="26" MinScale="0" MaxScale="4000000000" displayName="Anchorages " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/26"  />
 	<layer serviceID="ocean" layerID="27" MinScale="0" MaxScale="4000000000" displayName="Marine Transportation " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/27"  />
-    <layer serviceID="ocean" layerID="28" MinScale="1155581" MaxScale="4000000000" displayName="Naval Range Restriction Areas " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/28"  />
-	<layer serviceID="ocean" layerID="29" MinScale="0" MaxScale="4000000000" displayName="Safety and Security Zones " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/29"  />
+    <layer serviceID="ocean" layerID="28" MinScale="0" MaxScale="4000000000" displayName="Naval Range Restriction Areas " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/28"  />
+	<layer serviceID="ocean" layerID="29" MinScale="0" MaxScale="4000000000" displayName="Safety, Security and Regulated Zones " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/29"  />
 	<layer serviceID="ocean" layerID="30" MinScale="0" MaxScale="4000000000" displayName="Mandatory Ship Reporting System " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/30"  />
 	<layer serviceID="ocean" layerID="31" MinScale="0" MaxScale="4000000000" displayName="Marine Mammal Seasonal Management Areas " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/31"  />
     <layer serviceID="ocean" layerID="32" MinScale="0" MaxScale="4000000000" keyword="AIS" displayName="Commercial Vessel Density 2009" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/32"  />
@@ -55,12 +55,12 @@
     <layer serviceID="ocean" layerID="42" MinScale="0" MaxScale="4000000000" keyword="Commercial Fishing" displayName="Other Gear Number of Trips 2000-2009" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/42"  />
     <layer serviceID="ocean" layerID="43" MinScale="0" MaxScale="4000000000" keyword="Commercial Fishing" displayName="Pots & Traps Number of Trips 2000-2009" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/43"  />
     <layer serviceID="ocean" layerID="44" MinScale="0" MaxScale="4000000000" keyword="Commercial Fishing" displayName="Vessel Monitoring Systems -Sample" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/44"  />
-	<layer serviceID="ocean" layerID="46" MinScale="0" MaxScale="4000000000" group="Recreation" displayName="Number of Trips for Recreation Vessels 2000 to 2009 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/46" />
+	<layer serviceID="ocean" layerID="46" MinScale="0" MaxScale="4000000000" group="Recreation" displayName="Chartered Recreational Fishing Vessels 2000 to 2009 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/46" />
 	<layer serviceID="ocean" layerID="47" MinScale="0" MaxScale="4000000000" displayName="Recreational Boating Density " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer/47" />
   </group>
 
   <group id="topGroup2" displayName="Biology">
-	<layer serviceID="bio" layerID="1" MinScale="2311162" MaxScale="4000000000" group="Birds" displayName="Bird Nest Sites " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/1"  />
+	<layer serviceID="bio" layerID="1" MinScale="4622324" MaxScale="4000000000" group="Birds" displayName="Bird Nest Sites " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/1"  />
 	<layer serviceID="bio" layerID="2" MinScale="0" MaxScale="4000000000" displayName="Bird Habitat " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/2"  />
     <layer serviceID="bio" layerID="4" MinScale="0" MaxScale="4000000000" group="Marine Mammals and Turtles" displayName="Dolphin Habitat " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/4"  />
 	<layer serviceID="bio" layerID="5" MinScale="0" MaxScale="4000000000" displayName="Pinniped Habitat " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/5"  />
@@ -133,19 +133,19 @@
 	<layer serviceID="bio" layerID="69" MinScale="0" MaxScale="4000000000" keyword="Fish" displayName="Atlantic Mackerel Abundance " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/69" />
 	<layer serviceID="bio" layerID="70" MinScale="0" MaxScale="4000000000" keyword="Fish" displayName="Sand Lance Abundance " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/70" />
 	<layer serviceID="bio" layerID="71" MinScale="0" MaxScale="4000000000" keyword="Fish" displayName="Species Richness " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/71" />
-	<layer serviceID="bio" layerID="72" MinScale="0" MaxScale="4000000000" keyword="Fish" displayName="Total Biomass -kg" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/72" />
+	<layer serviceID="bio" layerID="72" MinScale="0" MaxScale="4000000000" keyword="Fish" displayName="Total Biomass - kg" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/72" />
 	
 	<layer serviceID="bio" layerID="74" MinScale="0" MaxScale="4000000000" group="Plankton" keyword="plankton" displayName="Primary Production" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/74" />
 	<layer serviceID="bio" layerID="75" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Calanus Finmarchicus, Fall " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/75" />
 	<layer serviceID="bio" layerID="76" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Euphausiids, Fall " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/76" />
 	<layer serviceID="bio" layerID="77" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Gammarid Amphipods, Fall  " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/77" />
 	<layer serviceID="bio" layerID="78" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Mysid Shrimp Fall " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/78" />
-	<layer serviceID="bio" layerID="79" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Chlorophyll A, Fall mg/m3" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/79" />
-	<layer serviceID="bio" layerID="80" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Chlorophyll A, Spring mg/m3" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/80" />
-	<layer serviceID="bio" layerID="81" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Chlorophyll A, Summer mg/m3" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/81" />
-	<layer serviceID="bio" layerID="82" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Chlorophyll A, Winter mg/m3" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/82" />
+	<layer serviceID="bio" layerID="79" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Chlorophyll A, Fall - mg/m3 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/79" />
+	<layer serviceID="bio" layerID="80" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Chlorophyll A, Spring - mg/m3 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/80" />
+	<layer serviceID="bio" layerID="81" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Chlorophyll A, Summer - mg/m3 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/81" />
+	<layer serviceID="bio" layerID="82" MinScale="0" MaxScale="4000000000" keyword="plankton" displayName="Chlorophyll A, Winter - mg/m3 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/82" />
 	
-	<layer serviceID="bio" layerID="84" MinScale="0" MaxScale="4000000000" group="Habitat" displayName="Eelgrass " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/84" />
+	<layer serviceID="bio" layerID="84" MinScale="0" MaxScale="4000000000" group="Habitat" displayName="Eelgrass Beds" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/84" />
 	<layer serviceID="bio" layerID="85" MinScale="577791" MaxScale="4000000000" displayName="Coastal Wetlands " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/85" />
 	<layer serviceID="bio" layerID="86" MinScale="0" MaxScale="4000000000" displayName="TNC Benthic Habitat Model " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer/86"  />
   </group>
@@ -154,8 +154,8 @@
     <layer serviceID="physocean" layerID="1" MinScale="0" MaxScale="4000000000" displayName="NERACOOS Buoys" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer/1"  />
     <layer serviceID="physocean" layerID="2" MinScale="0" MaxScale="4000000000" displayName="Water Level Stations NWIS " visible="false"  url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer/2"  />
     <layer serviceID="physocean" layerID="3" MinScale="0" MaxScale="4000000000" displayName="Tide Tables 2010" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer/3"  />
-    <layer serviceID="physocean" layerID="4" MinScale="0" MaxScale="4000000000" displayName="Mean Current Velocity - Sample" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer/4"  />
-    <layer serviceID="physocean" layerID="5" MinScale="0" MaxScale="4000000000" displayName="Offshore Wind Energy Potential " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer/5"  />
+    <layer serviceID="physocean" layerID="4" MinScale="0" MaxScale="4000000000" displayName="Maximum Tidal Currents Speed m/s, January 2009 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer/4"  />
+    <layer serviceID="physocean" layerID="5" MinScale="0" MaxScale="4000000000" displayName="Annual Mean Offshore Wind Speed m/s " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer/5"  />
     <layer serviceID="physocean" layerID="7" MinScale="0" MaxScale="4000000000" displayName="Depth Contours " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer/7"  />
     <layer serviceID="physocean" layerID="8" MinScale="2311162" MaxScale="4000000000" displayName="Shoreline " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer/9"  />
     <layer serviceID="physocean" layerID="9" MinScale="0" MaxScale="4000000000" displayName="Sediment Grain Size " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer/9"  />
@@ -164,8 +164,8 @@
   </group>
  
   <group id="topGroup5" displayName="Demography">
-    <layer serviceID="demo" layerID="0" MinScale="0" MaxScale="4000000000" displayName="Population by County " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Demography/MapServer/0"  />
-    <layer serviceID="demo" layerID="1" MinScale="0" MaxScale="4000000000" displayName="Population by State " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Demography/MapServer/1"  />
+    <layer serviceID="demo" layerID="0" MinScale="0" MaxScale="4000000000" displayName="Population by State " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Demography/MapServer/0"  />
+    <layer serviceID="demo" layerID="1" MinScale="0" MaxScale="4000000000" displayName="Population by County " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Demography/MapServer/1"  />
 	<layer serviceID="demo" layerID="2" MinScale="0" MaxScale="4000000000" displayName="Economics: NOW - Total Employment 2010" visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Demography/MapServer/2"  />
     <layer serviceID="demo" layerID="3" MinScale="0" MaxScale="4000000000" displayName="Economics: NOW - Total Establishment 2010 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Demography/MapServer/3"  />
     <layer serviceID="demo" layerID="4" MinScale="0" MaxScale="4000000000" displayName="Economics: NOW - Total Wages 2010 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Demography/MapServer/4"  />
@@ -174,7 +174,7 @@
   </group>
  
   <group id="topGroup6" displayName="Cartography">
-    <layer serviceID="cart" layerID="0" MinScale="0" MaxScale="4000000000" displayName="Coastal Geographic Names " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Cartography/MapServer/0"  />
+    <layer serviceID="cart" layerID="0" MinScale="288895" MaxScale="4000000000" displayName="Coastal Geographic Names " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Cartography/MapServer/0"  />
     <layer serviceID="cart" layerID="1" MinScale="0" MaxScale="4000000000" displayName="Northeast Portal Data Extent " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Cartography/MapServer/1"  />
 	<layer serviceID="cart" layerID="2" MinScale="0" MaxScale="4000000000" displayName="10 Degrees Latitude and Longitude " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Cartography/MapServer/2"  />
     <layer serviceID="cart" layerID="3" MinScale="0" MaxScale="4000000000" displayName="5 Degrees Latitude and Longitude " visible="false" url="http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Cartography/MapServer/3"  />

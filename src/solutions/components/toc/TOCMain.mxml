@@ -16,7 +16,6 @@
 	</fx:Style>
 	<fx:Script>
 		<![CDATA[
-			//xmlns:ns="library://ns.tink.ws/flex/mx" 
 			import com.esri.ags.Map;
 			import com.esri.ags.events.DetailsEvent;
 			import com.esri.ags.events.LayerEvent;
@@ -54,6 +53,8 @@
 			private var targets:Array = new Array();
 			[Bindable]
 			private var propertiesXML:XML = new XML();
+			[Bindable]
+			private var objDetails:Object = new Object;
 			
 			[Bindable]public var tocXML:XML;
 			[Bindable]public var loaded:Boolean = false;
@@ -104,7 +105,7 @@
 					//Send map to layer details component for legends
 					layerDetails._map = map;
 					loaded = true;
-					
+					//delay for map refresh
 					setLegendTimer();
 				}
 			}
@@ -237,9 +238,10 @@
 				{
 					for (var i:int = 0; i<propertiesXML.children().length(); i++ )
 					{
-						if(propertiesXML..PropertyPage[i].@ViewerLayerTitle == event.data.layer.name){
-							
-							var objDetails:Object = {
+						if(propertiesXML..PropertyPage[i].@ViewerLayerTitle == event.data.layer.name)
+						{
+							objDetails = new Object;
+							objDetails = {
 								id: propertiesXML..PropertyPage[i].@ViewerLayerID,
 								title: propertiesXML..PropertyPage[i].@ViewerLayerTitle,
 								lastUpdate: propertiesXML..PropertyPage[i].@LastDataUpdate,
@@ -273,9 +275,11 @@
 				var l:LayerDetails= event.layerDetails;
 				if(l.type == "Raster Layer"){
 					layerDetails.selectedLayerDetails = l;
+					layerDetails._selectedLayerObject = objDetails;
 				}
 				else{					
 					var myFeatureLayer:FeatureLayer = new FeatureLayer(event.currentTarget.url+"/"+l.id);
+					myFeatureLayer.name = l.name;
 					myFeatureLayer.addEventListener(LayerEvent.LOAD, featureLoaded);
 					myFeatureLayer.refresh();
 					map.addLayer(myFeatureLayer); 
@@ -285,11 +289,13 @@
 			private function featureLoaded(l:LayerEvent):void
 			{
 				layerDetails.selectedLayer = l.layer as FeatureLayer;
+				layerDetails._selectedLayerObject = objDetails;
 			}
 			
 			private function sendDetailsToLayerComp(details:LayerDetails):void
 			{
 				layerDetails.selectedLayerDetails = details;
+				layerDetails._selectedLayerObject = objDetails;
 			}
 			
 			private function sendDetailsToLayerComp1(obj:Object):void
@@ -317,6 +323,8 @@
 				var groupCtn:TOCGroupComp = new TOCGroupComp();
 			
 				groupCtn.groupNameLabel = groupXML.@displayName;
+				groupCtn.groupNameService = groupXML.layer[1].@serviceID;
+				groupCtn.mainMap = map;
 				groupCtn.height = 30;
 				groupCtn.percentWidth = 100;
 				groupCtn.id = groupXML.@id;
@@ -374,7 +382,7 @@
 				var groupCtn:TOCGroupComp = new TOCGroupComp();
 				
 				groupCtn.groupNameLabel = "Search Results";
-				//groupCtn.height = 30;
+				groupCtn.showTransparency = false;
 				groupCtn.percentWidth = 100;
 				groupCtn.expand = true
 				groupCtn.id = '1';
@@ -468,7 +476,7 @@
 			
 			private function legendClick():void
 			{
-				if(legendVGroup.height == 228){
+				if(legendVGroup.height == 238){
 					legendVGroup.height = 0;
 					ruler1.visible = false;
 					//refr.visible = false;
@@ -476,7 +484,7 @@
 					openLeg.source= upImage;
 				}
 				else {
-					legendVGroup.height = 228;
+					legendVGroup.height = 238;
 					ruler1.visible = true;
 					//refr.visible = true;
 					openLeg.toolTip = 'Minimize';
@@ -526,7 +534,7 @@
 		<s:State name="layer"/>
 		<s:State name="results"/>
 	</s:states>
-	<s:Panel title="Layer List" width="100%" height="100%" skinClass="skins.toolPanelSkin">
+	<s:Panel width="100%" height="100%" skinClass="skins.toolPanelSkin">
 		<s:HGroup horizontalAlign="center" verticalAlign="top" paddingTop="5" paddingLeft="5" id="layerDetailsHolder" height="100%" width="100%">
 			<toc:TOCLayerComp id="layerDetails" 
 							  height="100%" width="100%" visible.results="false"
@@ -546,7 +554,7 @@
 				<s:VGroup id="layerVGroup" width="100%"  height="100%" clipAndEnableScrolling="true" gap="0"/>				
 			</s:Scroller>
 			<mx:HRule width="100%" id="ruler1" visible="true"/>
-			<s:VGroup id="legendVGroup" height="228" width="100%" clipAndEnableScrolling="true" gap="0">
+			<s:VGroup id="legendVGroup" height="238" width="100%" clipAndEnableScrolling="true" gap="0">
 			</s:VGroup>
 			<s:VGroup bottom="-4" width="100%" paddingTop="-6">
 				<mx:HRule width="100%"/>

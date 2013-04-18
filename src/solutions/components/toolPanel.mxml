@@ -156,10 +156,10 @@
 		<s:HGroup paddingTop="4" includeIn="hide" height="28" gap="0" left="0">
 			<s:Button buttonMode="true"  skinClass="skins.TopBarToolSelectorButtonSkinShad" name="arrow_right" icon="@Embed('assets/icons/arrow_right.png')" toolTip="Show Layer Panel" click="toolPanel_trigger_clickHandler(event)"/>		
 		</s:HGroup>
-		<s:HGroup paddingTop="4" excludeFrom="hide" height="28" gap="4" left.draw="-60" left.symbology="-60" left.identify="-60" left="-120">
-			<mx:LinkButton buttonMode="true"  includeIn="layers,external" paddingTop="2" textDecoration="underline"  toolTip="Turn all Layers off" label="All Layers Off" color="white" click="clearAllLays()"/>
-			<s:Button buttonMode="true" includeIn="symbology,identify,draw"  skinClass="skins.TopBarToolSelectorButtonSkin" icon="@Embed('assets/icons/toc.png')" toolTip="Show Layers" click="showLays()"/>
-			<s:Button buttonMode="true"  skinClass="skins.TopBarToolSelectorButtonSkin" name="arrow_left" icon="@Embed('assets/icons/arrow_left.png')" toolTip="Minimize Layer Panel" click="toolPanel_trigger_clickHandler(event)"/>
+		<s:HGroup paddingTop="4" excludeFrom="hide" height="28" gap="4" left.draw="-60" left.symbology="-60" left.identify="-60" left.external="-312" left="-302">
+			<mx:LinkButton buttonMode="true" paddingLeft="23" paddingRight.layers="139" paddingRight="120" includeIn="layers,external" paddingTop="2" textDecoration="underline"  toolTip="Turn all Layers off" label="Turn all Layers Off" color="white" click="clearAllLays()"/>
+			<s:Button buttonMode="true" includeIn="symbology,identify,draw,external"  skinClass="skins.TopBarToolSelectorButtonSkin" icon="@Embed('assets/icons/toc.png')" toolTip="Show Layers" click="showLays()"/>
+			<s:Button buttonMode="true" skinClass="skins.TopBarToolSelectorButtonSkin" name="arrow_left" icon="@Embed('assets/icons/arrow_left.png')" toolTip="Minimize Layer Panel" click="toolPanel_trigger_clickHandler(event)"/>
 		</s:HGroup>
 		</s:SkinnableContainer>
 	</s:HGroup>
