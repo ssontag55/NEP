@@ -112,7 +112,7 @@
 					if(layerObj is ArcGISDynamicMapServiceLayer){						
 						dynLyr = layerObj as ArcGISDynamicMapServiceLayer;
 						
-						if (dynLyr.url ==  layersArray[count].url){								
+						if (dynLyr.url == layersArray[count].url){
 							var dynLyrVis:Array = dynLyr.visibleLayers as Array;
 							
 							var identifyParams:IdentifyParameters = new IdentifyParameters();
@@ -315,7 +315,13 @@
 			}
 			protected function recieveLayers(event:TemplateEvent):void
 			{
-				layersArray = event.data as Array;
+				layersArray = [];
+				for each(var lay:Object in event.data)
+				{
+					if(lay is ArcGISDynamicMapServiceLayer){
+						layersArray.push(lay);
+					}
+				}
 			}
 			
 			protected function endIdentify(event:Event):void

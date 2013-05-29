@@ -39,6 +39,7 @@ package solutions {
 		public static const TOC_LOADED:String = "loadedTOC";
 		public static const CLEAR_LAYERS:String = "clearTOC";
 		public static const TOC_WIN_CHANGE:String = "changeWindow";
+		public static const TOC_SEARCH:String = "tocSearch";
 				
 		//--------------------------------------------------------------------------
 	    //

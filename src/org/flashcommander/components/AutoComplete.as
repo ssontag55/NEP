@@ -19,6 +19,9 @@ package org.flashcommander.components
 	
 	import org.flashcommander.event.CustomEvent;
 	
+	import solutions.SiteContainer;
+	import solutions.TemplateEvent;
+	
 	import spark.components.Group;
 	import spark.components.List;
 	import spark.components.PopUpAnchor;
@@ -67,13 +70,13 @@ package org.flashcommander.components
 				inputTxt.addEventListener(FocusEvent.FOCUS_IN, _focusInHandler)
 				inputTxt.addEventListener(TextOperationEvent.CHANGE, onChange);
 				inputTxt.addEventListener("keyDown", onKeyDown);
-				inputTxt.addEventListener(FlexEvent.ENTER, enter)
+				inputTxt.addEventListener(FlexEvent.ENTER, enter);
 				inputTxt.text = _text;
 			}
 			if (instance==list){
 				list.dataProvider = collection;
 				list.labelField = labelField;
-				list.labelFunction = labelFunction
+				list.labelFunction = labelFunction;
 				list.addEventListener(FlexEvent.CREATION_COMPLETE, addClickListener)
 				list.focusEnabled = false;
 				list.requireSelection = requireSelection
@@ -270,8 +273,11 @@ package org.flashcommander.components
 		}
 		
 		private function enter(event:FlexEvent):void{
-			if (popUp.displayPopUp && list.selectedIndex>-1) return;
-			dispatchEvent(event)
+			if (popUp.displayPopUp && list.selectedIndex>-1) 
+				this.text = list.selectedItem;
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_SEARCH));
+				return;
+			dispatchEvent(event);
 		}
 		
 		// this is a workaround to reset the Mouse cursor
@@ -336,11 +342,15 @@ package org.flashcommander.components
 		}
 		
 		private function addClickListener(event):void{
-			list.dataGroup.addEventListener(MouseEvent.CLICK, listItemClick)
+			list.dataGroup.addEventListener(MouseEvent.CLICK, listItemClick);
 		}
 		
 		private function listItemClick(event: MouseEvent) : void
 		{
+			if (list.selectedIndex >= 0){
+				this.text = list.selectedItem;
+				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.TOC_SEARCH));
+			}
 			acceptCompletion();
 			event.stopPropagation();
 		}

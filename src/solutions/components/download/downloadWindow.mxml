@@ -2,7 +2,7 @@
 <s:TitleWindow 	xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 		xmlns:s="library://ns.adobe.com/flex/spark" 
 		 		xmlns:mx="library://ns.adobe.com/flex/mx"			
-				width="300" skinClass="TitleWindowCustom.skins.CustomTitleWindowSkin4"
+				width="305" skinClass="TitleWindowCustom.skins.CustomTitleWindowSkin4"
 				height="489" 
 				title="Download Data"	
 				cornerRadius="7"
@@ -97,7 +97,8 @@
 			private var step1ErrorLabel:String = "Please select an area of interest.";
 			private var step2ErrorLabel:String = "Please select layers to extract.";
 			private var emptyResultsLabel:String = "Task completed but didn't return any results.";
-			private var saveDataFileLabel:String = "Would you like to save file now?";
+			private var saveDataFileLabel:String = "Data file created. Would you like to save it?";
+			[Bindable] private var downloadText:String;
 			
 			private var map:Map = FlexGlobals.topLevelApplication.mainMap;
 			
@@ -227,7 +228,7 @@
 			{
 				var clipFS:FeatureSet = new FeatureSet();
 				clipFS.spatialReference = map.spatialReference;
-				
+				downloadText = "Downloading Data Region..."
 				if (useCurrentExtentAsAIO)
 				{
 					//create the extent as a polygon
@@ -248,9 +249,7 @@
 				{
 					if (graphicsLayer.numGraphics == 0)
 					{						
-						//Alert.show("Map extent will define download region.");
-						//COPIED FROM ABOVE SECTION
-						//create the extent as a polygon
+						downloadText = "Downloading Current Map Extent...";
 						var envelope:Polygon = new Polygon(null, map.spatialReference);
 						envelope.rings =
 							[[
@@ -335,7 +334,7 @@
 					}
 					else
 					{
-						Alert.show(step2ErrorLabel, "Download Error");
+						Alert.show(step2ErrorLabel, "Download Data");
 						return;
 					}
 				}
@@ -398,11 +397,11 @@
 					dataUrl = String(event.parameterValue.value.url);
 					if (!dataUrl)
 					{
-						Alert.show(emptyResultsLabel, "Data Downloaded!");
+						Alert.show(emptyResultsLabel, "Download Data");
 						return;
 					}
 					
-					Alert.show(saveDataFileLabel, "Data Downloaded!", Alert.YES | Alert.NO, null, alertClickHandler);
+					Alert.show(saveDataFileLabel, "Download Data", Alert.YES | Alert.NO, null, alertClickHandler);
 				}
 				else
 				{
@@ -798,7 +797,7 @@
 								  source="assets/icons/loader.swf"
 								  visible="false"/>
 						<s:Label id="mapExtentWarning" 
-								 text="Downloading Data Region.." fontSize="10"
+								 text="{downloadText}" fontSize="10"
 								 visible="false" />
 					</s:HGroup>
 				</s:SkinnableContainer>

@@ -1,6 +1,7 @@
 	/* Main Script for Index Page */	
 
 	import TitleWindowCustom.CustomTitleWindow;
+	
 	import com.esri.ags.events.MapEvent;
 	import com.esri.ags.events.ZoomEvent;
 	import com.esri.ags.geometry.Extent;
@@ -178,7 +179,9 @@
 	
 	private function beginIdentify(event:TemplateEvent):void
 	{
-		SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.SEND_LAYERS_TO_IDENTIFY,false,false,allDynLayers));
+		//comment out to allow for identify for all layer services not just ones in the NEP TOC
+		//SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.SEND_LAYERS_TO_IDENTIFY,false,false,allDynLayers));
+		SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.SEND_LAYERS_TO_IDENTIFY,false,false,mainMap.layers));
 		setIdentifyCursor();
 	}
 	
