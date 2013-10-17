@@ -270,7 +270,6 @@
 					var latlong:Array = String(tempXY).split(";");				
 					if (latlong.length == 2)
 					{
-						
 						var loadCntrPt:MapPoint = new MapPoint(latlong[0], latlong[1]);
 						loadCntrPt = WebMercatorUtil.geographicToWebMercator(loadCntrPt) as MapPoint;
 						mainMap.centerAt(loadCntrPt);

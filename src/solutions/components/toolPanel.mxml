@@ -18,6 +18,8 @@
 			
 			import solutions.SiteContainer;
 			import solutions.TemplateEvent;
+			import solutions.components.link.linkWindow;
+			import mx.managers.PopUpManager;
 			
 			[Bindable]public var map:Map; 
 			[Bindable]public var myContainer:Container; 
@@ -58,6 +60,17 @@
 				SiteContainer.addEventListener(TemplateEvent.SYMBOL_CHANGED, symbolChanged);
 				SiteContainer.addEventListener(TemplateEvent.TOC_WIN_CHANGE, toolSelectorTabBar_changeHandler);			
 			}	
+			
+			protected function link_btn_clickHandler(event:MouseEvent):void
+			{
+				var linkPopUp:linkWindow;
+				PopUpUtils.closeAllPopups();
+				linkPopUp = PopUpManager.createPopUp(this, linkWindow, true) as linkWindow;
+				
+				linkPopUp.styleName = "modalStyle";
+				linkPopUp.x =370;
+				linkPopUp.y =270; 
+			}
 			
 			private function changeToSymbology(event:TemplateEvent):void
 			{
@@ -101,7 +114,9 @@
 			
 		]]>
 	</fx:Script>
-	
+	<fx:Style>
+		.modalStyle {modal-transparency: .1; modal-transparency-blur:1;}
+	</fx:Style>
 	<!--<s:transitions>
 				
 		<s:Transition id="fadeTOC" toState="layers" >			
@@ -156,8 +171,9 @@
 		<s:HGroup paddingTop="4" includeIn="hide" height="28" gap="0" left="0">
 			<s:Button buttonMode="true"  skinClass="skins.TopBarToolSelectorButtonSkinShad" name="arrow_right" icon="@Embed('assets/icons/arrow_right.png')" toolTip="Show Layer Panel" click="toolPanel_trigger_clickHandler(event)"/>		
 		</s:HGroup>
-		<s:HGroup paddingTop="4" excludeFrom="hide" height="28" gap="4" left.draw="-60" left.symbology="-60" left.identify="-60" left.external="-312" left="-302">
-			<mx:LinkButton buttonMode="true" paddingLeft="23" paddingRight.layers="139" paddingRight="120" includeIn="layers,external" paddingTop="2" textDecoration="underline"  toolTip="Turn all Layers off" label="Turn all Layers Off" color="white" click="clearAllLays()"/>
+		<s:HGroup paddingTop="4" excludeFrom="hide" height="28" gap="4" left.draw="-86" left.symbology="-86" left.identify="-86" left.external="-290" left="-309">
+			<mx:LinkButton buttonMode="true" paddingLeft.layers="23" paddingLeft.external="5" paddingRight.layers="119" paddingRight="90" includeIn="layers,external" paddingTop="2" textDecoration="underline"  toolTip="Turn all Layers off" label="Turn all Layers Off" color="white" click="clearAllLays()"/>
+			<s:Button buttonMode="true" skinClass="skins.TopBarToolSelectorButtonSkin"  name="share-small"  toolTip="Share Map" click="link_btn_clickHandler(event)"/>
 			<s:Button buttonMode="true" includeIn="symbology,identify,draw,external"  skinClass="skins.TopBarToolSelectorButtonSkin" icon="@Embed('assets/icons/toc.png')" toolTip="Show Layers" click="showLays()"/>
 			<s:Button buttonMode="true" skinClass="skins.TopBarToolSelectorButtonSkin" name="arrow_left" icon="@Embed('assets/icons/arrow_left.png')" toolTip="Minimize Layer Panel" click="toolPanel_trigger_clickHandler(event)"/>
 		</s:HGroup>

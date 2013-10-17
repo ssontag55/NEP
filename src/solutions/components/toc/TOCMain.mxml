@@ -29,7 +29,9 @@
 			import mx.collections.ArrayList;
 			import mx.controls.Alert;
 			import mx.core.ScrollPolicy;
+			import mx.managers.BrowserManager;
 			import mx.managers.CursorManager;
+			import mx.managers.IBrowserManager;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.rpc.http.HTTPService;
@@ -40,6 +42,7 @@
 			
 			import spark.components.Button;
 			import spark.components.List;
+			import mx.utils.ObjectUtil;
 			
 			[Bindable] public var map:Map = new Map();
 			[Bindable] public var displayGroup:Array = new Array();
@@ -70,10 +73,14 @@
 			[Bindable]private var legendLoaded:Boolean = false;
 			[Bindable]private var legendArray:Array= [];
 			[Bindable]private var fullyloaded:Boolean = false;
+			public var browserManager:IBrowserManager;
 			//[Bindable]private var lgdPopUp:complexLegend;
 			
 			private var timer:Timer; 
 			private var timer2:Timer; 
+			
+			[Bindable]private var statusLoad:int = 1;
+			[Bindable]private var layerListPre:Object = {};
 			
 			protected function init():void
 			{
@@ -108,6 +115,8 @@
 					loaded = true;
 					//delay for map refresh
 					setLegendTimer();
+					browserManager = BrowserManager.getInstance();				        
+					browserManager.init(""); 
 				}
 			}
 			
@@ -356,17 +365,67 @@
 				//grab the 'group' component and set the number of layers
 				var listParent:TOCGroupComp = layerVGroup.getElementAt(layerVGroup.numElements - 1) as TOCGroupComp;				
 				
+			//add check to put check boxes on selected layers
+				var urlString:String = BrowserManager.getInstance().base;	
+				
+				//only loop through once
+				if(statusLoad == 1)
+				{
+					statusLoad = 0;
+					if(urlString.search("HereIsMyMap")>-1)
+					{
+						var urlArray:Array = urlString.split("layers=");
+						urlString = urlArray[1];
+						var string2Split:Array =  urlString.split(";HereIsMyMap");	
+						urlString = string2Split[0];
+						//cart=9999;demo=9999;physocean=9999;bio=9999;ocean=9999,36;admin=9999;hapc=9999;efh=9999
+						var string3Split:Array = urlString.split(";");
+						//ocean=9999,36
+						
+						for (var w:int = 0; w<string3Split.length; w++ ) 
+						{
+							var groupL:String = string3Split[w];
+							var string4split:Array = groupL.split("=");
+							var layerMain:String = String(string4split[0])
+							if(string4split.length>1)
+							{
+								var layerMainList:Array = String(string4split[1]).split(',');
+							
+								for (var q:int = 0; q<layerMainList.length; q++ ) 
+								{
+									if(layerMainList[q] != 9999){
+										layerListPre[layerMain+layerMainList[q]] =true;
+									}
+								}
+							}
+						}
+					}
+				}
 				for each (var node:XML in groupXML.layer)
 				{
-					var obj:Object = {
-						serviceID: node.@serviceID,
-							layerID: node.@layerID,
-							visible: node.@visible,
-							minscale: node.@MinScale,
-							parentGroupElement: listParent,
-							name: node.@displayName,
-							urlSel: node.@url,
-							groupText: node.@group.toString()
+					if(layerListPre.hasOwnProperty(node.@serviceID+node.@layerID)==true){
+						var obj:Object = {
+							serviceID: node.@serviceID,
+								layerID: node.@layerID,
+								visible: true,
+								minscale: node.@MinScale,
+								parentGroupElement: listParent,
+								name: node.@displayName,
+								urlSel: node.@url,
+								groupText: node.@group.toString()
+						}
+					}
+					else{
+						var obj:Object = {
+							serviceID: node.@serviceID,
+								layerID: node.@layerID,
+								visible: node.@visible,
+								minscale: node.@MinScale,
+								parentGroupElement: listParent,
+								name: node.@displayName,
+								urlSel: node.@url,
+								groupText: node.@group.toString()
+						}
 					}
 					
 					layerArrayList.addItem(obj);

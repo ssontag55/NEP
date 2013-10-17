@@ -109,6 +109,8 @@
 			[Bindable]
 			[Embed(source="../../../assets/icons/external/moris.png")]
 			public var logoMA:Class;
+			[Embed(source="../../../assets/icons/external/epa.png")]
+			public var logoEPA:Class;
 			
 			[Bindable]
 			private var numParams:Number = 0;
@@ -312,6 +314,13 @@
 					ccomTOC.layerMain = createLayers(tocXML.unh.children() as XMLList);
 					ccom.addChild(ccomTOC);
 				}
+				/* else if(event.newIndex == 7&& epa.numChildren==0){
+					FlexGlobals.topLevelApplication.pb.label = "Loading EPA Layers";
+					FlexGlobals.topLevelApplication.pb.visible = true;
+					var epaTOC:TOC = new TOC(map);
+					epaTOC.layerMain = createLayers(tocXML.epa.children() as XMLList);
+					epa.addChild(epaTOC);
+				} */
 			}
 			
 			private function createLayers(xml:XMLList):ArrayCollection
@@ -964,6 +973,9 @@
 					<mx:VBox id="tnc" width="100%" height="100%" label="The Nature Conservancy" icon="{logoTNC}">
 						
 					</mx:VBox>
+					<!--<mx:VBox id="epa" width="100%" height="100%" label="Environmental Protection Agency" icon="{logoEPA}">
+						
+					</mx:VBox>-->
 				</mx:Accordion>
 			</s:HGroup>
 			<s:VGroup id="layerVGroup" width="100%" height="115" minHeight="90" clipAndEnableScrolling="true" gap="7">

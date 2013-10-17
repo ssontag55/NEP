@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow 	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 		xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 		width="330" height="225"
+				title="Share this Map"
+		 		cornerRadius="5"
+				creationComplete="this.controlBarVisible = false; initApp()"
+		 		remove="removeApp()"
+				close="closeHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.Map;
+			import com.esri.ags.geometry.MapPoint;
+			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+			import com.esri.ags.layers.Layer;
+			import com.esri.ags.layers.supportClasses.LayerInfo;
+			import com.esri.ags.utils.JSONUtil;
+			import com.esri.ags.utils.WebMercatorUtil;
+			
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.BrowserChangeEvent;
+			import mx.events.CloseEvent;
+			import mx.managers.BrowserManager;
+			import mx.managers.IBrowserManager;
+			import mx.managers.IFocusManagerComponent;
+			import mx.managers.PopUpManager;
+			import mx.messaging.AbstractConsumer;
+			import mx.utils.URLUtil;
+			
+			import solutions.SiteContainer;
+			import solutions.TemplateEvent;
+			import solutions.components.baseMapSelector;
+			import solutions.config.ConfigData;
+			
+			import spark.skins.spark.StackedFormHeadingSkin;
+			
+			[Bindable]public var linkMap:Map;
+			[Bindable]public var mainLink:String = new String;
+			
+			
+			private var params:Object;
+			public var browserManager:IBrowserManager;
+			public var requestedMapLayerLabel:String;	
+			import flash.net.*;
+			
+			
+			private function getURLParameters():Object
+			{
+				var result:URLVariables = new URLVariables();				
+				try
+				{
+					if (ExternalInterface.available)
+					{						
+						// See http://livedocs.adobe.com/flex/3/langref/flash/external/ExternalInterface.html
+						var search:String = ExternalInterface.call("window.location.search.substring(1).toString");						
+						if (search && search.length > 0)
+						{
+							result.decode(search);							
+						}
+					}
+				}
+				catch (error:Error)
+				{
+					//Alert.show(error.toString());
+				}				
+				return result;				
+			}    
+			
+			private function initApp():void {	
+				
+				//focusManager.setFocus(urlTextArea as IFocusManagerComponent);
+				
+				//var params:String;
+				//params = getURLParameters() as String;
+								
+				//Convert the "data" property of the TemplateEvent to a String...this value 
+				//was passed in the "baseMapSelector" component when the TempleEvent was dispatched. 
+				//This String's value corresponds to the "label" attribute of the 
+				//mapservice layer (xml/config.xml) to set visible...
+				
+				browserManager = BrowserManager.getInstance();				        
+				browserManager.init(""); 
+				
+				linkMap = FlexGlobals.topLevelApplication.mainMap; 
+				
+				var latLongCenter:MapPoint = linkMap.extent.center;
+				var geoLatLong:MapPoint = WebMercatorUtil.webMercatorToGeographic(latLongCenter) as MapPoint;
+				var myLatMapCenter:String = geoLatLong.x.toString();
+				var myLongMapCenter:String = geoLatLong.y.toString();
+				var myMapLevel:String = linkMap.level.toString();
+				var myBaseMap:String = FlexGlobals.topLevelApplication.selectedBaseMap;
+				if (myBaseMap == null){
+					myBaseMap = "Ocean";
+				}
+				if (myBaseMap == 'Ocean Map'){
+					myBaseMap = "Ocean";
+				}
+				if (myBaseMap == 'Imagery Map'){
+					myBaseMap = "Imagery";
+				}
+				if (myBaseMap == 'Raster Nautical Chart'){
+					myBaseMap = "Nautical";
+				}
+				if (myBaseMap == 'Street Map'){
+					myBaseMap = "Street";
+				}
+				
+				//FlexGlobals.topLevelApplication.myTOC.baseMapToggle.baseMaps.selection.label;
+				
+				var myVisLayers:String = "" ;
+				
+				for each(var layerObj:Layer in linkMap.layers){		
+					
+					if(layerObj is ArcGISDynamicMapServiceLayer){					
+						
+						var dynLyr:ArcGISDynamicMapServiceLayer = layerObj as ArcGISDynamicMapServiceLayer;
+						
+						//Check to see it layer contains a groupLayer w/ sublayers, and deal with it.  
+						// Don't want to send it in the link, for instance if there is a group layer at 0, 
+						//and it is added to the map as a visible layer it will turn on all the sublayer, making for a mess.
+						//rather than trapping there ... do it here.
+						
+						//What if they want a group layer turned on? Too bad they can turn them on individually (see whales in the biology service)
+						
+						//See why what toggled  following is not working 
+						/* var groupLyrIDs:Array = new Array;						
+						for each (var lyrInfo:LayerInfo in dynLyr.layerInfos){							
+							if (lyrInfo.subLayerIds != null){
+								groupLyrIDs.push(lyrInfo.id.toString());
+							}
+						} 
+						
+						var vizArr:Array = dynLyr.visibleLayers as Array;
+						var noGrpLyrVizArr:Array = new Array;
+						for each (var vizItem in vizArr){
+							if (groupLyrIDs.indexOf(vizItem) == -1){
+								noGrpLyrVizArr.push(vizItem);
+							}
+						}
+						Alert.show(noGrpLyrVizArr.toString()); */
+											
+						var dynLyrId:String =  dynLyr.id;
+						var dynLyrVis:String = dynLyr.visibleLayers.toArray().toString();
+						
+						var visLyrString:String = dynLyrId + "=" + dynLyrVis + ";";
+						//Alert.show(visLyrString);
+						 myVisLayers = myVisLayers.concat(visLyrString);
+					}				
+				}
+				var urlString:String = BrowserManager.getInstance().base;				
+				if(urlString.search("HereIsMyMap")>-1){
+					var urlArray:Array = urlString.split("?");
+					urlString = urlArray[0];
+					urlString =  urlString.replace("#","");	
+					mainLink = urlString + "?XY="
+						+ myLatMapCenter
+						+ ";"
+						+ myLongMapCenter
+						+ "&level="
+						+ myMapLevel
+						+ "&basemap="
+						+ myBaseMap
+						+ "&layers="
+						+ myVisLayers+ "HereIsMyMap";
+					/* textIn.text = mainLink.replace("=;","=9999;"); */
+					shortedURL(mainLink.replace("=;","=9999;"));
+				}
+				else{
+					urlString =  urlString.replace("#","");	
+					mainLink = urlString + "?XY="
+						+ myLatMapCenter
+						+ ";"
+						+ myLongMapCenter
+						+ "&level="
+						+ myMapLevel
+						+ "&basemap="
+						+ myBaseMap
+						+ "&layers="
+						+ myVisLayers+ "HereIsMyMap";
+					/* textIn.text = mainLink.replace("=;","=9999;"); */
+					shortedURL(mainLink.replace("=;","=9999;"));
+				}
+			}
+			
+			private function shortedURL(url:String):void{
+				var bitlyURL:String = "http://api.bit.ly/shorten?version=2.0.1&longUrl="+escape(url)+"&login=ssontag"+"&apiKey=R_3802a64a9ae967439f44d5aebe7eabb8";
+				
+				var urlLoader:URLLoader = new URLLoader();
+				var req:URLRequest = new URLRequest(bitlyURL);
+				urlLoader.addEventListener(Event.COMPLETE, function(event:Event):void{
+					try{
+						var shortURL:Object = JSONUtil.decode(event.target.data);
+						
+						textIn.text = shortURL.results[url].shortCNAMEUrl.toString();
+						mainLink = shortURL.results[url].shortCNAMEUrl.toString();
+					}catch(e:Error){}
+				});
+				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):void{
+					
+				});
+				urlLoader.load(req);
+			}
+			
+			private function copyLink():void{	
+				System.setClipboard(mainLink);				
+			}
+			
+			private function removeApp():void {
+				var latLongCenter:MapPoint = null;
+				var geoLatLong:MapPoint = null;
+				var myLatMapCenter:String = null;
+				var myLongMapCenter:String = null;
+				var myMapLevel:String = null;
+				var myBaseMap:String = null;					
+				var myVisLayers:String = null;
+			}
+		
+			protected function closeHandler(event:CloseEvent):void
+			{
+				PopUpManager.removePopUp(event.target as IFlexDisplayObject);
+			}
+			
+			private function emailLink():void{
+				var u:URLRequest = new URLRequest("mailto:&Subject=Check out this Map!");
+				var varia:URLVariables = new URLVariables();
+				varia.body = mainLink;
+				u.data = varia;
+				navigateToURL(u,"_self");
+			}
+			private function removeThis():AbstractConsumer{
+				PopUpManager.removePopUp(this as IFlexDisplayObject);
+			}
+			
+		]]>		
+	</fx:Script>
+	
+	<s:VGroup horizontalCenter="0" horizontalAlign="center"  paddingTop="20">
+		<s:TextInput left="25" width="280" fontWeight="bold" id="textIn"/>
+		<mx:LinkButton paddingBottom="11" paddingTop="11" color="#454243" id="linkb" click="emailLink()" fontSize="15" fontWeight="bold" textDecoration="underline" label="Email Link"/>
+		<s:Button buttonMode="true" height="30" id="copybtn" fontSize="24" fontWeight="bold" label="Click to Copy" visible="true"  horizontalCenter="50" click="copyLink()"/>
+		<s:Spacer height="9"/>
+		<s:Button label="Close" buttonMode="true" click="removeThis()"/>
+	</s:VGroup>
+	
+	<s:controlBarContent/>
+</s:TitleWindow>

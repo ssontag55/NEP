@@ -10,8 +10,8 @@ s|Label
 	color: #0b333c;
 }
 global {
-	modalTransparencyBlur: 0;
-	modalTransparency: 0;
+	modalTransparencyBlur: .2;
+	modalTransparency: .3;
 	modalTransparencyColor: black;
 	modalTransparencyDuration: 100;
 }

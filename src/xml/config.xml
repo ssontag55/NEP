@@ -9,6 +9,7 @@ basemaps - tile cache layers that toggle- only one on at a time
 referencemaps- can be tiled or dynamic- non-interactive but can be on at the same time as base (shows on slider)
 operational - dynamic layers- be sure you use ids that you can reference later
 ////////////////////////////////////////////////////////////////////////////////
+
 	<mapservice label="Gray Map" 
 			type="tiled" 
 			visible="false" 
@@ -17,6 +18,7 @@ operational - dynamic layers- be sure you use ids that you can reference later
 			defaultTabLayer="false">http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer</mapservice>	
 -->
 <configuration>
+
 <map initialExtent="-14853279.584748 1717191.36148896 -6693627.51829702 7385220.65335129" 
 	fullExtent="-14853279.584748 1717191.36148896 -6693627.51829702 7385220.65335129" 
 	initialLocation="-71.71,42.06" 
@@ -52,15 +54,15 @@ operational - dynamic layers- be sure you use ids that you can reference later
 	</basemaps>		
 	<referencemaps></referencemaps> 
 	<operationalmaps>	
-		<mapservice label="Administrative" vislayers="0" type="dynamic" visible="true" alpha="1" id="admin">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Administrative/MapServer</mapservice>
-		<mapservice label="Oceanography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="ocean">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer</mapservice>
-		<mapservice label="Biology" vislayers="9999" type="dynamic" visible="true" alpha="1" id="bio">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer</mapservice>
-		<mapservice label="Physical Oceanography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="physocean">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer</mapservice>
-		<mapservice label="Demography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="demo">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Demography/MapServer</mapservice>
 		<mapservice label="Cartography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="cart">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Cartography/MapServer</mapservice>		
+		<mapservice label="Demography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="demo">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Demography/MapServer</mapservice>
+		<mapservice label="Physical Oceanography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="physocean">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/PhysicalOceanography/MapServer</mapservice>
+		<mapservice label="Biology" vislayers="9999" type="dynamic" visible="true" alpha="1" id="bio">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Biology/MapServer</mapservice>
+		<mapservice label="Oceanography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="ocean">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/OceanUses/MapServer</mapservice>
+		<mapservice label="Administrative" vislayers="0" type="dynamic" visible="true" alpha="1" id="admin">http://50.19.218.171/arcgis1/rest/services/NEODviewer-3/Administrative/MapServer</mapservice>
 		
-		<!--<mapservice label="HAPC" vislayers="9999" type="dynamic" visible="true" alpha="1" id="hapc">http://egisws02.nos.noaa.gov/ArcGIS/rest/services/NMFS/HAPC/MapServer</mapservice>		
-		<mapservice label="EFH" vislayers="9999" type="dynamic" visible="true" alpha="1" id="efh">http://egisws02.nos.noaa.gov/ArcGIS/rest/services/NMFS/EFHAreasProtectedFromFishing/MapServer</mapservice>-->		
+		<mapservice label="HAPC" vislayers="9999" type="dynamic" visible="true" alpha="1" id="hapc">http://egisws02.nos.noaa.gov/ArcGIS/rest/services/NMFS/HAPC/MapServer</mapservice>		
+		<mapservice label="EFH" vislayers="9999" type="dynamic" visible="true" alpha="1" id="efh">http://egisws02.nos.noaa.gov/ArcGIS/rest/services/NMFS/EFHAreasProtectedFromFishing/MapServer</mapservice>		
 		
 	</operationalmaps> 
 	<graphiclayers>

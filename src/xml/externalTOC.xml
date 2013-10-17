@@ -6,18 +6,18 @@
 	<metWS>http://opendap.co-ops.nos.noaa.gov/ioos-dif-sos/SOS?service=SOS&request=GetObservation&version=1.0.0&responseFormat=text%2Fcsv</metWS>
 	<massURL>http://giswebservices.massgis.state.ma.us/geoserver/wms?</massURL>
 	<tnc>
-		<layer name="Sea Turtles" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMturtles/MapServer"/>
-		<layer name="Base" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMBase/MapServer"/>
-		<layer name="Benthic Habitat" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMBenHab/MapServer"/>
-		<layer name="Benthic Data" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMBenthicdata/MapServer"/>
-		<layer name="Benthic EMUs" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMBenthicemu/MapServer"/>
-		<layer name="Coastal" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMcoast/MapServer"/>
-		<layer name="Demersal Fish" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMdemersal/MapServer"/>
-		<layer name="Diadromous Fish" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMdiadromous/MapServer"/>
-		<layer name="Large Pelagic Fish" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMLargePelagic/MapServer"/>
-		<layer name="Small Pelagic Fish" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMsmallpelagic/MapServer"/>
-		<layer name="Marine Mammals" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMmammals/MapServer"/>
-		<layer name="Oceanography" url="http://ecad.tnc.org/ECADAPPPRODANON/rest/services/NAMERA/NAMOcean/MapServer"/>
+		<!--<layer name="Sea Turtles" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_TURTLE/MapServer"/>-->
+		<layer name="Base" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_BASE/MapServer"/>
+		<layer name="Benthic Habitat" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_BENHAB/MapServer"/>
+		<layer name="Benthic Data" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_BENTHICDATA/MapServer"/>
+		<layer name="Benthic EMUs" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_BENTHICEMU/MapServer"/>
+		<layer name="Coastal" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_COASTAL/MapServer"/>
+		<layer name="Demersal Fish" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_DEMERSAL/MapServer"/>
+		<layer name="Diadromous Fish" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_DIADROMOUS/MapServer"/>
+		<layer name="Large Pelagic Fish" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_LargePelagic/MapServer"/>
+		<layer name="Small Pelagic Fish" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_SMALLPELAGIC/MapServer"/>
+		<layer name="Marine Mammals" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_MAMMALS/MapServer"/>
+		<layer name="Oceanography" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_ocean/MapServer"/>
 	</tnc>
 	<ngdc>
 		<layer name="DEM Hillshades" url="http://maps.ngdc.noaa.gov/rest/services/web_mercator/dem_hillshades_mosaic/MapServer"/>
@@ -28,7 +28,7 @@
 		<layer name="BOEM Ocean Use Layers" url="http://gis.boemre.gov/arcgis/rest/services/BOEM_BSEE/MMC_Layers/MapServer"/>
 	</boem>
 	<cadastre>
-		<layer name="Marine Jurisdictions" url="http://www.csc.noaa.gov/ArcGISPUB/rest/services/MultipurposeMarineCadastre/MultipurposeMarineCadastre/MapServer"/>
+		<layer name="Marine Jurisdictions" url="http://www.csc.noaa.gov/ArcGISPUB/rest/services/MarineCadastre/NationalViewer/MapServer"/>
 	</cadastre>
 	<nhsmocean>
 		<layer name="NHME Ocean Atlas" url="http://egisws02.nos.noaa.gov/ArcGIS/rest/services/OUA/NHME_ocean_uses_atlas/MapServer"/>
@@ -36,6 +36,9 @@
 	<unh>
 		<layer name="Atlantic Bathymetry" url="http://gis.ccom.unh.edu:6080/arcgis/rest/services/LOTS_Atlantic/Atlantic_Bathymetry_Hillshade_WebMercator_WGS84/MapServer"/>
 	</unh>
+	<!--<epa>
+		<layer name="EPA Office of Water" url="http://watersgeo.epa.gov/arcgis/rest/services/OWRAD/ALL_OWRAD_NAD83/MapServer"/>
+	</epa>-->
 	<mass>
 	  <Layer selected="false" title="NOAA C-CAP Land Cover 1996 - 2001" name="massgis:MORIS.CCAP_MA_96_01_RD" style="MORIS.CCAP_MA_96_01_RD::Default" type="raster"/>
       <Layer selected="false" title="NOAA C-CAP Land Cover 1996" name="massgis:MORIS.CCAP_MA_96_RD" style="MORIS.CCAP_MA_96_RD::Default" type="raster"/>
