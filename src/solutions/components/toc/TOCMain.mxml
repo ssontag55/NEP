@@ -377,9 +377,9 @@
 						var urlArray:Array = urlString.split("layers=");
 						urlString = urlArray[1];
 						var string2Split:Array =  urlString.split(";HereIsMyMap");	
-						urlString = string2Split[0];
+						var urlSplit = string2Split[0];
 						//cart=9999;demo=9999;physocean=9999;bio=9999;ocean=9999,36;admin=9999;hapc=9999;efh=9999
-						var string3Split:Array = urlString.split(";");
+						var string3Split:Array = urlSplit.split(";");
 						//ocean=9999,36
 						
 						for (var w:int = 0; w<string3Split.length; w++ ) 
@@ -408,6 +408,19 @@
 							serviceID: node.@serviceID,
 								layerID: node.@layerID,
 								visible: true,
+								minscale: node.@MinScale,
+								parentGroupElement: listParent,
+								name: node.@displayName,
+								urlSel: node.@url,
+								groupText: node.@group.toString()
+						}
+					}
+					else if (urlString.search("HereIsMyMap")> -1)
+					{
+						var obj:Object = {
+							serviceID: node.@serviceID,
+								layerID: node.@layerID,
+								visible: false,
 								minscale: node.@MinScale,
 								parentGroupElement: listParent,
 								name: node.@displayName,

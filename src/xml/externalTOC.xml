@@ -6,7 +6,7 @@
 	<metWS>http://opendap.co-ops.nos.noaa.gov/ioos-dif-sos/SOS?service=SOS&request=GetObservation&version=1.0.0&responseFormat=text%2Fcsv</metWS>
 	<massURL>http://giswebservices.massgis.state.ma.us/geoserver/wms?</massURL>
 	<tnc>
-		<!--<layer name="Sea Turtles" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_TURTLE/MapServer"/>-->
+		<layer name="Sea Turtles" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_TURTLE/MapServer"/>
 		<layer name="Base" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_BASE/MapServer"/>
 		<layer name="Benthic Habitat" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_BENHAB/MapServer"/>
 		<layer name="Benthic Data" url="http://ec2-50-18-215-52.us-west-1.compute.amazonaws.com/arcgis/rest/services/NAMERA/EUSD_NAM_BENTHICDATA/MapServer"/>
