@@ -6,15 +6,19 @@
 					  initialize="group1_initializeHandler(event)">
 	<fx:Script>
 		<![CDATA[
+			import com.esri.ags.FeatureSet;
 			import com.esri.ags.Graphic;
 			import com.esri.ags.Map;
 			import com.esri.ags.events.MapMouseEvent;
+			import com.esri.ags.events.QueryEvent;
 			import com.esri.ags.geometry.Geometry;
 			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
 			import com.esri.ags.layers.GraphicsLayer;
 			import com.esri.ags.layers.Layer;
+			import com.esri.ags.layers.supportClasses.LayerDetails;
 			import com.esri.ags.tasks.supportClasses.IdentifyParameters;
 			import com.esri.ags.tasks.supportClasses.IdentifyResult;
+			import com.esri.ags.tasks.supportClasses.RelationshipQuery;
 			
 			import mx.collections.ArrayCollection;
 			import mx.events.CloseEvent;
@@ -63,8 +67,10 @@
 				for each(var obj:Object in identifyArrayCollection)
 				{
 					//grab the object with same name as selectedItem in tree
-					if(obj['name'] == event.currentTarget.selectedItem.@name
-						&& obj['values']['OBJECTID'] == event.currentTarget.selectedItem.@id)
+					/* if(obj['name'] == event.currentTarget.selectedItem.@name
+						&& obj['values']['OBJECTID'] == event.currentTarget.selectedItem.@id) */
+					var matched:String = (event.currentTarget.selectedItem.@valuemain + (event.currentTarget.selectedIndex-1));
+					if(obj['nameselect'] == matched)
 					{
 						var fld:String;
 						var value:String;
@@ -107,13 +113,14 @@
 					graphicsService.clear();	
 				}
 				//Not dynamic but it will work for now since we only have one layer
-				var dynLyr:ArcGISDynamicMapServiceLayer = new ArcGISDynamicMapServiceLayer();
+				//var dynLyr:ArcGISDynamicMapServiceLayer = new ArcGISDynamicMapServiceLayer();
 				for each(var layerObj:Layer in map.layers){						
-					if(layerObj is ArcGISDynamicMapServiceLayer){						
-						dynLyr = layerObj as ArcGISDynamicMapServiceLayer;
+					if(layerObj is ArcGISDynamicMapServiceLayer && ArcGISDynamicMapServiceLayer(layerObj).visibleLayers.length>0 && layerObj.visible == true){	
 						
-						if (dynLyr.url == layersArray[count].url){
-							var dynLyrVis:Array = dynLyr.visibleLayers as Array;
+						//dynLyr = layerObj as ArcGISDynamicMapServiceLayer;
+						
+						if (layerObj.url == layersArray[count].url){
+							var dynLyrVis:Array = layerObj.visibleLayers as Array;
 							
 							var identifyParams:IdentifyParameters = new IdentifyParameters();
 							identifyParams.returnGeometry = true;
@@ -126,7 +133,7 @@
 							
 							//Not dynamic but it will work for now
 							var a:Array = new Array();
-							for each(var s:String in dynLyr.visibleLayers) 
+							for each(var s:String in layerObj.visibleLayers) 
 							{	
 								if (s != '9999'){
 									a.push(s);
@@ -145,8 +152,9 @@
 							graphicsService.add(clickGraphic);
 							map.addLayer(graphicsService);
 							
-							identifyTask.url  = layersArray[count].url;
-							identifyTask.execute(identifyParams, new AsyncResponder(myResultFunction, myFaultFunction, clickGraphic));							
+							//normal identify
+							identifyTask.url  = layersArray[count].url;	
+							identifyTask.execute(identifyParams, new AsyncResponder(myResultFunction, myFaultFunction, clickGraphic));
 						}
 					}
 				} 
@@ -169,40 +177,111 @@
 					
 					//create a unique ID
 					var i:int = 0;
+					var t:int = 0;
 					for each (var identifyResult:IdentifyResult in identifyResults)
 					{
-							var result:IdentifyResult = identifyResult;
-							
-							var resultGraphic:Graphic = result.feature;
-							
-							switch (resultGraphic.geometry.type)
+						var resultGraphic:Graphic = identifyResult.feature;
+						//get attribute objects
+						identifiedObj = identifyResult.feature.attributes;
+						
+						switch (resultGraphic.geometry.type)
+						{
+							case Geometry.MAPPOINT:
 							{
-								case Geometry.MAPPOINT:
-								{
-									resultGraphic.symbol = smsIdentify;
-									break;
-								}
-								case Geometry.POLYLINE:
-								{
-									resultGraphic.symbol = slsIdentify;
-									break;
-								}
-								case Geometry.POLYGON:
-								{
-									resultGraphic.symbol = sfsIdentify;
-									break;
-								}
-							} 						
-				
-							//get attribute objects
-							identifiedObj = identifyResult.feature.attributes;
+								resultGraphic.symbol = smsIdentify;
+								break;
+							}
+							case Geometry.POLYLINE:
+							{
+								resultGraphic.symbol = slsIdentify;
+								break;
+							}
+							case Geometry.POLYGON:
+							{
+								resultGraphic.symbol = sfsIdentify;
+								break;
+							}
+						}
+						
+						//I can't see another seamless relationship query without first running an identify task
+						//no relate info comes back with the identify result
+						//have to select layers manually in code
+						if(identifyResult.layerName == "birds_polygon"){
+							relateStatus.visible = true;
+							var rq:RelationshipQuery = new RelationshipQuery;
+							var objIDArray:Array = new Array;
 							
+							objIDArray.push(identifyResult.feature.attributes.OBJECTID);
+								
+							rq.objectIds = objIDArray;
+							rq.outFields = ['*'];
+							rq.relationshipId = 0;
+							rq.returnGeometry = false;
+							relQueryTask.url = this.identifyTask.url+"/1";
+							relQueryTask.executeRelationshipQuery(rq, new AsyncResponder(relQueryResponse,onfault));
+							
+							function relQueryResponse(obj:Object, token:Object = null):void{
+								for each (var fs:FeatureSet in obj){
+									for each (var j:Object in fs.attributes)
+									{
+										if(lastLayerName != identifyResult.layerName) 
+										{
+											newLayerNode = <layer></layer>;
+											newLayerNode.@name = identifyResult.layerName;
+											newLayerNode.@valuemain = identifyResult.layerName;//identifyResult.layerName+t;
+											identifyXML.appendChild(newLayerNode);
+											lastLayerName = identifyResult.layerName;
+										}
+										
+										//create new <displayname> tag that will be the
+										// identified feature display name and add it to parent <layer>
+										var newDisplayNameNode:XML = <displayname></displayname>;
+										
+										newDisplayNameNode.@name = identifyResult.layerName;
+										newDisplayNameNode.@valuemain = j.NAME;//identifyResult.layerName;
+										newDisplayNameNode.@id = j.OBJECTID;
+										newDisplayNameNode.@grphcID = t;
+										newLayerNode.appendChild(newDisplayNameNode);
+										
+										//Build graphics
+										//Leveraging displayFieldName from identifiedObj
+										var newGraph:Graphic = new Graphic;
+										newGraph.geometry = resultGraphic.geometry;
+										newGraph.name = identifyResult.layerName+t;
+										newGraph.attributes = j;
+										graphicsService.add(newGraph);
+										
+										//create XML List from XML tags and add it to tree
+										var identifyXMLList:XMLList = new XMLList(identifyXML);
+										//identifyXMLListTest = identifyXMLList;
+										identifyTree.dataProvider = '';
+										identifyTree.dataProvider = identifyXMLList;
+										
+										//throw the identify results into an ArrayCollection to save results
+										var identifyResultsObj:Object =
+											{
+												nameselect: j.NAME+t,//identifyResult.layerName+t,
+													name: identifyResult.value,	//String
+													values: j				//Object
+											}
+										identifyArrayCollection.addItem(identifyResultsObj);
+										t++;
+									}
+								}
+								relateStatus.visible = false;
+							}
+							function onfault(obj:Object, token:Object = null):void{
+								
+							}
+						}
+						else{ 							
 							//Check to see if layer name is different - if it is -
 							//start new <layer> xml tag
 							if(lastLayerName != identifyResult.layerName) 
 							{
 								newLayerNode = <layer></layer>;
 								newLayerNode.@name = identifyResult.layerName;
+								newLayerNode.@valuemain =identifyResult.layerName;
 								identifyXML.appendChild(newLayerNode);
 								lastLayerName = identifyResult.layerName;
 							}
@@ -219,6 +298,7 @@
 								displayName = s.properties[1].localName;
 							}
 							newDisplayNameNode.@name = identifiedObj[displayName];
+							newDisplayNameNode.@valuemain = identifyResult.value;
 							newDisplayNameNode.@id = identifiedObj['OBJECTID'];
 							newDisplayNameNode.@grphcID = i;
 							newLayerNode.appendChild(newDisplayNameNode);
@@ -239,6 +319,7 @@
 							//throw the identify results into an ArrayCollection to save results
 							var identifyResultsObj:Object =
 								{
+									nameselect: identifyResult.value.toString()+i,
 									name: identifiedObj[displayName],	//String
 									values: identifiedObj				//Object
 								}
@@ -247,6 +328,7 @@
 						
 							//add to cound
 							i++;
+						}
 					}
 					
 					identifyTree.validateNow();
@@ -318,7 +400,7 @@
 				layersArray = [];
 				for each(var lay:Object in event.data)
 				{
-					if(lay is ArcGISDynamicMapServiceLayer){
+					if(lay is ArcGISDynamicMapServiceLayer && ArcGISDynamicMapServiceLayer(lay).visibleLayers.length>0){
 						layersArray.push(lay);
 					}
 				}
@@ -425,8 +507,9 @@
 	</fx:Script>
 	
 	<fx:Declarations>
+		<esri:QueryTask id="relQueryTask" concurrency="last" showBusyCursor="true"/>
 		<!-- Identify Task -->        
-		<esri:IdentifyTask id="identifyTask"            
+		<esri:IdentifyTask id="identifyTask"           
 						   concurrency="last" showBusyCursor="true"/> 
 		<!--Symbol for identify click X  -->
 		<esri:SimpleMarkerSymbol id="clickPtSym" style="x" color="0xFF0000" size="6">
@@ -493,9 +576,10 @@
 			<s:HGroup height="15">
 				<s:Label text="Results:" fontWeight="bold"/>
 				<s:Label text="(Only visible layers returned)" />
+				<s:Label text="Relating..." fontSize="9" color="red" visible="false" id="relateStatus" />
 			</s:HGroup>
 			<mx:VDividedBox width="100%" height="100%">
-				<mx:Tree id="identifyTree" folderClosedIcon="{null}" folderOpenIcon="{null}" disclosureClosedIcon="{closedIcon}" disclosureOpenIcon="{openIcon}" width="100%" height="100%" showRoot="false" labelField="@name"
+				<mx:Tree id="identifyTree" folderClosedIcon="{null}" folderOpenIcon="{null}" disclosureClosedIcon="{closedIcon}" disclosureOpenIcon="{openIcon}" width="100%" height="100%" showRoot="false" labelField="@valuemain"
 						 itemClick="popIdentifyDataGrid(event)" horizontalScrollPolicy="auto"  itemRollOver="onItemRollOver(event)" itemRollOut="onItemRollOut(event)" />
 				
 				<mx:DataGrid id="identifyDataGrid" variableRowHeight="true" height="100%" width="100%" >

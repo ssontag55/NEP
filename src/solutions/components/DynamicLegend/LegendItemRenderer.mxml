@@ -306,7 +306,7 @@
 			<s:SolidColor alpha="1" color="0xffffff"/>
 		</s:fill>
 	</s:Rect>
-	<s:HGroup id="hg" gap="20" verticalAlign="middle" horizontalAlign="left" paddingBottom="1" paddingTop="1">
+	<s:HGroup id="hg" gap="8" paddingLeft="3" verticalAlign="middle" horizontalAlign="left" paddingBottom="1" paddingTop="1">
 		<mx:Spacer width="0" height="20" />
 		<mx:Image id="pic" smoothBitmapContent="true" includeInLayout="false" visible="false" autoLoad="true"/>	
 		<s:Label id="hdrLabel"
