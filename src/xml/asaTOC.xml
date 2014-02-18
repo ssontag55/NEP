@@ -77,12 +77,11 @@
 	</group>
    
   <group id="topGroup2" displayName="Biology">
-	<layer serviceID="bio" layerID="1" MinScale="4622324" MaxScale="4000000000" group="Birds" displayName="Bird Nest Sites " visible="false" url="http://50.19.218.171/arcgis1/rest/services//Biology/MapServer/1"  />
-	<layer serviceID="esi" layerID="1" MinScale="0" MaxScale="4000000000" displayName="birds_polygon " visible="false" url="http://gis.asascience.com/ArcGIS/rest/services/RegionalPortal/ESI_Relationships/MapServer/1"  />
+	<layer serviceID="esi" layerID="1" MinScale="0" MaxScale="4000000000" group="Birds" displayName="Bird Nest Sites " visible="false" url="http://gis.asascience.com/ArcGIS/rest/services/RegionalPortal/Biology/MapServer/1"  />
+	<layer serviceID="esi" layerID="2" MinScale="0" MaxScale="4000000000" displayName="Bird Habitat " visible="false" url="http://gis.asascience.com/ArcGIS/rest/services/RegionalPortal/Biology/MapServer/2"  />
 	
-	<layer serviceID="bio" layerID="4" MinScale="0" MaxScale="4000000000" group="Marine Mammals" displayName="Dolphin Habitat " visible="false" url="http://50.19.218.171/arcgis1/rest/services//Biology/MapServer/4"  />
-	<layer serviceID="bio" layerID="5" MinScale="0" MaxScale="4000000000" displayName="Pinniped Habitat " visible="false" url="http://50.19.218.171/arcgis1/rest/services//Biology/MapServer/5"  />
-	<layer serviceID="bio" layerID="6" MinScale="0" MaxScale="4000000000" displayName="Whale Habitat " visible="false" url="http://50.19.218.171/arcgis1/rest/services//Biology/MapServer/6"  />
+	<layer serviceID="esi" layerID="4" MinScale="0" MaxScale="4000000000" group="Marine Mammals" displayName="Marine Mammals Habitat " visible="false" url="http://gis.asascience.com/ArcGIS/rest/services/RegionalPortal/Biology/MapServer/4"  />
+
 	<layer serviceID="bio" layerID="7" MinScale="0" MaxScale="4000000000" displayName="North Atlantic Right Whale Critical Habitat " visible="false" url="http://50.19.218.171/arcgis1/rest/services//Biology/MapServer/7"  />
 	<layer serviceID="bio" layerID="8" MinScale="0" MaxScale="4000000000" displayName="Fin Whale Winter, SPUE " visible="false" url="http://50.19.218.171/arcgis1/rest/services//Biology/MapServer/8"  />
 	<layer serviceID="bio" layerID="9" MinScale="0" MaxScale="4000000000" displayName="Fin Whale Spring, SPUE " visible="false" url="http://50.19.218.171/arcgis1/rest/services//Biology/MapServer/9"  />

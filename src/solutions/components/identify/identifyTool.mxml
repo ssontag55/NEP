@@ -124,7 +124,7 @@
 							
 							var identifyParams:IdentifyParameters = new IdentifyParameters();
 							identifyParams.returnGeometry = true;
-							identifyParams.tolerance = 8;//identify_tolerance.value;
+							identifyParams.tolerance = 20;//identify_tolerance.value;
 							identifyParams.width = map.width;
 							identifyParams.height = map.height;
 							identifyParams.geometry = event.mapPoint;                
@@ -165,6 +165,7 @@
 			{	
 				if (identifyResults && identifyResults.length > 0)
 				{
+					CursorManager.setBusyCursor(); 
 					//Set identify ArrayCollection to nothing
 					identifyArrayCollection = new ArrayCollection();
 										
@@ -203,10 +204,36 @@
 							}
 						}
 						
+						var relID:int = 999;
+						var idLayer:String = "";
+						//to set relationship ID for select layers
+						switch (identifyResult.layerName)
+						{
+							case "Marine Mammals Habitat":
+							{
+								
+								relID = 2;
+								idLayer = "/4";
+								break;
+							}
+							case "Bird Habitat":
+							{
+								relID = 1;
+								idLayer = "/2";
+								break;
+							}
+							case "Bird Nest Sites":
+							{
+								relID = 0;
+								idLayer = "/1";
+								break;
+							}
+						}
+						
 						//I can't see another seamless relationship query without first running an identify task
 						//no relate info comes back with the identify result
 						//have to select layers manually in code
-						if(identifyResult.layerName == "birds_polygon"){
+						if(relID != 999){
 							relateStatus.visible = true;
 							var rq:RelationshipQuery = new RelationshipQuery;
 							var objIDArray:Array = new Array;
@@ -215,10 +242,12 @@
 								
 							rq.objectIds = objIDArray;
 							rq.outFields = ['*'];
-							rq.relationshipId = 0;
+							rq.relationshipId = relID;
 							rq.returnGeometry = false;
-							relQueryTask.url = this.identifyTask.url+"/1";
+							relQueryTask.url = this.identifyTask.url+idLayer;
 							relQueryTask.executeRelationshipQuery(rq, new AsyncResponder(relQueryResponse,onfault));
+							
+							relID = 999;
 							
 							function relQueryResponse(obj:Object, token:Object = null):void{
 								for each (var fs:FeatureSet in obj){
@@ -269,6 +298,7 @@
 									}
 								}
 								relateStatus.visible = false;
+								CursorManager.removeAllCursors();
 							}
 							function onfault(obj:Object, token:Object = null):void{
 								
@@ -340,6 +370,7 @@
 						"\n2. Or click on map to identify again";
 					primary_direction_group.addElement(r); */
 					clearResultsLabel.visible = true;
+					CursorManager.removeBusyCursor();
 				} 
 				/* else {
 					primary_direction_group.removeAllElements();
@@ -349,7 +380,6 @@
 					primary_direction_group.addElement(r);
 				} */
 				//Remove Busy Cursor and set to back to Identify Cursor
-				CursorManager.removeBusyCursor();
 				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,"Identify"));
 				
 				checkToIdentifyAgain();

@@ -56,7 +56,7 @@ operational - dynamic layers- be sure you use ids that you can reference later
 		
 		<mapservice label="HAPC" vislayers="9999" type="dynamic" visible="true" alpha="1" id="hapc">http://egisws02.nos.noaa.gov/ArcGIS/rest/services/NMFS/HAPC/MapServer</mapservice>		
 		<mapservice label="EFH" vislayers="9999" type="dynamic" visible="true" alpha="1" id="efh">http://egisws02.nos.noaa.gov/ArcGIS/rest/services/NMFS/EFHAreasProtectedFromFishing/MapServer</mapservice>	
-		<mapservice label="ESI" vislayers="9999" type="dynamic" visible="true" alpha="1" id="esi">http://gis.asascience.com/ArcGIS/rest/services/RegionalPortal/ESI_Relationships/MapServer</mapservice>				
+		<mapservice label="ESI" vislayers="9999" type="dynamic" visible="true" alpha="1" id="esi">http://gis.asascience.com/ArcGIS/rest/services/RegionalPortal/Biology/MapServer</mapservice>				
 		
 	</operationalmaps> 
 	<graphiclayers>
