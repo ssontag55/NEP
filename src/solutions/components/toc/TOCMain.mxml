@@ -20,6 +20,7 @@
 			import com.esri.ags.events.DetailsEvent;
 			import com.esri.ags.events.LayerEvent;
 			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+			import com.esri.ags.layers.ArcGISTiledMapServiceLayer;
 			import com.esri.ags.layers.FeatureLayer;
 			import com.esri.ags.layers.Layer;
 			import com.esri.ags.layers.supportClasses.LayerDetails;
@@ -35,6 +36,7 @@
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.rpc.http.HTTPService;
+			import mx.utils.ObjectUtil;
 			
 			import solutions.SiteContainer;
 			import solutions.TemplateEvent;
@@ -42,7 +44,6 @@
 			
 			import spark.components.Button;
 			import spark.components.List;
-			import mx.utils.ObjectUtil;
 			
 			[Bindable] public var map:Map = new Map();
 			[Bindable] public var displayGroup:Array = new Array();
@@ -183,6 +184,14 @@
 			
 			private function visibleLayerToggle(event:TemplateEvent):void
 			{
+/* 				var dsLyr:Layer;
+				if(returnLayerInfo(event.data.data.serviceID) is ArcGISDynamicMapServiceLayer){
+					var dsLyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(event.data.data.serviceID) as ArcGISDynamicMapServiceLayer;
+				}
+				else{
+					var dsLyr:ArcGISTiledMapServiceLayer = returnLayerInfo(event.data.data.serviceID) as ArcGISTiledMapServiceLayer;
+				}
+ */				
 				var dsLyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(event.data.data.serviceID) as ArcGISDynamicMapServiceLayer;
 				
 				for each (var lyrInfo:LayerInfo in dsLyr.layerInfos){

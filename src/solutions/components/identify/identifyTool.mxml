@@ -124,7 +124,7 @@
 							
 							var identifyParams:IdentifyParameters = new IdentifyParameters();
 							identifyParams.returnGeometry = true;
-							identifyParams.tolerance = 20;//identify_tolerance.value;
+							identifyParams.tolerance = 8;//identify_tolerance.value;
 							identifyParams.width = map.width;
 							identifyParams.height = map.height;
 							identifyParams.geometry = event.mapPoint;                
