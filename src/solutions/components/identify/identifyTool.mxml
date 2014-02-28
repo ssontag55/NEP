@@ -124,7 +124,7 @@
 							
 							var identifyParams:IdentifyParameters = new IdentifyParameters();
 							identifyParams.returnGeometry = true;
-							identifyParams.tolerance = 8;//identify_tolerance.value;
+							identifyParams.tolerance = 6;//identify_tolerance.value;
 							identifyParams.width = map.width;
 							identifyParams.height = map.height;
 							identifyParams.geometry = event.mapPoint;                
@@ -301,7 +301,8 @@
 								CursorManager.removeAllCursors();
 							}
 							function onfault(obj:Object, token:Object = null):void{
-								
+								CursorManager.removeAllCursors();
+								relateStatus.visible = false;
 							}
 						}
 						else{ 							
@@ -356,7 +357,7 @@
 							identifyArrayCollection.addItem(identifyResultsObj);
 							//logger2('identifySuccess');
 						
-							//add to cound
+							//add to count
 							i++;
 						}
 					}
@@ -364,21 +365,10 @@
 					identifyTree.validateNow();
 					identifyTree.expandChildrenOf(identifyXML, true);
 					
-					/* primary_direction_group.removeAllElements();
-					var r:Label = new Label();
-					r.text = "1. Click on identified feature in tree below\n to view attributes in grid\n" +
-						"\n2. Or click on map to identify again";
-					primary_direction_group.addElement(r); */
 					clearResultsLabel.visible = true;
 					CursorManager.removeBusyCursor();
 				} 
-				/* else {
-					primary_direction_group.removeAllElements();
-					var r:Label = new Label();
-					r.text = "No Identify Results." +
-						"\nPlease click on map again.";
-					primary_direction_group.addElement(r);
-				} */
+				
 				//Remove Busy Cursor and set to back to Identify Cursor
 				SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.UPDATE_CURSOR,false,false,"Identify"));
 				
@@ -430,7 +420,7 @@
 				layersArray = [];
 				for each(var lay:Object in event.data)
 				{
-					if(lay is ArcGISDynamicMapServiceLayer && ArcGISDynamicMapServiceLayer(lay).visibleLayers.length>0){
+					if(lay is ArcGISDynamicMapServiceLayer && ArcGISDynamicMapServiceLayer(lay).visibleLayers.length>0 && ArcGISDynamicMapServiceLayer(lay).visible == true){
 						layersArray.push(lay);
 					}
 				}
@@ -525,6 +515,7 @@
 				graphicsService.clear();
 				identifyTree.dataProvider = new XMLList();
 				identifyDataGrid.dataProvider = '';
+				CursorManager.removeBusyCursor();
 			}
 			
 			protected function backToTOC_clickHandler(event:MouseEvent):void
