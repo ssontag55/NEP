@@ -9,7 +9,7 @@
 			   xmlns:coordinates="solutions.components.coordinates.*"
 			   xmlns:identify="solutions.components.identify.*"
 			   xmlns:Navigation="solutions.components.Navigation.*"
-			   preinitialize="init();" pageTitle="Northeast Ocean Data Viewer" 
+			   preinitialize="init();" pageTitle="VA Offshore Wind Energy" 
 			   xmlns:components="solutions.components.*" >
 	<fx:Script>
 		<![CDATA[
@@ -83,7 +83,7 @@
 			<!-- ***** LAT/LONG ***** -->
 			<s:HGroup bottom="-1" right="-24" gap="7">
 				<s:SkinnableContainer id="mapCoords" height="25" width="205" 
-									  skinClass="skins.mapInformationSkin" backgroundColor="0x225A74">					
+									  skinClass="skins.mapInformationSkin" backgroundColor="0xC7BFBF">					
 					<s:HGroup verticalCenter="0" left="8" right="15">						
 						<s:RichText content="Lat: " fontWeight="bold"/>
 						<s:RichText id="mouseLat"/>

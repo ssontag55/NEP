@@ -184,7 +184,7 @@
 				<s:Rect id="tbFill" left="0" right="0" top="1" bottom="1">
                     <s:fill>
                         <s:LinearGradient rotation="90">
-                            <s:GradientEntry color="#225A74" />
+                            <s:GradientEntry color="#631126" />
                         </s:LinearGradient>
                     </s:fill>
                 </s:Rect>
