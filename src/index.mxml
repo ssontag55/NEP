@@ -9,7 +9,7 @@
 			   xmlns:coordinates="solutions.components.coordinates.*"
 			   xmlns:identify="solutions.components.identify.*"
 			   xmlns:Navigation="solutions.components.Navigation.*"
-			   preinitialize="init();" pageTitle="VA Offshore Wind Energy" 
+			   preinitialize="init();" pageTitle="MD Offshore Wind Energy" 
 			   xmlns:components="solutions.components.*" >
 	<fx:Script>
 		<![CDATA[

@@ -14,8 +14,8 @@ operational - dynamic layers- be sure you use ids that you can reference later
 
 <map initialExtent="-14853279.584748 1717191.36148896 -6693627.51829702 7385220.65335129" 
 	fullExtent="-14853279.584748 1717191.36148896 -6693627.51829702 7385220.65335129" 
-	initialLocation="-71.71,42.06" 
-	initialLOD="2" 
+	initialLocation="-76.71,38.5" 
+	initialLOD="3" 
 	wraparound180="true">
 	
 	<basemaps>	

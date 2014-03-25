@@ -2,7 +2,7 @@
 <s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" creationComplete="init()"
 					  xmlns:s="library://ns.adobe.com/flex/spark" 
 					  xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="55"
-					  backgroundColor="#631126" >
+					  backgroundColor="#990000" >
 	<fx:Script>
 		
 		<![CDATA[
@@ -19,7 +19,7 @@
 			
 			[Embed(source="assets/icons/new_header/bar.png")] 
 			[Binable]private var midImage:Class;
-			[Embed(source="assets/Virginia_dot_Gov_logo.png")] 
+			[Embed(source="assets/md.jpg")] 
 			[Binable]private var midImageVA:Class;
 			
 			private function init():void
@@ -76,10 +76,10 @@
 		</fx:String>
 	</fx:Declarations>
 	
-	<s:Label x="9" y="10" fontSize="20" color="#F0F0F0" text="VA Offshore Wind Energy Data Portal"/>
+	<s:Label x="9" y="14" fontSize="18" color="#F0F0F0" text="MD Offshore Wind Energy Data Portal"/>
 	<s:HGroup x="28" y="38">
-		<!--<s:Label  fontSize="12" color="#FFFFFF" text="A component of the"/>-->
-		<s:Label  fontSize="11" color="#F0F0F0" buttonMode="true" useHandCursor="true" click="navigateToURL(new URLRequest('http://www.dmme.virginia.gov/'),'_mine')" text="Department of Mines Minerals and Energy"/>	
+		<!--<s:Label  fontSize="12" color="#FFFFFF" text="A component of the"/>
+		<s:Label  fontSize="11" color="#F0F0F0" buttonMode="true" useHandCursor="true" click="navigateToURL(new URLRequest('http://www.dmme.virginia.gov/'),'_mine')" text="Department of Mines Minerals and Energy"/>-->	
 	</s:HGroup>
 	
 	<s:HGroup verticalAlign="middle" paddingTop="10" paddingRight="45" paddingLeft="320" width="100%" horizontalAlign="center">	
@@ -114,14 +114,14 @@
 			<s:Button id="download_btn" buttonMode="true"  skinClass="skins.TopBarToolSelectorButtonSkinBig" name="new_header/download" toolTip="Download Data" click="download_btn_clickHandler(event)"/>
 		</s:HGroup>
 	</s:HGroup>
-	<mx:VBox right="3" horizontalAlign="right" paddingRight="13" paddingTop="10">
+	<mx:VBox right="3" horizontalAlign="right" paddingRight="13" paddingTop="2">
 		<!--<s:Label buttonMode="true" fontSize="12" id="hl" color="#CEE7F4"
 				 click="navigateToURL(new URLRequest('http://northeastoceanviewer.org/assets/Portal_help.htm'), 'AGOL')"
 				 text="Help" mouseOver="hl.setStyle('color','black')" mouseOut="hl.setStyle('color','#CEE7F4')"
 				 useHandCursor="true"
 				 verticalAlign="middle"
 				 visible="false"/>-->
-		<s:Image  source="{midImageVA}" />
+		<s:Image  source="{midImageVA}" height="52"/>
 		<!--<s:Label buttonMode="true" fontSize="12" color="#CEE7F4"
 				 click="showAbout()" id="al"
 				 text="About" mouseOver="al.setStyle('color','black')" mouseOut="al.setStyle('color','#CEE7F4')"
