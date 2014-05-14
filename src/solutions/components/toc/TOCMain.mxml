@@ -222,6 +222,7 @@
 							SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_OFF_TOC, false, false, dsLyr));
 						}
 					}
+					dsLyr.visible = false;
 				}
 			}
 			

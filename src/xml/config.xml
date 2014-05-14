@@ -47,7 +47,9 @@ operational - dynamic layers- be sure you use ids that you can reference later
 	</basemaps>		
 	<referencemaps></referencemaps> 
 	<operationalmaps>	
-		<mapservice label="Cartography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="cart">http://50.19.218.171/arcgis1/rest/services/Cartography/MapServer</mapservice>		
+		<mapservice label="NGDC" vislayers="0" type="dynamic" visible="false" alpha="1" id="ngdc">http://maps.ngdc.noaa.gov/arcgis/rest/services/web_mercator/dem_hillshades_mosaic/MapServer</mapservice>
+		<mapservice label="Montauk" vislayers="0" type="dynamic" visible="false" alpha="1" id="montauk">http://50.19.218.171/arcgis1/rest/services/Bathymetry/MontaukToNantucketShoalsBathymetry/MapServer/</mapservice>	
+		
 		<mapservice label="Demography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="demo">http://50.19.218.171/arcgis1/rest/services/Demography/MapServer</mapservice>
 		<mapservice label="Physical Oceanography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="physocean">http://50.19.218.171/arcgis1/rest/services/PhysicalOceanography/MapServer</mapservice>
 		<mapservice label="Biology" vislayers="9999" type="dynamic" visible="true" alpha="1" id="bio">http://50.19.218.171/arcgis1/rest/services/Biology/MapServer</mapservice>
@@ -56,7 +58,8 @@ operational - dynamic layers- be sure you use ids that you can reference later
 		
 		<mapservice label="HAPC" vislayers="9999" type="dynamic" visible="true" alpha="1" id="hapc">http://egisws02.nos.noaa.gov/ArcGIS/rest/services/NMFS/HAPC/MapServer</mapservice>		
 		<mapservice label="EFH" vislayers="9999" type="dynamic" visible="true" alpha="1" id="efh">http://egisws02.nos.noaa.gov/ArcGIS/rest/services/NMFS/EFHAreasProtectedFromFishing/MapServer</mapservice>	
-		<mapservice label="NGDC" vislayers="9999" type="dynamic" visible="false" alpha="1" id="ngdc">http://maps.ngdc.noaa.gov/arcgis/rest/services/web_mercator/dem_hillshades_mosaic/MapServer</mapservice>
+		<mapservice label="MMCphys" vislayers="9999" type="dynamic" visible="false" alpha="1" id="mmcph">http://csc.noaa.gov/arcgis/rest/services/MarineCadastre/PhysicalOceanographicAndMarineHabitat/MapServer/</mapservice>
+		<mapservice label="Cartography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="cart">http://50.19.218.171/arcgis1/rest/services/Cartography/MapServer</mapservice>		
 	</operationalmaps> 
 	<graphiclayers>
 	
