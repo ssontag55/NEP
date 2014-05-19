@@ -314,6 +314,9 @@
 						for each (var visItem in vizLyrArr){
 														
 								visibleLayers.addItem(visItem); 
+								if(visItem != '9999'){
+									dsLyr.visible = true;
+								}
 								dsLyr.visibleLayers = visibleLayers;
 								var layerNameIdStr:String =  lyrGrp[0].toString() + visItem;						
 								arrForLegend.push(layerNameIdStr);											
@@ -357,20 +360,21 @@
 									}
 								}
 								
-								if (visItemTOC != '9999'){							
-								var newLayerNode:XML = <layer></layer>;
-								newLayerNode.@serviceID = dsLyrTOC.id
-								newLayerNode.@layerID = visItemTOC;						
+								if (visItemTOC != '9999'){	
+									dsLyrTOC.visible = true;
+									var newLayerNode:XML = <layer></layer>;
+									newLayerNode.@serviceID = dsLyrTOC.id;
+									newLayerNode.@layerID = visItemTOC;						
 								
-								newLayerNode.@displayName = tocLyrName
-								newLayerNode.@visible = 'true'
-								newLayerNode.@url = dsLyrTOC.url;	
-								groupNode.appendChild(newLayerNode);
+									newLayerNode.@displayName = tocLyrName;
+									newLayerNode.@visible = 'true';
+									newLayerNode.@url = dsLyrTOC.url;	
+									groupNode.appendChild(newLayerNode);
 								}
 							}							
 						}						
 					}
-					Alert.show(customTOCXML.toString());
+					
 					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.CUSTOM_TOC, false, false, customTOCXML));
 					useCustomTOC=true;
 					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.REFRESH_TOC, false, false, arrForLegend));					

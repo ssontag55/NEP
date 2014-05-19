@@ -47,8 +47,8 @@ operational - dynamic layers- be sure you use ids that you can reference later
 	</basemaps>		
 	<referencemaps></referencemaps> 
 	<operationalmaps>	
-		<mapservice label="NGDC" vislayers="0" type="dynamic" visible="false" alpha="1" id="ngdc">http://maps.ngdc.noaa.gov/arcgis/rest/services/web_mercator/dem_hillshades_mosaic/MapServer</mapservice>
-		<mapservice label="Montauk" vislayers="0" type="dynamic" visible="false" alpha="1" id="montauk">http://50.19.218.171/arcgis1/rest/services/Bathymetry/MontaukToNantucketShoalsBathymetry/MapServer/</mapservice>	
+		<mapservice label="NGDC" vislayers="9999" type="dynamic" visible="false" alpha="1" id="ngdc">http://maps.ngdc.noaa.gov/arcgis/rest/services/web_mercator/dem_hillshades_mosaic/MapServer</mapservice>
+		<mapservice label="Montauk" vislayers="9999" type="dynamic" visible="false" alpha="1" id="montauk">http://50.19.218.171/arcgis1/rest/services/Bathymetry/MontaukToNantucketShoalsBathymetry/MapServer/</mapservice>	
 		
 		<mapservice label="Demography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="demo">http://50.19.218.171/arcgis1/rest/services/Demography/MapServer</mapservice>
 		<mapservice label="Physical Oceanography" vislayers="9999" type="dynamic" visible="true" alpha="1" id="physocean">http://50.19.218.171/arcgis1/rest/services/PhysicalOceanography/MapServer</mapservice>

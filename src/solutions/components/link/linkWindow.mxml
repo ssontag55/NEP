@@ -153,7 +153,8 @@
 						var visLyrString:String = dynLyrId + "=" + dynLyrVis + ";";
 						//Alert.show(visLyrString);
 						 myVisLayers = myVisLayers.concat(visLyrString);
-					}				
+					}
+					
 				}
 				var urlString:String = BrowserManager.getInstance().base;				
 				if(urlString.search("HereIsMyMap")>-1){

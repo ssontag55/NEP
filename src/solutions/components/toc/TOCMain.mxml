@@ -242,7 +242,7 @@
 			{
 				var ya:Boolean = false;
 				var returnLyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(id) as ArcGISDynamicMapServiceLayer;
-				
+				returnLyr.visible = true;
 				for (var ii:int = 0; ii<returnLyr.visibleLayers.length; ii++)
 				{
 					if(returnLyr.visibleLayers[ii] == layID){
