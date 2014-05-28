@@ -279,6 +279,7 @@
 								sourceLink: propertiesXML..PropertyPage[i].@SourceLink,
 								webService: propertiesXML..PropertyPage[i].@ServiceLink,
 								references: propertiesXML..PropertyPage[i].@AdditionalInformation,
+								zoomTo: propertiesXML..PropertyPage[i].@zoomto,
 								referencesAlias: propertiesXML..PropertyPage[i].@AdditionalInformationAlias
 							}
 							sendDetailsToLayerComp1(objDetails);

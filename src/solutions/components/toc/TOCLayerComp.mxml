@@ -9,12 +9,15 @@
 		<![CDATA[
 			import com.esri.ags.Map;
 			import com.esri.ags.geometry.Extent;
+			import com.esri.ags.geometry.MapPoint;
+			import com.esri.ags.geometry.WebMercatorMapPoint;
 			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
 			import com.esri.ags.layers.FeatureLayer;
 			import com.esri.ags.layers.Layer;
 			import com.esri.ags.layers.supportClasses.LayerDetails;
 			import com.esri.ags.layers.supportClasses.LayerInfo;
 			import com.esri.ags.layers.supportClasses.TableDetails;
+			import com.esri.ags.utils.WebMercatorUtil;
 			
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
@@ -30,6 +33,7 @@
 			[Bindable]public var _selectedLayerDescription:String;
 			[Bindable]public var _selectedLayerObject:Object;
 			[Bindable]public var mExtent:Extent = new Extent;
+			[Bindable]public var zoomToString:String = "";
 			
 			[Bindable]private var _selectedLayerDetails:LayerDetails;
 			
@@ -124,7 +128,17 @@
 				dsLyr.id = dsLyr.layerDetails.name;
 				var lyrArray:Array = [];
 				lyrArray.push(dsLyr);	
+				zoomToString = _selectedLayerObject.zoomTo;
+				
 				mExtent = dsLyr.layerDetails.extent;
+				
+				if(zoomToString != ""){
+					var latLongArray:Array = zoomToString.split(',');
+					var mapPointGeo:WebMercatorMapPoint = new WebMercatorMapPoint(latLongArray[1],latLongArray[0]);
+					var mapPointWM:MapPoint = new MapPoint(mapPointGeo.x, mapPointGeo.y);
+					mExtent = mExtent.centerAt(mapPointWM);
+					mExtent = mExtent.expand(2.5);
+				}
 				
 				layerLegend.map = _map;
 				layerLegend.visible = true;
@@ -153,14 +167,12 @@
 			{				
 				event.target.setStyle("color",0x1A7FB2);	
 				event.target.setStyle("fontWeight", 'bold');
-				
 			}
 			
 			protected function sourceOrg_mouseOutHandler(event:MouseEvent):void
 			{
 				event.target.setStyle("color", 0x000000);
 				event.target.setStyle("fontWeight", 'normal');
-				
 			}
 			
 			public var dataPopUp:TitleWindow = new TitleWindow();
@@ -205,14 +217,15 @@
 			{
 				dataTypeTxt = "Metadata ";
 				
-				var str:String = _selectedLayerObject.metadata
+				var str:String = _selectedLayerObject.metadata;
+								
 				if (str.indexOf('http',0) == 0){
 					//navigateToURL(new URLRequest(_selectedLayerObject.metadata+'.html'))
 					navigateToURL(new URLRequest(_selectedLayerObject.metadata))
 				}
 				else
 				{	
-					var strg:String = _selectedLayerObject.metadata
+					var strg:String = _selectedLayerObject.metadata;
 					lnkArr =  strg.split(',');
 					
 					// Set the TitleWindow container properties.
@@ -232,7 +245,6 @@
 					dataPopUp.y = 250;
 					dataPopUp.closeButton.visible=true;
 					dataPopUp.closeButton.addEventListener(MouseEvent.CLICK, closeTitleWindow);
-					
 				}
 			}
 			
