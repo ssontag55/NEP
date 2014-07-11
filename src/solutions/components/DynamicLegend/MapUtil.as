@@ -1,25 +1,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2010-2011 Esri
-//
-// All rights reserved under the copyright laws of the United States.
-// You may freely redistribute and use this software, with or
-// without modification, provided you include the original copyright
-// and use restrictions.  See use restrictions in the file:
-// <install location>/License.txt
-//
 ////////////////////////////////////////////////////////////////////////////////
 package solutions.components.DynamicLegend
 {
 
 import com.esri.ags.Map;
 import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
-import com.esri.ags.layers.ArcGISImageServiceLayer;
-import com.esri.ags.layers.ArcGISTiledMapServiceLayer;
-import com.esri.ags.layers.ArcIMSMapServiceLayer;
-import com.esri.ags.layers.FeatureLayer;
-import com.esri.ags.layers.GPResultImageLayer;
-import com.esri.ags.layers.GraphicsLayer;
+//import com.esri.ags.layers.ArcGISImageServiceLayer;
+//import com.esri.ags.layers.ArcGISTiledMapServiceLayer;
+//import com.esri.ags.layers.FeatureLayer;
+//import com.esri.ags.layers.GPResultImageLayer;
+//import com.esri.ags.layers.GraphicsLayer;
 import com.esri.ags.layers.Layer;
 
 /**
@@ -38,7 +29,9 @@ public final class MapUtil
         {
             for each (var layer:Layer in map.layers)
             {
-                func(layer);
+				if(layer is ArcGISDynamicMapServiceLayer){
+					func(layer);
+				}
             }
         }
     }
@@ -53,24 +46,22 @@ public final class MapUtil
 
         if (layer.id == "")
         {
-            // Tiled layers
-            if (layer is ArcGISTiledMapServiceLayer)
-            {
-                label = extractServiceNameFromUrl((layer as ArcGISTiledMapServiceLayer).url);
-
-                    // Dynamic layers
-            }
-            else if (layer is ArcGISDynamicMapServiceLayer)
-            {
-                label = extractServiceNameFromUrl((layer as ArcGISDynamicMapServiceLayer).url);
-            }
+			label = extractServiceNameFromUrl((layer as ArcGISDynamicMapServiceLayer).url);
+			/* if (layer is ArcGISDynamicMapServiceLayer)
+			{
+				
+			}
+			
+           	
+			else if (layer is ArcGISTiledMapServiceLayer)
+			{
+			label = extractServiceNameFromUrl((layer as ArcGISTiledMapServiceLayer).url);
+			
+			// Dynamic layers
+			}
             else if (layer is ArcGISImageServiceLayer)
             {
                 label = extractServiceNameFromUrl((layer as ArcGISImageServiceLayer).url);
-            }
-            else if (layer is ArcIMSMapServiceLayer)
-            {
-                label = (layer as ArcIMSMapServiceLayer).serviceName;
             }
             else if (layer is FeatureLayer)
             {
@@ -85,7 +76,7 @@ public final class MapUtil
             else if (layer is GraphicsLayer)
             {
                 label = "Graphics";
-            }
+            }*/
         }
         else
         {

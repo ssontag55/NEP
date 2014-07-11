@@ -1,11 +1,12 @@
 <toc>
    <group id="topGroup1" displayName="Administrative Boundaries">
-	<layer serviceID="admin" layerID="0" MinScale="0" MaxScale="4000000000" displayName="Marine Jurisdictions " visible="true" url="http://50.19.218.171/arcgis1/rest/services///Administrative/MapServer/0" />
-	<layer serviceID="admin" layerID="1" MinScale="0" MaxScale="4000000000" displayName="Coastal Barrier Resource System " visible="false" url="http://50.19.218.171/arcgis1/rest/services///Administrative/MapServer/1" />
-	<layer serviceID="admin" layerID="2" MinScale="0" MaxScale="4000000000" displayName="National Marine Sanctuary " visible="false" url="http://50.19.218.171/arcgis1/rest/services///Administrative/MapServer/2" />
-	<layer serviceID="admin" layerID="3" MinScale="0" MaxScale="4000000000" displayName="Outer Continental Lease Blocks " visible="false" url="http://50.19.218.171/arcgis1/rest/services///Administrative/MapServer/3" />
-	<layer serviceID="admin" layerID="4" MinScale="0" MaxScale="4000000000" displayName="Counties " visible="false" url="http://50.19.218.171/arcgis1/rest/services///Administrative/MapServer/4" />
-	<layer serviceID="admin" layerID="5" MinScale="0" MaxScale="4000000000" displayName="States " visible="false" url="http://50.19.218.171/arcgis1/rest/services///Administrative/MapServer/5" />
+	<layer serviceID="admin" layerID="0" MinScale="0" MaxScale="4000000000" displayName="Marine Jurisdictions " visible="true" url="http://50.19.218.171/arcgis1/rest/services/Administrative/MapServer/0" />
+	<layer serviceID="admin" layerID="1" MinScale="0" MaxScale="4000000000" displayName="Coastal Barrier Resource System " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Administrative/MapServer/1" />
+	<layer serviceID="admin" layerID="2" MinScale="0" MaxScale="4000000000" displayName="National Marine Sanctuary " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Administrative/MapServer/2" />
+	<layer serviceID="admin" layerID="3" MinScale="0" MaxScale="4000000000" displayName="Outer Continental Lease Blocks " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Administrative/MapServer/3" />
+	<layer serviceID="tribe" layerID="19" MinScale="0" MaxScale="4000000000" displayName="Coastal Tribal Lands " visible="false" url="http://csc.noaa.gov/arcgis/rest/services/MarineCadastre/NationalViewer/MapServer/19" />
+	<layer serviceID="admin" layerID="4" MinScale="0" MaxScale="4000000000" displayName="Counties " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Administrative/MapServer/4" />
+	<layer serviceID="admin" layerID="5" MinScale="0" MaxScale="4000000000" displayName="States " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Administrative/MapServer/5" />
    </group>
    
    <group id="topGroup3" displayName="Ocean Uses">
@@ -13,6 +14,8 @@
 	<layer serviceID="ocean" layerID="2" MinScale="0" MaxScale="4000000000" displayName="Offshore Tidal Hydrokinetic Projects " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/2" />
 	<layer serviceID="ocean" layerID="3" MinScale="0" MaxScale="4000000000" displayName="UMaine Wind Turbine Test Project " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/3" />
 	<layer serviceID="ocean" layerID="4" MinScale="0" MaxScale="4000000000" displayName="Block Island Proposed Turbine Locations " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/4" />
+	<layer serviceID="ocean" layerID="5" MinScale="0" MaxScale="4000000000" displayName="Block Island Transmission Cables " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/5" />
+	
 	<layer serviceID="ocean" layerID="6" MinScale="0" MaxScale="4000000000" displayName="Block Island Renewable Energy Zone " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/6" />
 	<layer serviceID="ocean" layerID="7" MinScale="0" MaxScale="4000000000" displayName="New England Electrical Transmission Substations " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/7" />
 	<layer serviceID="ocean" layerID="8" MinScale="0" MaxScale="4000000000" displayName="New England Electrical Transmission Lines " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/8" />
@@ -27,6 +30,7 @@
 	<layer serviceID="ocean" layerID="17" MinScale="0" MaxScale="4000000000" group="Industrial"  displayName="Coastal Energy Facilities " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/17" />
 	<layer serviceID="ocean" layerID="18" MinScale="2311162" MaxScale="4000000000" displayName="EPA-Regulated Facilities " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/18" />
 	<layer serviceID="ocean" layerID="19" MinScale="0" MaxScale="4000000000" displayName="Ocean Disposal Sites " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/19" />
+	<layer serviceID="ocean" layerID="20" MinScale="0" MaxScale="4000000000" displayName="No Discharge Zones " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/20" />
 	
 	<layer serviceID="ocean" layerID="22" MinScale="2311162" MaxScale="4000000000" group="Navigation" displayName="Wrecks and Obstructions " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/22" />
 	<layer serviceID="ocean" layerID="23" MinScale="288895" MaxScale="36112" displayName="Aids to Navigation " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/23" />
@@ -49,9 +53,9 @@
 	<layer serviceID="ocean" layerID="40" MinScale="0" MaxScale="4000000000" displayName="2012 Cargo AIS Vessel Density " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/40" />
 	<layer serviceID="ocean" layerID="41" MinScale="0" MaxScale="4000000000" displayName="2012 Passenger AIS Vessel Density " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/41" />
 	<layer serviceID="ocean" layerID="42" MinScale="0" MaxScale="4000000000" displayName="2012 Tug-Tow AIS Vessel Density " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/42" />
-	<layer serviceID="ocean" layerID="43" MinScale="0" MaxScale="4000000000" displayName="2012 Tanker AIS Vessel Density" visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/43" />
+	<layer serviceID="ocean" layerID="43" MinScale="0" MaxScale="4000000000" displayName="2012 Tanker AIS Vessel Density " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/43" />
 	
-	<layer serviceID="ocean" layerID="45" MinScale="0" MaxScale="4000000000" group="Commercial Fishing" displayName="Regional Aquaculture " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/45" />
+	<layer serviceID="ocean" layerID="45" MinScale="0" MaxScale="4000000000" group="Commercial Fishing" displayName="Aquaculture " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/45" />
 	<layer serviceID="ocean" layerID="46" MinScale="0" MaxScale="4000000000" displayName="Shellfish Management Areas " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/46" />
 	<layer serviceID="ocean" layerID="47" MinScale="0" MaxScale="4000000000" displayName="Multispecies VMS point density 2006-2010 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/47" />
 	<layer serviceID="ocean" layerID="48" MinScale="0" MaxScale="4000000000" displayName="Monkfish VMS point density 2006-2010 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/OceanUses/MapServer/48" />
@@ -84,7 +88,6 @@
 	<layer serviceID="bio" layerID="2" MinScale="577791" MaxScale="4000000000" displayName="Bird Habitat " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/2" />
 	
 	<layer serviceID="bio" layerID="4" MinScale="577791" MaxScale="4000000000" group="Marine Mammals and Sea Turtles" displayName="Marine Mammals Habitat " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/4" />
-	<layer serviceID="bio" layerID="5" MinScale="0" MaxScale="4000000000" displayName="North Atlantic Right Whale Critical Habitat " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/5" />
 	<layer serviceID="bio" layerID="6" MinScale="0" MaxScale="4000000000" displayName="Fin Whale Winter, SPUE " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/6" />
 	<layer serviceID="bio" layerID="7" MinScale="0" MaxScale="4000000000" displayName="Fin Whale Spring, SPUE " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/7" />
 	<layer serviceID="bio" layerID="8" MinScale="0" MaxScale="4000000000" displayName="Fin Whale Summer, SPUE " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/8" />
@@ -149,25 +152,22 @@
 	<layer serviceID="bio" layerID="65" MinScale="0" MaxScale="4000000000" displayName="Atlantic Mackerel Abundance " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/65" />
 	<layer serviceID="bio" layerID="66" MinScale="0" MaxScale="4000000000" displayName="Sand Lance Abundance " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/66" />
 	<layer serviceID="bio" layerID="67" MinScale="0" MaxScale="4000000000" displayName="Species Richness " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/67" />
-	<layer serviceID="bio" layerID="68" MinScale="0" MaxScale="4000000000" displayName="Total Biomass kg " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/68" />
-	
+	<layer serviceID="bio" layerID="68" MinScale="0" MaxScale="4000000000" displayName="Total Biomass kg " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/68" />	
 	<layer serviceID="bio" layerID="70" MinScale="0" MaxScale="4000000000" group="Plankton" displayName="Primary Production " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/70" />
 	<layer serviceID="bio" layerID="71" MinScale="0" MaxScale="4000000000" displayName="Calanus Finmarchicus, Fall " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/71" />
 	<layer serviceID="bio" layerID="72" MinScale="0" MaxScale="4000000000" displayName="Euphausiids, Fall " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/72" />
 	<layer serviceID="bio" layerID="73" MinScale="0" MaxScale="4000000000" displayName="Gammarid Amphipods, Fall " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/73" />
 	<layer serviceID="bio" layerID="74" MinScale="0" MaxScale="4000000000" displayName="Mysid Shrimp, Fall " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/74" />
-	<layer serviceID="bio" layerID="75" MinScale="0" MaxScale="4000000000" displayName="Chlorophyll A, Fall mg/m3 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/75" />
-	<layer serviceID="bio" layerID="76" MinScale="0" MaxScale="4000000000" displayName="Chlorophyll A, Spring mg/m3 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/76" />
-	<layer serviceID="bio" layerID="77" MinScale="0" MaxScale="4000000000" displayName="Chlorophyll A, Summer mg/m3 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/77" />
-	<layer serviceID="bio" layerID="78" MinScale="0" MaxScale="4000000000" displayName="Chlorophyll A, Winter mg/m3 " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/78" />
-	
+	<layer serviceID="bio" layerID="75" MinScale="0" MaxScale="4000000000" displayName="Chlorophyll a, Fall " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/75" />
+	<layer serviceID="bio" layerID="76" MinScale="0" MaxScale="4000000000" displayName="Chlorophyll a, Spring " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/76" />
+	<layer serviceID="bio" layerID="77" MinScale="0" MaxScale="4000000000" displayName="Chlorophyll a, Summer " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/77" />
+	<layer serviceID="bio" layerID="78" MinScale="0" MaxScale="4000000000" displayName="Chlorophyll a, Winter " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/78" />
 	<layer serviceID="mmcph" layerID="0" MinScale="0" MaxScale="4000000000" group="Habitat" displayName="Artificial Reefs " visible="false" url="http://csc.noaa.gov/arcgis/rest/services/MarineCadastre/PhysicalOceanographicAndMarineHabitat/MapServer/0" />
 	<layer serviceID="bio" layerID="80" MinScale="0" MaxScale="4000000000" displayName="Eelgrass Beds " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/80" />
 	<layer serviceID="mmcph" layerID="9" MinScale="0" MaxScale="4000000000" displayName="Critical Habitat Designations " visible="false" url="http://csc.noaa.gov/arcgis/rest/services/MarineCadastre/PhysicalOceanographicAndMarineHabitat/MapServer/9" />
 	<layer serviceID="bio" layerID="81" MinScale="577791" MaxScale="4000000000" displayName="Coastal Wetlands " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/81" />
 	<layer serviceID="bio" layerID="82" MinScale="0" MaxScale="4000000000" displayName="Seafloor Habitats " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Biology/MapServer/82" />
-  </group>
- 
+  </group> 
   <group id="topGroup4" displayName="Physical Oceanography">	
 	<layer serviceID="physocean" layerID="0" MinScale="0" MaxScale="4000000000" displayName="Ocean Observing Buoys and Stations " visible="false" url="http://50.19.218.171/arcgis1/rest/services//PhysicalOceanography/MapServer/0" />
 	<layer serviceID="physocean" layerID="1" MinScale="0" MaxScale="4000000000" displayName="Maximum Tidal Currents Speed m/s, January 2009 " visible="false" url="http://50.19.218.171/arcgis1/rest/services//PhysicalOceanography/MapServer/1" />
@@ -176,11 +176,10 @@
 	<layer serviceID="physocean" layerID="4" MinScale="2311162" MaxScale="4000000000" displayName="Shoreline " visible="false" url="http://50.19.218.171/arcgis1/rest/services//PhysicalOceanography/MapServer/4" />
 	<layer serviceID="physocean" layerID="5" MinScale="0" MaxScale="4000000000" displayName="Sediment Grain Size " visible="false" url="http://50.19.218.171/arcgis1/rest/services//PhysicalOceanography/MapServer/5" />
 	<layer serviceID="physocean" layerID="6" MinScale="0" MaxScale="4000000000" displayName="Water Depth " visible="false" url="http://50.19.218.171/arcgis1/rest/services//PhysicalOceanography/MapServer/6" />
-	<layer serviceID="montauk" layerID="0" MinScale="0" MaxScale="4000000000" displayName="Montauk to Nantucket Shoals Bathymetry " visible="false" url="http://maps.ngdc.noaa.gov/arcgis/rest/services/web_mercator/dem_hillshades_mosaic/MapServer/0" />
-	<layer serviceID="ngdc" layerID="0" MinScale="0" MaxScale="4000000000" displayName="NGDC DEM Hillshades " visible="false" url="http://maps.ngdc.noaa.gov/arcgis/rest/services/web_mercator/dem_hillshades_mosaic/MapServer/0" />
+	<layer serviceID="montauk" layerID="0" MinScale="0" MaxScale="4000000000" displayName="Montauk to Nantucket Shoals Bathymetry " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Bathymetry/MontaukToNantucketShoalsBathymetry/MapServer/0" />
+	<layer serviceID="ngdc" layerID="0" MinScale="0" MaxScale="4000000000" displayName="NGDC DEM Hillshades " visible="false" url="http://maps.ngdc.noaa.gov/arcgis/rest/services/web_mercator/dem_hillshades_mosaic/MapServer" />
 	<layer serviceID="physocean" layerID="7" MinScale="0" MaxScale="4000000000" displayName="Seabed Topographic Forms " visible="false" url="http://50.19.218.171/arcgis1/rest/services//PhysicalOceanography/MapServer/7" />
   </group>
- 
   <group id="topGroup5" displayName="Geographic Reference">	
 	<layer serviceID="ref" layerID="1" MinScale="288895" MaxScale="4000000000" displayName="Coastal Geographic Names " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Reference/MapServer/1" />
 	<layer serviceID="ref" layerID="2" MinScale="0" MaxScale="4000000000" displayName="Northeast Portal Data Extent " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Reference/MapServer/2" />
@@ -188,4 +187,3 @@
 	<layer serviceID="ref" layerID="9" MinScale="0" MaxScale="4000000000" displayName="Population By County " visible="false" url="http://50.19.218.171/arcgis1/rest/services/Reference/MapServer/9" />
   </group>
 </toc>
-	

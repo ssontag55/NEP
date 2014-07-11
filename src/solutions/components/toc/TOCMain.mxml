@@ -20,7 +20,6 @@
 			import com.esri.ags.events.DetailsEvent;
 			import com.esri.ags.events.LayerEvent;
 			import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
-			import com.esri.ags.layers.ArcGISTiledMapServiceLayer;
 			import com.esri.ags.layers.FeatureLayer;
 			import com.esri.ags.layers.Layer;
 			import com.esri.ags.layers.supportClasses.LayerDetails;
@@ -36,7 +35,6 @@
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.rpc.http.HTTPService;
-			import mx.utils.ObjectUtil;
 			
 			import solutions.SiteContainer;
 			import solutions.TemplateEvent;
@@ -87,8 +85,7 @@
 			{
 				if(loaded == false)
 				{
-					//SiteContainer.addEventListener(TemplateEvent.REFRESH_TOC, refreshTOC);	
-					//SiteContainer.addEventListener(TemplateEvent.CUSTOM_TOC, customTOC);
+					//SiteContainer.addEventListener(TemplateEvent.REFRESH_TOC, refreshTOC);
 					
 					var configService:HTTPService = new HTTPService();
 					configService.url = "xml/asaTOC.xml";
@@ -184,46 +181,51 @@
 			
 			private function visibleLayerToggle(event:TemplateEvent):void
 			{
-/* 				var dsLyr:Layer;
-				if(returnLayerInfo(event.data.data.serviceID) is ArcGISDynamicMapServiceLayer){
-					var dsLyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(event.data.data.serviceID) as ArcGISDynamicMapServiceLayer;
-				}
-				else{
-					var dsLyr:ArcGISTiledMapServiceLayer = returnLayerInfo(event.data.data.serviceID) as ArcGISTiledMapServiceLayer;
-				}
- */				
-				var dsLyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(event.data.data.serviceID) as ArcGISDynamicMapServiceLayer;
+				var l:Layer = returnLayerInfo(event.data.data.serviceID);
 				
-				for each (var lyrInfo:LayerInfo in dsLyr.layerInfos){
-					var grpLayer:Boolean;
-					grpLayer = false;
+				if(l is ArcGISDynamicMapServiceLayer && event.data.data.serviceID != "montauk"){
+					for each (var lyrInfo:LayerInfo in l.layerInfos){
+						var grpLayer:Boolean;
+						grpLayer = false;
+						
+						if (lyrInfo.subLayerIds != null && lyrInfo.layerId ==0){
+							grpLayer = true;
+						}
+					} 
 					
-					if (lyrInfo.subLayerIds != null && lyrInfo.layerId ==0){
-						grpLayer = true;
+					for (var i:int=0;i<l.visibleLayers.length;i++) if(l.visibleLayers[i] == -1) l.visibleLayers.removeItemAt(i);
+					
+					//if checked add to visible layer array
+					//else assume number is in array and remove
+					if (event.data.visibleLayer.selected == true) {				
+						
+						l.visibleLayers.addItem(event.data.data.layerID);
+						SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_ON_TOC, false, false, l));
 					}
-				} 
-									
-				for (var i:int=0;i<dsLyr.visibleLayers.length;i++) if(dsLyr.visibleLayers[i] == -1) dsLyr.visibleLayers.removeItemAt(i);
-				
-				//if checked add to visible layer array
-				//else assume number is in array and remove
-				if (event.data.visibleLayer.selected == true) {				
-					
-					dsLyr.visibleLayers.addItem(event.data.data.layerID);
-					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_ON_TOC, false, false, dsLyr));
-					dsLyr.visible = true;
-				}
-				else 
-				{
-					for (var j:int=0;j<dsLyr.visibleLayers.length;j++) {
-						if(dsLyr.visibleLayers[j] == event.data.data.layerID) 
-						{
-							dsLyr.visibleLayers.removeItemAt(j); 
-							SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_OFF_TOC, false, false, dsLyr));
+					else 
+					{
+						for (var j:int=0;j<l.visibleLayers.length;j++) {
+							if(l.visibleLayers[j] == event.data.data.layerID) 
+							{
+								l.visibleLayers.removeItemAt(j); 
+								SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.VISIBLE_LAYER_TOGGLE_OFF_TOC, false, false, l));
+							}
 						}
 					}
-					dsLyr.visible = false;
+					l.refresh();
 				}
+				//Tile layer check
+				else{
+					//var dsLyrT:ArcGISTiledMapServiceLayer= returnLayerInfo(event.data.data.serviceID) as ArcGISTiledMapServiceLayer;
+					
+					if (event.data.visibleLayer.selected == true) {				
+						l.visible = true;
+					}
+					else 
+					{
+						l.visible = false;
+					}
+				}				
 			}
 			
 			private function returnLayerInfo(id:String):Layer
@@ -241,15 +243,26 @@
 			private function returnLayerInfoVisible(id:String,layID:Number):Boolean
 			{
 				var ya:Boolean = false;
-				var returnLyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(id) as ArcGISDynamicMapServiceLayer;
-				returnLyr.visible = true;
-				for (var ii:int = 0; ii<returnLyr.visibleLayers.length; ii++)
-				{
-					if(returnLyr.visibleLayers[ii] == layID){
-						ya = true;
+				var returnLyr:Layer = returnLayerInfo(id);
+				
+				if(returnLyr is ArcGISDynamicMapServiceLayer && id !== 'montauk'){
+					returnLyr.visible = true;
+					for (var ii:int = 0; ii<returnLyr.visibleLayers.length; ii++)
+					{
+						if(returnLyr.visibleLayers[ii] == layID){
+							ya = true;
+						}
+					}
+					return ya;
+				}
+				else{
+					if(returnLyr.visible == true){
+						return true;
+					}
+					else{
+						return false;
 					}
 				}
-				return ya;
 			}
 			
 			private function updateTOCState(event:TemplateEvent):void

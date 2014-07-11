@@ -1,5 +1,4 @@
 	/* Main Script for Index Page */	
-
 	import TitleWindowCustom.CustomTitleWindow;
 	
 	import com.esri.ags.events.MapEvent;
@@ -72,18 +71,13 @@
 	[Bindable]public var selectedMap:String;
 	//Get selected toc option from incoming URL
 	[Bindable]public var tocType:String;
-	//Build xml for custom toc
-	[Bindable]
-	private var customTOCXML:XML = new XML();
-	[Bindable]
-	private var propertiesXML:XML = new XML();
 	[Bindable]public var useCustomTOC:Boolean =  false;
 	
 	//Not sure wha layersForLegend does, think it can be deleted, charlie-11/03
 	[Bindable]public var layersForLegend:Array = [];
 	
 	//Array of stings(layer name + id) to check against layers in toc being built, if match make toclayer toggled as visible.
-	[Bindable]public var arrForLegend:Array = new Array;
+	//[Bindable]public var arrForLegend:Array = new Array;
 	
 	//Cursors
 	[Embed(source="assets/icons/eraser_cursor.png")]
@@ -116,13 +110,6 @@
 		
 		//Cursor Handlers
 		SiteContainer.addEventListener(TemplateEvent.UPDATE_CURSOR, updateCursor);
-		
-		var configServiceTOC:HTTPService = new HTTPService();
-		configServiceTOC.url = "xml/PropertiesNew.xml";
-		configServiceTOC.resultFormat = "e4x";
-		configServiceTOC.addEventListener(ResultEvent.RESULT, ppResult);
-		configServiceTOC.addEventListener(FaultEvent.FAULT, ppFault);	
-		//configServiceTOC.send();
 	}
 	
 	private function mapZoomChange(event:ZoomEvent):void{
@@ -148,7 +135,6 @@
 		
 		if ((currentBaseMap == "Topo") && (mainMap.level > 17)){
 			hddnStreetChckBx.selected = true;
-			//selectedMap = "Imagery Map";
 			SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.BASEMAP_TOGGLE, false, false, selectedMap));
 		}
 		if ((currentBaseMap == "Nautical") && (mainMap.level > 16)){
@@ -263,7 +249,7 @@
 	private function handleURLParams():void
 	{	
 		urlParams = getURLParameters() as String;
-		if (urlParams != null){		
+		if (urlParams != null&& urlParams !=''){
 				if (result.XY)
 				{						
 					var tempXY:String = new String(result.XY.replace(/,/g,""));				
@@ -307,78 +293,36 @@
 					for(var j:int = 0; j < lyrGrps.length; j++){					
 						var lyrGrp:Array = String(lyrGrps[j]).split("=");					
 						
-						var dsLyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(lyrGrp[0]) as ArcGISDynamicMapServiceLayer;	
-						var visibleLayers:ArrayCollection = new ArrayCollection;
-						var vizLyrArr:Array =  String(lyrGrp[1]).split(",");	
+						var layr:Layer = returnLayerInfo(lyrGrp[0]) as Layer;
 						
-						for each (var visItem in vizLyrArr){
-														
+						if(layr.id == 'montauk' || layr.id == 'ngdc')
+						{
+							layr.visible = true;
+							allDynLayers.push(layr);
+						}
+						else if(layr is ArcGISDynamicMapServiceLayer)
+						{	
+							var dsLyr:ArcGISDynamicMapServiceLayer =layr as ArcGISDynamicMapServiceLayer;	
+							var visibleLayers:ArrayCollection = new ArrayCollection;
+							var vizLyrArr:Array =  String(lyrGrp[1]).split(",");	
+							
+							for each (var visItem in vizLyrArr){
+								
 								visibleLayers.addItem(visItem); 
 								if(visItem != '9999'){
 									dsLyr.visible = true;
 								}
 								dsLyr.visibleLayers = visibleLayers;
 								var layerNameIdStr:String =  lyrGrp[0].toString() + visItem;						
-								arrForLegend.push(layerNameIdStr);											
-						}					
-						
-						allDynLayers.push(dsLyr);
+								//arrForLegend.push(layerNameIdStr);											
+							}
+							allDynLayers.push(layr);
+						}	
 					}
 					if (!result.toc){
-					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.REFRESH_TOC, false, false, arrForLegend));
+						//SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.REFRESH_TOC, false, false, arrForLegend));
 					}
 				}
-				if (result.toc)
-				{
-					tocType =  result.toc;
-					if (tocType == 'custom'){					
-						
-						customTOCXML = <toc></toc>;
-							
-						var groupNode:XML = <group></group>;
-						groupNode.@id="topGroup1"
-						groupNode.@displayName="Your MashUp Layers"
-						customTOCXML.appendChild(groupNode);
-						
-						var lyrGrpsTOC:Array = String(result.layers).split(";");				
-						lyrGrpsTOC.pop();
-						
-						for(var b:int = 0; b < lyrGrps.length; b++){					
-							var lyrGrpTOC:Array = String(lyrGrps[b]).split("=");					
-							
-							var dsLyrTOC:ArcGISDynamicMapServiceLayer = returnLayerInfo(lyrGrpTOC[0]) as ArcGISDynamicMapServiceLayer;	
-							
-							var visibleLayersTOC:ArrayCollection = new ArrayCollection;
-							var vizLyrArrTOC:Array =  String(lyrGrpTOC[1]).split(",");	
-							
-							for each (var visItemTOC in vizLyrArrTOC){								
-								
-								for (var i:int = 0; i<propertiesXML.children().length(); i++ )
-								{								
-									if((propertiesXML..PropertyPage[i].@ServiceID == dsLyrTOC.id)&&(propertiesXML..PropertyPage[i].@ViewerLayerID == visItemTOC )){
-										var tocLyrName:String = propertiesXML..PropertyPage[i].@ViewerLayerTitle;									
-									}
-								}
-								
-								if (visItemTOC != '9999'){	
-									dsLyrTOC.visible = true;
-									var newLayerNode:XML = <layer></layer>;
-									newLayerNode.@serviceID = dsLyrTOC.id;
-									newLayerNode.@layerID = visItemTOC;						
-								
-									newLayerNode.@displayName = tocLyrName;
-									newLayerNode.@visible = 'true';
-									newLayerNode.@url = dsLyrTOC.url;	
-									groupNode.appendChild(newLayerNode);
-								}
-							}							
-						}						
-					}
-					
-					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.CUSTOM_TOC, false, false, customTOCXML));
-					useCustomTOC=true;
-					SiteContainer.dispatchEvent(new TemplateEvent(TemplateEvent.REFRESH_TOC, false, false, arrForLegend));					
-				}		
 		}	
 	}
 	
@@ -445,17 +389,9 @@
 			var visibleLayersOnLoad:String = configData.configMap[i].vislayers;
 	    	
 	        switch (type.toLowerCase()) {
-				case "tiled": {
-					var tiledlayer:ArcGISTiledMapServiceLayer = new ArcGISTiledMapServiceLayer(url);
-					tiledlayer.id = label;
-					tiledlayer.visible = visible;
-					tiledlayer.alpha = alpha;
-					mainMap.addLayer(tiledlayer); 
-					break;
-				}
 				case "dynamic": {
 					var dynlayer:ArcGISDynamicMapServiceLayer = new ArcGISDynamicMapServiceLayer(url);
-					 
+					
 					//var dsLyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(lyrGrp[0]) as ArcGISDynamicMapServiceLayer;	
 					var visibleLayers:ArrayCollection = new ArrayCollection;
 					var dynVisArr:Array = visibleLayersOnLoad.split(","); 	
@@ -465,23 +401,30 @@
 						visibleLayers.addItem(visItem); 
 						dynlayer.visibleLayers = visibleLayers;
 						var layerNameIdStr:String =  url + "/" + visItem;						
-						arrForLegend.push(layerNameIdStr);											
+						//arrForLegend.push(layerNameIdStr);											
 					}					
-					
-					//allDynLayers.push(dsLyr);
 					
 					dynlayer.id = serviceID;
 					dynlayer.name = label;
 					dynlayer.visible = visible; 
 					dynlayer.alpha = alpha;				
-						
+					
 					
 					mainMap.addLayer(dynlayer);
 					//layersForLegend.push(dynlayer);
 					allDynLayers.push(dynlayer);
 					break;
 				}
-			case "image": {
+				case "tiled": {
+					var tiledlayer:ArcGISTiledMapServiceLayer = new ArcGISTiledMapServiceLayer(url);
+					tiledlayer.id = label;
+					tiledlayer.visible = visible;
+					tiledlayer.alpha = alpha;
+					mainMap.addLayer(tiledlayer); 
+					break;
+				}
+				
+				case "image": {
 					var imagelayer:ArcGISImageServiceLayer = new ArcGISImageServiceLayer(url);
 					imagelayer.id = label;
 					imagelayer.visible = visible;
@@ -622,12 +565,3 @@
 		//var disclaimer:disclaimerTitleWindow =  disclaimerTitleWindow(PopUpManager.createPopUp(this, disclaimerTitleWindow, true));
 	}*/
 	
-	protected function ppResult(event:ResultEvent):void
-	{
-		propertiesXML = event.result as XML;				
-	}
-	
-	protected function ppFault(event:FaultEvent):void
-	{
-		Alert.show("Error reading in Properties Page XML");
-	} 

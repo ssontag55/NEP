@@ -1,16 +1,5 @@
 ﻿<?xml version="1.0" ?>
 <!--
-////////////////////////////////////////////////////////////////////////////////
-//
-// Copyright © 2008 ESRI
-//
-// All rights reserved under the copyright laws of the United States.
-// You may freely redistribute and use this software, with or
-// without modification, provided you include the original copyright
-// and use restrictions.  See use restrictions in the file:
-// <install location>/FlexViewer/License.txt
-//
-////////////////////////////////////////////////////////////////////////////////
 -->
 <configuration>
 	<!--mapservice must be specified, and is the label of the layer (Map Service) as 
@@ -21,12 +10,9 @@
 		<excludeLayer mapservice="Homeland Security Operations">0,1</excludeLayer>
 	-->
 	<excludeLayers>
-	
-		<excludeLayer mapservice="Parcel Data (1234 - 78)"></excludeLayer>
 		<excludeLayer mapservice="Boundaries and Places"></excludeLayer>
 		<excludeLayer mapservice="Streets"></excludeLayer>
 		<excludeLayer mapservice="Ocean_Basemap"></excludeLayer>
-		
 	</excludeLayers>
 	<excludeGraphicLayers>true</excludeGraphicLayers>
 </configuration>

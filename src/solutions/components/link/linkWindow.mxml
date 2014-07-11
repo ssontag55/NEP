@@ -145,16 +145,30 @@
 								noGrpLyrVizArr.push(vizItem);
 							}
 						}
-						Alert.show(noGrpLyrVizArr.toString()); */
-											
+						*/
+						
 						var dynLyrId:String =  dynLyr.id;
 						var dynLyrVis:String = dynLyr.visibleLayers.toArray().toString();
 						
-						var visLyrString:String = dynLyrId + "=" + dynLyrVis + ";";
-						//Alert.show(visLyrString);
-						 myVisLayers = myVisLayers.concat(visLyrString);
+						if(dynLyr.id == 'montauk' && dynLyr.visible == true){
+							var visLyrString:String = dynLyrId + "=0;";
+							myVisLayers = myVisLayers.concat(visLyrString);
+						}
+						else if(dynLyr.id == 'montauk' && dynLyr.visible == false){
+							//do nothing
+						}
+						else{
+							var visLyrString:String = dynLyrId + "=" + dynLyrVis + ";";
+							myVisLayers = myVisLayers.concat(visLyrString);
+						}
 					}
-					
+					//added for tilecaches
+					else if(layerObj.visible == true) {
+						var dynLyrId:String =  layerObj.id;
+						
+						var visLyrString:String = dynLyrId + "=0;";
+						myVisLayers = myVisLayers.concat(visLyrString);
+					}
 				}
 				var urlString:String = BrowserManager.getInstance().base;				
 				if(urlString.search("HereIsMyMap")>-1){
