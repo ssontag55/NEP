@@ -34,6 +34,7 @@
 			[Bindable]public var _selectedLayerObject:Object;
 			[Bindable]public var mExtent:Extent = new Extent;
 			[Bindable]public var zoomToString:String = "";
+			[Bindable]public var zoomScaleString:String = "";
 			
 			[Bindable]private var _selectedLayerDetails:LayerDetails;
 			
@@ -129,6 +130,7 @@
 				var lyrArray:Array = [];
 				lyrArray.push(dsLyr);	
 				zoomToString = _selectedLayerObject.zoomTo;
+				zoomScaleString = _selectedLayerObject.zoomScale;
 				
 				mExtent = dsLyr.layerDetails.extent;
 				
@@ -137,7 +139,12 @@
 					var mapPointGeo:WebMercatorMapPoint = new WebMercatorMapPoint(latLongArray[1],latLongArray[0]);
 					var mapPointWM:MapPoint = new MapPoint(mapPointGeo.x, mapPointGeo.y);
 					mExtent = mExtent.centerAt(mapPointWM);
-					mExtent = mExtent.expand(2.5);
+					if(zoomScaleString != ""){
+						mExtent = mExtent.expand(Number(zoomScaleString));
+					}
+					else{
+						mExtent = mExtent.expand(2.5);	
+					}
 				}
 				
 				layerLegend.map = _map;

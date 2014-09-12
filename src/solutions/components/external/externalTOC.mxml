@@ -602,7 +602,7 @@
 				}
 			}
 			
-			function addserviceInfoMET(event:ResultEvent):void
+			private function addserviceInfoMET(event:ResultEvent):void
 			{	
 				var result:String = String(event.result);
 				var resultLine:Array = result.split("\n");

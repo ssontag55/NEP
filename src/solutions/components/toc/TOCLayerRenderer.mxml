@@ -27,11 +27,14 @@
 				SiteContainer.addEventListener(TemplateEvent.VISIBLE_LAYER_TOGGLE, checkLayer);
 				SiteContainer.addEventListener(TemplateEvent.CLEAR_LAYERS, unCheckLayer);
 				
+				/* 
+				This is for the old way of showing the bold text for categories
+				now we're showing the groups in dropdown levels*/
 				if(data.groupText != ''){
 					this.height = 38;
 					mainGroup.height = 38;
 					textGroup.setStyle("paddingBottom",7);
-				}
+				} 
 				if(data.minscale != 0 && data.minscale < tocMap.scale){
 					layername.width = 155;
 				}
@@ -144,8 +147,7 @@
 		
 	<s:HGroup gap="3" left="20" id="mainGroup" verticalAlign="middle" verticalCenter="0" height="27">
 		<s:VGroup paddingBottom="1">
-			<s:Label paddingLeft="-11" width="250" paddingTop="8" fontWeight="bold" text="{data.groupText}" fontSize="10" color="black" visible="{data.groupText!= ''}" includeInLayout="{data.groupText!= ''}" />
-			
+			<s:Label paddingLeft="-11" width="250" paddingTop="8" fontWeight="bold" text="{data.groupText}" fontSize="10" color="black" visible="{data.groupText!= ''}" includeInLayout="{data.groupText!= ''}" />		
 			<s:HGroup height="27" width="250" verticalAlign="middle" paddingTop="-6" horizontalAlign="left" id="textGroup">
 				<s:HGroup width="175">
 					<s:CheckBox id="visibleLayer" width="14" toolTip="Turn Layer On/Off" enabled="{data.minscale == 0 || data.minscale &#62; tocMap.scale}"

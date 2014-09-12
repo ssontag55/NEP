@@ -293,18 +293,23 @@
 								webService: propertiesXML..PropertyPage[i].@ServiceLink,
 								references: propertiesXML..PropertyPage[i].@AdditionalInformation,
 								zoomTo: propertiesXML..PropertyPage[i].@zoomto,
+								zoomScale: propertiesXML..PropertyPage[i].@zoomscale,
 								referencesAlias: propertiesXML..PropertyPage[i].@AdditionalInformationAlias
 							}
 							sendDetailsToLayerComp1(objDetails);
 						}	
-					} 					
-					var lyr:ArcGISDynamicMapServiceLayer = returnLayerInfo(event.data.layer.serviceID) as ArcGISDynamicMapServiceLayer;
+					} 		
 					
-					var dT:DetailsTask = new DetailsTask(lyr.url);
-					dT.addEventListener(DetailsEvent.GET_DETAILS_COMPLETE, dTDone);
-					dT.getDetails(event.data.layer.layerID);
+					var returnLyr:Layer = returnLayerInfo(event.data.layer.serviceID);
 					
-					this.currentState = 'layer';
+					if(returnLyr is Layer && id !== 'montauk'){
+						var dT:DetailsTask = new DetailsTask(returnLyr.url);
+						dT.addEventListener(DetailsEvent.GET_DETAILS_COMPLETE, dTDone);
+						dT.getDetails(event.data.layer.layerID);
+						
+						this.currentState = 'layer';
+					}					
+					
 				}
 			}
 			

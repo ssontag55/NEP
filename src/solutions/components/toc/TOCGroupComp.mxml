@@ -26,6 +26,8 @@
 			[Bindable]
 			public var expand:Boolean = false;
 			[Bindable]
+			public var includesGroups:Boolean = false;
+			[Bindable]
 			public var mainMap:Map;
 			[Bindable]
 			public var showTransparency:Boolean = true;
@@ -83,10 +85,21 @@
 				//loop through vertGroup elements and find the group
 				for (var i:int = 0; i<parentGroup.numChildren; i++) {
 					if (parentGroup.getElementAt(i) == this) {
-						//add 1 to get the list after the group and make it visible or not
-						parentGroup.getElementAt(i + 1).includeInLayout = !parentGroup.getElementAt(i + 1).includeInLayout;
-						parentGroup.getElementAt(i + 1).visible = !parentGroup.getElementAt(i + 1).visible;
-						break;
+						if(includesGroups == true){
+							for (var g:int = 0; g<this.numChildren; t++) {
+								if(this.getElementAt(g) is TOCGroupComp){
+									this.getElementAt(g).includeInLayout = !this.getElementAt(g).includeInLayout;
+									this.getElementAt(g).visible = !this.getElementAt(g).visible;
+								}	
+							}
+						}
+						else{
+							//add 1 to get the list after the group and make it visible or not
+							parentGroup.getElementAt(i + 1).includeInLayout = !parentGroup.getElementAt(i + 1).includeInLayout;
+							parentGroup.getElementAt(i + 1).visible = !parentGroup.getElementAt(i + 1).visible;
+							break;
+						}
+						
 					}
 				}
 			}
