@@ -28,7 +28,7 @@
 		<layer name="BOEM Ocean Use Layers" url="http://gis.boemre.gov/arcgis/rest/services/BOEM_BSEE/MMC_Layers/MapServer"/>
 	</boem>
 	<cadastre>
-		<layer name="Marine Jurisdictions" url="http://csc.noaa.gov/arcgis/rest/services/MarineCadastre/NationalViewer/MapServer"/>
+		<layer name="Marine Jurisdictions" url="http://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NationalViewer/MapServer"/>
 	</cadastre>
 	<nhsmocean>
 		<layer name="NHME Ocean Atlas" url="http://egisws02.nos.noaa.gov/ArcGIS/rest/services/OUA/NHME_ocean_uses_atlas/MapServer"/>

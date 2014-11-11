@@ -295,7 +295,7 @@
 						
 						var layr:Layer = returnLayerInfo(lyrGrp[0]) as Layer;
 						
-						if(layr.id == 'montauk' || layr.id == 'ngdc')
+						if(layr.id == 'montauk' || layr.id == 'ngdc'|| layr.id == 'seclands')
 						{
 							layr.visible = true;
 							allDynLayers.push(layr);

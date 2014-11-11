@@ -150,11 +150,11 @@
 						var dynLyrId:String =  dynLyr.id;
 						var dynLyrVis:String = dynLyr.visibleLayers.toArray().toString();
 						
-						if(dynLyr.id == 'montauk' && dynLyr.visible == true){
+						if((dynLyr.id == 'montauk' || dynLyr.id == "seclands") && dynLyr.visible == true){
 							var visLyrString:String = dynLyrId + "=0;";
 							myVisLayers = myVisLayers.concat(visLyrString);
 						}
-						else if(dynLyr.id == 'montauk' && dynLyr.visible == false){
+						else if((dynLyr.id == 'montauk' || dynLyr.id == "seclands") && dynLyr.visible == false){
 							//do nothing
 						}
 						else{
