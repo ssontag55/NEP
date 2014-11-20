@@ -183,7 +183,7 @@
 			{
 				var l:Layer = returnLayerInfo(event.data.data.serviceID);
 				
-				if(l is ArcGISDynamicMapServiceLayer && (event.data.data.serviceID != "montauk" || event.data.data.serviceID  !="seclands")){
+				if(l is ArcGISDynamicMapServiceLayer && event.data.data.serviceID != 'montauk'){
 					for each (var lyrInfo:LayerInfo in l.layerInfos){
 						var grpLayer:Boolean;
 						grpLayer = false;
@@ -245,7 +245,7 @@
 				var ya:Boolean = false;
 				var returnLyr:Layer = returnLayerInfo(id);
 				
-				if(returnLyr is ArcGISDynamicMapServiceLayer && (id != 'montauk' || id !="seclands")){
+				if(returnLyr is ArcGISDynamicMapServiceLayer && (id != 'montauk' || returnLayer.id !="seclands")){
 					returnLyr.visible = true;
 					for (var ii:int = 0; ii<returnLyr.visibleLayers.length; ii++)
 					{
@@ -302,21 +302,19 @@
 					
 					var returnLyr:Layer = returnLayerInfo(event.data.layer.serviceID);
 					
-					if(returnLyr is Layer && id != 'montauk'&& id !="seclands"){
+					if(returnLyr is Layer){
 						var dT:DetailsTask = new DetailsTask(returnLyr.url);
 						dT.addEventListener(DetailsEvent.GET_DETAILS_COMPLETE, dTDone);
 						dT.getDetails(event.data.layer.layerID);
-						
-						this.currentState = 'layer';
-					}					
-					
+					}	
+					this.currentState = 'layer';
 				}
 			}
 			
 			private function dTDone(event:DetailsEvent):void
 			{
 				var l:LayerDetails= event.layerDetails;
-				if(l.type == "Raster Layer"){
+				if(l.type == "Raster Layer" || l.type == "Group Layer"){
 					layerDetails.selectedLayerDetails = l;
 					layerDetails._selectedLayerObject = objDetails;
 				}
